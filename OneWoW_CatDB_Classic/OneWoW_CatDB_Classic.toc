@@ -1,5 +1,5 @@
 ## Interface: 120105
-## Version: R6.2609.3014
+## Version: R6.2610.1510
 ## Title: OneWoW - Data: |cFFFFFFFFClassic|r
 ## Notes: OneWoW Catalog data for Classic.
 ## Author: OneWoW Dev Team

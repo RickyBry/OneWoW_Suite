@@ -28,6 +28,11 @@
 #### Shipments
 - Each shipment has an Other realms choice under the target. Send is unchanged. Cancel shipment sends nothing when someone outside this realm group cannot take the whole letter, and Activity says who. Warbound items only still mails this realm group in full, and mails Warbound items to your alts on other realms.
 
+---
+
+### Catalog
+- Quest list includes quests added in the latest retail update.
+
 ## R6.2609.1519
 
 Released Sep 16, 2026. Per-expansion Catalog packs with Collectibles, Housing, and NPCs, ESC and AFK Character and Zone cards, Shopping List Farming, and OneWay Pins.

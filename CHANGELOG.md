@@ -5,8 +5,13 @@
 
 ---
 
-*No user-facing changes this release for Notes, AltTracker, Catalog, Trackers, QoL, Direct Deposit, Shopping List, Mail, Bags, or DevTool.*
+# Catalog
+- Quest list includes quests added in the latest retail update.
 
 ---
 
-- **Last Updated**: Oct 2, 2026
+*No user-facing changes this release for Notes, AltTracker, Trackers, QoL, Direct Deposit, Shopping List, Mail, Bags, or DevTool.*
+
+---
+
+- **Last Updated**: Oct 15, 2026
