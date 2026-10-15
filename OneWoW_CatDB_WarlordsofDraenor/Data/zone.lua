@@ -2584,6 +2584,7 @@ encounters={
 			{itemID=109886,diffs={8},faction=-1},
 			{itemID=110019,diffs={8},faction=-1},
 			{itemID=119173,diffs={8},faction=-1},
+			{itemID=284194,diffs={},faction=-1},
 		},
 	},
 	[1214]={

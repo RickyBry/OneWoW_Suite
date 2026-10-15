@@ -733,7 +733,6 @@ r[247848] = {
     lo = 1,
     hi = 1,
     next = 247849,
-    taught = 151860,
     learn = "quest",
     quest = 48034,
 }
@@ -749,7 +748,6 @@ r[247849] = {
     hi = 1,
     prev = 247848,
     next = 247850,
-    taught = 151861,
     learn = "quest",
     quest = 48035,
 }
@@ -764,7 +762,6 @@ r[247850] = {
     lo = 1,
     hi = 1,
     prev = 247849,
-    taught = 151862,
     learn = "quest",
     quest = 48036,
 }
@@ -779,7 +776,6 @@ r[247851] = {
     lo = 1,
     hi = 1,
     next = 247852,
-    taught = 151863,
     learn = "quest",
     quest = 48037,
 }
@@ -795,7 +791,6 @@ r[247852] = {
     hi = 1,
     prev = 247851,
     next = 247853,
-    taught = 151864,
     learn = "quest",
     quest = 48038,
 }
@@ -810,7 +805,6 @@ r[247853] = {
     lo = 1,
     hi = 1,
     prev = 247852,
-    taught = 151865,
     learn = "quest",
     quest = 48039,
 }
@@ -914,7 +908,6 @@ r[253340] = {
     min = 1,
     prev = 253339,
     next = 253341,
-    taught = 161078,
     learn = "quest",
     quest = 52044,
 }
@@ -966,7 +959,6 @@ r[253344] = {
     exp = "Classic",
     min = 1,
     prev = 253343,
-    taught = 160905,
     learn = "quest",
     quest = 48767,
     map = 1165,
@@ -1467,7 +1459,6 @@ r[296143] = {
     min = 1,
     hi = 175,
     prev = 296144,
-    taught = 168954,
     learn = "quest",
     quest = 56126,
 }
@@ -1507,7 +1498,6 @@ r[296147] = {
     min = 1,
     hi = 175,
     prev = 296148,
-    taught = 168939,
     learn = "quest",
     quest = 56103,
 }

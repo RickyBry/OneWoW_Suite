@@ -350,7 +350,6 @@ r[193298] = {
     exp = "Legion",
     min = 1,
     next = 193299,
-    taught = 129119,
     learn = "quest",
     quest = 40024,
     cost = {124103, 20},
@@ -378,7 +377,6 @@ r[193300] = {
     exp = "Legion",
     min = 1,
     prev = 193299,
-    taught = 129278,
     learn = "quest",
     quest = 40028,
 }
@@ -391,7 +389,6 @@ r[193301] = {
     exp = "Legion",
     min = 1,
     next = 193302,
-    taught = 129120,
     learn = "quest",
     quest = 40029,
     cost = {124104, 20},
@@ -474,7 +471,6 @@ r[193307] = {
     exp = "Legion",
     min = 1,
     next = 193308,
-    taught = 129122,
     learn = "quest",
     quest = 40040,
 }
@@ -514,7 +510,6 @@ r[247812] = {
     exp = "Legion",
     min = 1,
     next = 247813,
-    taught = 151856,
     learn = "quest",
     quest = 48027,
 }
@@ -528,7 +523,6 @@ r[247813] = {
     min = 1,
     prev = 247812,
     next = 247814,
-    taught = 151857,
     learn = "quest",
     quest = 48028,
 }
@@ -541,7 +535,6 @@ r[247814] = {
     exp = "Legion",
     min = 1,
     prev = 247813,
-    taught = 151858,
     learn = "quest",
     quest = 48029,
 }
@@ -666,7 +659,6 @@ r[252413] = {
     exp = "BattleForAzeroth",
     min = 1,
     prev = 252412,
-    taught = 160117,
     learn = "quest",
     quest = 51404,
 }
@@ -706,7 +698,6 @@ r[252417] = {
     exp = "BattleForAzeroth",
     min = 1,
     prev = 252416,
-    taught = 160064,
     learn = "quest",
     quest = 48763,
 }
@@ -883,7 +874,6 @@ r[298144] = {
     min = 1,
     hi = 175,
     prev = 298143,
-    taught = 168919,
     learn = "quest",
     quest = 56098,
 }

@@ -179,7 +179,6 @@ r[194167] = {
     exp = "Classic",
     min = 1,
     next = 194168,
-    taught = 129863,
     learn = "quest",
     npc = 103675,
     quest = 40156,
@@ -289,7 +288,6 @@ r[247842] = {
     exp = "Classic",
     min = 1,
     next = 247843,
-    taught = 151866,
     learn = "quest",
     quest = 48040,
 }
@@ -303,7 +301,6 @@ r[247843] = {
     min = 1,
     prev = 247842,
     next = 247844,
-    taught = 151867,
     learn = "quest",
     quest = 48041,
 }
@@ -316,7 +313,6 @@ r[247844] = {
     exp = "Classic",
     min = 1,
     prev = 247843,
-    taught = 151868,
     learn = "quest",
     quest = 48042,
 }
@@ -355,7 +351,6 @@ r[257148] = {
     exp = "Classic",
     min = 1,
     prev = 257147,
-    taught = 161431,
     learn = "quest",
     quest = 52213,
 }
@@ -589,7 +584,6 @@ r[302011] = {
     min = 1,
     hi = 175,
     prev = 302010,
-    taught = 169775,
     learn = "quest",
     quest = 56562,
 }
@@ -629,7 +623,6 @@ r[302016] = {
     min = 1,
     hi = 175,
     prev = 302015,
-    taught = 169767,
     learn = "quest",
     quest = 56565,
 }
