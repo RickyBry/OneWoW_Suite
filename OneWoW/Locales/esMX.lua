@@ -224,6 +224,10 @@ ns.Locale:Register(ADDON_NAME, "esMX", {
     ["WHATS_NEW_H_QUESTAUTO_TITLE"] = "QoL - Automatización de misiones",
     ["WHATS_NEW_H_QUESTAUTO_BODY"] = "La automatización de misiones puede exigir MAYÚS, CTRL o ALT antes de la autoaceptación, la entrega o el diálogo de misión. Si la dejas desactivada, mantener esa tecla omite esas acciones, incluida la entrega.",
     ["WHATS_NEW_H_SHIPMENTS_BODY"] = "Cada envío tiene la opción Otros reinos bajo el destino. Enviar no cambia. Cancelar el envio no envía nada si alguien fuera de este grupo de reinos no puede recibir la carta completa, y Actividad dice quién. Solo objetos de la banda guerrera sigue enviando la carta completa a este grupo de reinos y objetos de la banda guerrera a tus personajes de otros reinos.",
+    -- machine-drafted
+    ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "La lista de misiones incluye las misiones añadidas en la última actualización.",
+    ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Diálogos de misión",
+    ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Los diálogos de misión ya no muestran un error cuando Catalog está desactivado.",
     ["CMD_TOGGLE_ONEWOW"] = "Alternar OneWoW",
     ["CMD_KEYWORD_HELP"] = "Abrir la ayuda de palabras clave de búsqueda",
     ["CMD_OPEN_ALTTRACKER"] = "Abrir AltTracker",

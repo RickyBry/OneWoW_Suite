@@ -223,6 +223,10 @@ ns.Locale:Register(ADDON_NAME, "zhCN", {
     ["WHATS_NEW_H_QUESTAUTO_TITLE"] = "QoL - 任务自动化",
     ["WHATS_NEW_H_QUESTAUTO_BODY"] = "任务自动化可以在自动接受、交付或任务对话执行前要求 SHIFT、CTRL 或 ALT。关闭后，按住该键会跳过这些操作，包括交付。",
     ["WHATS_NEW_H_SHIPMENTS_BODY"] = "每笔发货的目标下方都有其他服务器选项。发送不变。如果此服务器组之外有人无法收下整封信，取消发货就不会寄出任何东西，活动会写出是谁。仅战团物品仍会把整封信寄给此服务器组，并把战团物品寄给你在其他服务器上的角色。",
+    -- machine-drafted
+    ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "任务列表包含最新正式服更新加入的任务。",
+    ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "任务对话",
+    ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "关闭 Catalog 后，任务对话不再报错。",
     ["CMD_TOGGLE_ONEWOW"] = "切换 OneWoW",
     ["CMD_KEYWORD_HELP"] = "打开搜索关键词帮助",
     ["CMD_OPEN_ALTTRACKER"] = "打开 AltTracker",

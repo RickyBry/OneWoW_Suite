@@ -223,6 +223,10 @@ ns.Locale:Register(ADDON_NAME, "deDE", {
     ["WHATS_NEW_H_QUESTAUTO_TITLE"] = "QoL - Quest-Automatisierung",
     ["WHATS_NEW_H_QUESTAUTO_BODY"] = "Quest-Automatisierung kann UMSCHALT, STRG oder ALT verlangen, bevor Auto-Annahme, Abgabe oder Quest-Gespräch laufen. Bleibt sie aus, überspringt das Halten dieser Taste diese Aktionen, auch die Abgabe.",
     ["WHATS_NEW_H_SHIPMENTS_BODY"] = "Jede Sendung hat unter dem Ziel die Wahl Andere Realms. Senden bleibt unverändert. Sendung abbrechen sendet nichts, wenn jemand außerhalb dieser Realm-Gruppe den ganzen Brief nicht annehmen kann, und Aktivität nennt wen. Nur Kriegsmeute-Gegenstaende schickt dieser Realm-Gruppe weiterhin den ganzen Brief und Kriegsmeute-Gegenstände an Eure Charaktere auf anderen Realms.",
+    -- machine-drafted
+    ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "Die Questliste enthält die Quests aus dem neuesten Retail-Update.",
+    ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Questdialoge",
+    ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Questdialoge melden keinen Fehler mehr, wenn Catalog ausgeschaltet ist.",
     ["CMD_TOGGLE_ONEWOW"] = "OneWoW umschalten",
     ["CMD_KEYWORD_HELP"] = "Hilfe zu Suchbegriffen öffnen",
     ["CMD_OPEN_ALTTRACKER"] = "AltTracker öffnen",

@@ -223,6 +223,10 @@ ns.Locale:Register(ADDON_NAME, "koKR", {
     ["WHATS_NEW_H_QUESTAUTO_TITLE"] = "QoL - 퀘스트 자동화",
     ["WHATS_NEW_H_QUESTAUTO_BODY"] = "퀘스트 자동화는 자동 수락, 완료 보고, 퀘스트 대화가 실행되기 전에 SHIFT, CTRL 또는 ALT를 요구할 수 있습니다. 끄면 그 키를 누르고 있는 동안 완료 보고를 포함한 해당 동작이 건너뛰어집니다.",
     ["WHATS_NEW_H_SHIPMENTS_BODY"] = "각 배송의 대상 아래에 다른 서버 선택이 있습니다. 보내기는 그대로입니다. 배송 취소는 이 서버 그룹 밖에서 편지 전체를 받을 수 없는 사람이 있으면 아무것도 보내지 않고, 활동에 이름이 남습니다. 전투부대 아이템만은 이 서버 그룹에 편지 전체를 보내고, 다른 서버의 캐릭터에게는 전투부대 아이템을 보냅니다.",
+    -- machine-drafted
+    ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "퀘스트 목록에 최신 정식 서버 업데이트로 추가된 퀘스트가 포함됩니다.",
+    ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "퀘스트 대화",
+    ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Catalog를 꺼도 퀘스트 대화에서 오류가 나지 않습니다.",
     ["CMD_TOGGLE_ONEWOW"] = "OneWoW 전환",
     ["CMD_KEYWORD_HELP"] = "검색 키워드 도움말 열기",
     ["CMD_OPEN_ALTTRACKER"] = "AltTracker 열기",

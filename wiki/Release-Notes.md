@@ -2,36 +2,21 @@
 
 - **Status**: Draft
 
-### Fixes
+#### Fixes
 - Quest dialogs no longer report an error when Catalog is turned off.
-- Button and label text shows the first time a window opens, including What's New and Patron orders, instead of staying blank until that font has been used once.
-
----
-
-### QoL
-#### Crafting Orders
-- You Provide shows reagents you already have. Check Only show mats I still need to hide them.
-- The Gold column can show gold only. Hover a row for silver and copper. The option is under Columns.
-
-#### ESC Menu Panel
-- Character Card can show gold only, without silver or copper. The option is under Character Card in ESC Menu Panel settings.
-
-#### Quest Tools
-- Quest Automation can require Shift, Ctrl, or Alt before auto-accept, turn-in, or quest gossip runs. Leave it off and holding that key skips those actions, including turn-in.
-
-#### Waypoints
-- Waypoint arrow (QoL, Waypoints) chooses where a click sends a coordinate: the Blizzard map pin, or TomTom when that addon is enabled. TomTom shows Not Detected until it is loaded. The same choice covers tracker steps, OneWay Pins, vendors, NPCs, and hearth.
-
----
-
-### Mail
-#### Shipments
-- Each shipment has an Other realms choice under the target. Send is unchanged. Cancel shipment sends nothing when someone outside this realm group cannot take the whole letter, and Activity says who. Warbound items only still mails this realm group in full, and mails Warbound items to your alts on other realms.
 
 ---
 
 ### Catalog
 - Quest list includes quests added in the latest retail update.
+
+---
+
+*No user-facing changes this release for Notes, AltTracker, Trackers, QoL, Direct Deposit, Shopping List, Mail, Bags, or DevTool.*
+
+---
+
+- **Last Updated**: Oct 15, 2026
 
 ## R6.2609.1519
 

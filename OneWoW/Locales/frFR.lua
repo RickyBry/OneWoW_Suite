@@ -223,6 +223,10 @@ ns.Locale:Register(ADDON_NAME, "frFR", {
     ["WHATS_NEW_H_QUESTAUTO_TITLE"] = "QoL - Automatisation des quêtes",
     ["WHATS_NEW_H_QUESTAUTO_BODY"] = "L'automatisation des quêtes peut exiger MAJ, CTRL ou ALT avant l'acceptation automatique, le rendu ou le dialogue de quête. Laissez-la désactivée : maintenir cette touche ignore ces actions, y compris le rendu.",
     ["WHATS_NEW_H_SHIPMENTS_BODY"] = "Chaque envoi propose Autres royaumes sous la cible. Envoyer ne change pas. Annuler l'envoi n'envoie rien quand quelqu'un hors de ce groupe de royaumes ne peut pas recevoir la lettre entière, et Activité indique qui. Objets du bataillon seulement envoie toujours la lettre entière à ce groupe de royaumes, et les objets du bataillon à vos personnages sur d'autres royaumes.",
+    -- machine-drafted
+    ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "La liste des quêtes inclut les quêtes ajoutées avec la dernière mise à jour.",
+    ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Dialogues de quête",
+    ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Les dialogues de quête ne signalent plus d'erreur lorsque Catalog est désactivé.",
     ["CMD_TOGGLE_ONEWOW"] = "Basculer OneWoW",
     ["CMD_KEYWORD_HELP"] = "Ouvrir l'aide des mots-clés de recherche",
     ["CMD_OPEN_ALTTRACKER"] = "Ouvrir AltTracker",

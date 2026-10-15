@@ -223,6 +223,10 @@ ns.Locale:Register(ADDON_NAME, "ptBR", {
     ["WHATS_NEW_H_QUESTAUTO_TITLE"] = "QoL - Automação de missões",
     ["WHATS_NEW_H_QUESTAUTO_BODY"] = "A automação de missões pode exigir SHIFT, CTRL ou ALT antes da aceitação automática, da entrega ou do diálogo de missão. Se ficar desligada, segurar essa tecla ignora essas ações, inclusive a entrega.",
     ["WHATS_NEW_H_SHIPMENTS_BODY"] = "Cada envio tem a opção Outros reinos sob o destino. Enviar não muda. Cancelar o envio não envia nada quando alguém fora deste grupo de reinos não pode receber a carta inteira, e Atividade diz quem. So itens do Bando de Guerra continua enviando a carta inteira a este grupo de reinos e itens do Bando de Guerra aos seus personagens em outros reinos.",
+    -- machine-drafted
+    ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "A lista de missões inclui as missões adicionadas na última atualização.",
+    ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Diálogos de missão",
+    ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Os diálogos de missão não mostram mais um erro quando Catalog está desligado.",
     ["CMD_TOGGLE_ONEWOW"] = "Alternar OneWoW",
     ["CMD_KEYWORD_HELP"] = "Abrir a ajuda de palavras-chave de busca",
     ["CMD_OPEN_ALTTRACKER"] = "Abrir AltTracker",

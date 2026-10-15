@@ -223,6 +223,10 @@ ns.Locale:Register(ADDON_NAME, "zhTW", {
     ["WHATS_NEW_H_QUESTAUTO_TITLE"] = "QoL - 任務自動化",
     ["WHATS_NEW_H_QUESTAUTO_BODY"] = "任務自動化可以在自動接受、繳交或任務對話執行前要求 SHIFT、CTRL 或 ALT。關閉後，按住該鍵會跳過這些操作，包括繳交。",
     ["WHATS_NEW_H_SHIPMENTS_BODY"] = "每筆出貨的目標下方都有其他伺服器選項。寄送不變。如果此伺服器群組之外有人無法收下整封信，取消出貨就不會寄出任何東西，活動會寫出是誰。僅戰隊物品仍會把整封信寄給此伺服器群組，並把戰隊物品寄給你在其他伺服器上的角色。",
+    -- machine-drafted
+    ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "任務列表包含最新正式服更新加入的任務。",
+    ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "任務對話",
+    ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "關閉 Catalog 後，任務對話不再報錯。",
     ["CMD_TOGGLE_ONEWOW"] = "切換 OneWoW",
     ["CMD_KEYWORD_HELP"] = "開啟搜尋關鍵字說明",
     ["CMD_OPEN_ALTTRACKER"] = "開啟 AltTracker",

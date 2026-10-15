@@ -223,6 +223,10 @@ ns.Locale:Register(ADDON_NAME, "itIT", {
     ["WHATS_NEW_H_QUESTAUTO_TITLE"] = "QoL - Automazione missioni",
     ["WHATS_NEW_H_QUESTAUTO_BODY"] = "L'automazione missioni può richiedere MAIUSC, CTRL o ALT prima di accettazione automatica, consegna o dialogo missione. Se è disattivata, tenere premuto quel tasto salta queste azioni, inclusa la consegna.",
     ["WHATS_NEW_H_SHIPMENTS_BODY"] = "Ogni spedizione ha la scelta Altri reami sotto il bersaglio. Inviare non cambia. Annulla la spedizione non invia nulla se qualcuno fuori da questo gruppo di reami non può ricevere la lettera intera, e Attività indica chi. Solo oggetti della Brigata continua a inviare la lettera intera a questo gruppo di reami e oggetti della Brigata ai tuoi personaggi su altri reami.",
+    -- machine-drafted
+    ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "L'elenco delle missioni include le missioni aggiunte nell'ultimo aggiornamento.",
+    ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Dialoghi missione",
+    ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "I dialoghi delle missioni non segnalano più un errore quando Catalog è disattivato.",
     ["CMD_TOGGLE_ONEWOW"] = "Attiva/disattiva OneWoW",
     ["CMD_KEYWORD_HELP"] = "Apri l'aiuto sulle parole chiave di ricerca",
     ["CMD_OPEN_ALTTRACKER"] = "Apri AltTracker",
