@@ -1,4 +1,4 @@
-## Interface: 120100
+## Interface: 120105
 ## Version: R6.2609.3014
 ## Title: OneWoW - Data: |cFFFFFFFFEndgame|r
 ## Notes: OneWoW Data Addon that: tracks Mythic+, Raids, Great Vault, PVP, and endgame progression for all your characters.
