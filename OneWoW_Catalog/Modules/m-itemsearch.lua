@@ -2,63 +2,24 @@ local _, ns = ...
 
 local pairs, ipairs = pairs, ipairs
 local tinsert, sort, wipe = tinsert, sort, wipe
-local C_Item, C_TradeSkillUI = C_Item, C_TradeSkillUI
+local C_Item = C_Item
 
 ns.ItemSearch = {}
 local ItemSearch = ns.ItemSearch
 
+-- RecipeKnownUtil resolves item -> recipe IDs (saved map, teach spell) without
+-- walking every stored recipe through C_TradeSkillUI.
 local function GetRecipeKnownByFromAltTracker(itemID)
     local profsAPI = OneWoW_AltTracker_Professions_API
     if not profsAPI then return nil end
-    local profChars = profsAPI.GetAllCharacters()
-
-    local recipeItemMap = profsAPI.GetRecipeItemMap()
-    local recipeSpellID
-    if recipeItemMap and recipeItemMap[itemID] then
-        recipeSpellID = recipeItemMap[itemID]
-    end
-
-    if not recipeSpellID then
-        local _, spellID = C_Item.GetItemSpell(itemID)
-        if spellID then recipeSpellID = spellID end
-    end
 
     local knownBy = {}
-    local seen = {}
-
-    if recipeSpellID then
-        for charKey, charData in pairs(profChars) do
-            if charData.recipes then
-                for _, recipeSet in pairs(charData.recipes) do
-                    if recipeSet[recipeSpellID] and not seen[charKey] then
-                        seen[charKey] = true
-                        tinsert(knownBy, charKey)
-                    end
-                end
-            end
-        end
-    end
-
-    if #knownBy == 0 then
-        local itemName = C_Item.GetItemNameByID(itemID)
-        if itemName then
-            local craftedName = itemName:match("^%S+:%s*(.+)$") or itemName
-            for charKey, charData in pairs(profChars) do
-                if charData.recipes and not seen[charKey] then
-                    for _, recipeSet in pairs(charData.recipes) do
-                        for storedID in pairs(recipeSet) do
-                            local info = C_TradeSkillUI.GetRecipeInfo(storedID)
-                            if info and info.name == craftedName then
-                                profsAPI.SetRecipeItemMapEntry(itemID, storedID)
-                                if not seen[charKey] then
-                                    seen[charKey] = true
-                                    tinsert(knownBy, charKey)
-                                end
-                                break
-                            end
-                        end
-                        if seen[charKey] then break end
-                    end
+    for charKey, charData in pairs(profsAPI.GetAllCharacters()) do
+        if charData.recipes then
+            for _, recipeSet in pairs(charData.recipes) do
+                if OneWoW.RecipeKnownUtil:IsAltRecipeKnown(recipeSet, itemID) then
+                    tinsert(knownBy, charKey)
+                    break
                 end
             end
         end
@@ -173,20 +134,20 @@ local function GetOwnedItems(shouldYield)
 end
 
 -- Per-filter data availability. Opening the tab loads the active filter's
--- packs (ItemDB for All / Drops). Buttons stay dim until that pack is ready.
+-- packs (ItemDB for All / Drops). Buttons stay dim until that role has
+-- expansion data activated (an API table alone answers every query empty).
 -- Shared by Query (source gating) and the UI so the two cannot drift.
 local SOURCE_AVAILABILITY = {
     all     = function() return true end,
     drops   = function()
         -- Drop names come from ItemDB; without it the journal name index
         -- is empty and Drops / All look broken.
-        return ns.GetCatalogPackAPI("journal") ~= nil
-            and ns.GetCatalogPackAPI("items") ~= nil
+        return ns.IsCatalogRoleReady("journal") and ns.IsCatalogRoleReady("items")
     end,
-    vendors = function() return ns.GetCatalogPackAPI("vendors") ~= nil end,
-    crafted = function() return ns.GetCatalogPackAPI("tradeskills") ~= nil end,
+    vendors = function() return ns.IsCatalogRoleReady("vendors") end,
+    crafted = function() return ns.IsCatalogRoleReady("tradeskills") end,
     owned   = function() return OneWoW_AltTracker_Storage_API ~= nil end,
-    quests  = function() return ns.GetCatalogPackAPI("quests") ~= nil end,
+    quests  = function() return ns.IsCatalogRoleReady("quests") end,
 }
 
 function ItemSearch:IsSourceAvailable(sourceKey)
@@ -249,20 +210,26 @@ function ItemSearch.GetFilterPacks(filterKey)
 end
 
 --- Load the packs for this filter. Opening the tab or changing filter is the
---- explicit action; do not wait for another tab to have loaded them.
+--- explicit action; do not wait for another tab to have loaded them. Browsing
+--- uses the player's expansion; a name / ID search (2+ chars) loads them all.
 ---@param filterKey string
 ---@param onUpdate function|nil
-function ItemSearch.EnsureFilterPacks(filterKey, onUpdate)
+---@param searchText string|nil
+function ItemSearch.EnsureFilterPacks(filterKey, onUpdate, searchText)
+    local expansionID = 0
+    if not searchText or #searchText < 2 then
+        expansionID = OneWoW.CatalogData:GetPlayerSuiteExpansionID()
+    end
     if filterKey == "all" or filterKey == "drops" then
         OneWoW:EnsureCatalogPack("items")
-        OneWoW:EnsureCatalogRoleShardsForFilter("items", 0, onUpdate)
+        OneWoW:EnsureCatalogRoleShardsForFilter("items", expansionID, onUpdate)
     end
     local role = FILTER_PACK_ROLE[filterKey]
     if role == "tradeskills" then
         OneWoW:EnsureCatalogPack("tradeskills")
     elseif role then
         OneWoW:EnsureCatalogPack(role)
-        OneWoW:EnsureCatalogRoleShardsForFilter(role, 0, onUpdate)
+        OneWoW:EnsureCatalogRoleShardsForFilter(role, expansionID, onUpdate)
     end
     if filterKey == "owned" then
         OneWoW:EnsureLoaded("OneWoW_AltTracker_Storage")
@@ -453,7 +420,7 @@ local function BuildQueryResults(self, searchTerm, sourceFilter, results, should
     local nameIndex
     if sourceFilter == "drops" and doJournal then
         local journalAPI = ns.GetCatalogPackAPI("journal")
-        nameIndex = journalAPI and journalAPI.GetItemNameIndex()
+        nameIndex = journalAPI and journalAPI.GetItemNameIndex(shouldYield)
     else
         local itemAPI = ns.GetCatalogPackAPI("items")
         nameIndex = itemAPI and itemAPI.GetItemNameIndex()

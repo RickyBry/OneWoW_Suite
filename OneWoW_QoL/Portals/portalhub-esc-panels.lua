@@ -63,8 +63,7 @@ local function OpenPlaceInCatalog(panel)
 end
 
 local function LoadZonesPackForHere()
-	OneWoW:EnsureCatalogPack("journal")
-	OneWoW:EnsureCatalogJournalPlaces()
+	OneWoW:EnsurePlayerJournalPlaces()
 	if GameMenuFrame and GameMenuFrame:IsShown() then
 		EscPanels:Build()
 	end

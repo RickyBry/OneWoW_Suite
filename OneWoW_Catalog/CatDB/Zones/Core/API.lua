@@ -736,28 +736,37 @@ local function PlaceKeyForEncounter(enc)
     return nil
 end
 
-local function AddAchievementForItem(itemID, achievementID)
+local function AddAchievementForItem(index, itemID, achievementID)
     achievementID = tonumber(achievementID)
     if not itemID or not achievementID then
         return
     end
-    local set = achievementIndex[itemID]
+    local set = index[itemID]
     if not set then
         set = {}
-        achievementIndex[itemID] = set
+        index[itemID] = set
     end
     set[achievementID] = true
 end
 
-local function EnsureDropIndex()
-    if dropIndex then
-        return
+-- Bumped by InvalidateDataLookups so a yielding build that saw a payload land
+-- mid-walk throws its result away instead of publishing a stale index.
+local dropIndexGeneration = 0
+
+---@param shouldYield (fun(): boolean)|nil
+---@return boolean published
+local function BuildDropIndex(shouldYield)
+    local generation = dropIndexGeneration
+    local drops, achievements = {}, {}
+    -- Snapshot keys: payloads may add encounters while this walk is yielded.
+    local encounterIDs = {}
+    for encounterID in pairs(ns.Encounters) do
+        tinsert(encounterIDs, encounterID)
     end
-    dropIndex = {}
-    achievementIndex = {}
-    EnsurePlaceLookups()
-    for encounterID, enc in pairs(ns.Encounters) do
-        local loot = enc.loot
+    for e = 1, #encounterIDs do
+        local encounterID = encounterIDs[e]
+        local enc = ns.Encounters[encounterID]
+        local loot = enc and enc.loot
         if loot then
             local placeKey = PlaceKeyForEncounter(enc)
             local place = placeKey and ns.Places[placeKey]
@@ -770,10 +779,10 @@ local function EnsureDropIndex()
                     if type(diffs) ~= "table" or #diffs == 0 then
                         diffs = enc.difficultyIDs
                     end
-                    local list = dropIndex[itemID]
+                    local list = drops[itemID]
                     if not list then
                         list = {}
-                        dropIndex[itemID] = list
+                        drops[itemID] = list
                     end
                     tinsert(list, {
                         placeKey = placeKey,
@@ -786,10 +795,25 @@ local function EnsureDropIndex()
                         npcID = npcIDs and npcIDs[1],
                         difficulties = DiffRowsFromIDs(diffs),
                     })
-                    AddAchievementForItem(itemID, row.achievementID)
+                    AddAchievementForItem(achievements, itemID, row.achievementID)
                 end
             end
         end
+        if shouldYield then
+            OneWoW.ChunkedJob.YieldIfNeeded(shouldYield)
+        end
+    end
+    if generation ~= dropIndexGeneration then
+        return false
+    end
+    dropIndex, achievementIndex = drops, achievements
+    return true
+end
+
+---@param shouldYield (fun(): boolean)|nil inside a ChunkedJob: build across frames
+local function EnsureDropIndex(shouldYield)
+    while not dropIndex do
+        BuildDropIndex(shouldYield)
     end
 end
 
@@ -1022,11 +1046,18 @@ function OneWoW_CatDB_ZoneDB_API.GetPlayerZoneCard()
     return nil
 end
 
---- Suite expansion ID for the player's current zone card.
+--- Earliest journal tier that lists this instance, i.e. the expansion pack
+--- that ships it. Works before any era pack is loaded.
+---@param instanceID number journal instance ID
 ---@return number|nil expansionID
-function OneWoW_CatDB_ZoneDB_API.GetPlayerZoneExpansionID()
-    local card = OneWoW_CatDB_ZoneDB_API.GetPlayerZoneCard()
-    return card and card.expansionID
+function OneWoW_CatDB_ZoneDB_API.GetInstanceExpansionID(instanceID)
+    local found
+    for expansionID, members in pairs(ns.TierMembership) do
+        if members[instanceID] ~= nil and (not found or expansionID < found) then
+            found = expansionID
+        end
+    end
+    return found
 end
 
 --- Expansion IDs that have at least one place row.
@@ -1241,21 +1272,29 @@ end
 --- Flat itemID -> name for journal drops only (old Journal GetItemNameIndex).
 --- ItemDB is the name lookup; walking all ItemDB rows here made Item Search
 --- treat every item as a drop and stall.
+---@param shouldYield (fun(): boolean)|nil inside a ChunkedJob: build across frames
 ---@return table<number, string>
-function OneWoW_CatDB_ZoneDB_API.GetItemNameIndex()
-    if dropNameIndex then
-        return dropNameIndex
-    end
-    EnsureDropIndex()
-    dropNameIndex = {}
-    local itemAPI = OneWoW_CatDB_ItemDB_API
-    for itemID in pairs(dropIndex) do
-        local name
-        if itemAPI then
-            name = itemAPI.GetItemName(itemID)
+function OneWoW_CatDB_ZoneDB_API.GetItemNameIndex(shouldYield)
+    while not dropNameIndex do
+        EnsureDropIndex(shouldYield)
+        local generation = dropIndexGeneration
+        local drops = dropIndex
+        local names = {}
+        local itemAPI = OneWoW_CatDB_ItemDB_API
+        for itemID in pairs(drops) do
+            local name
+            if itemAPI then
+                name = itemAPI.GetItemName(itemID)
+            end
+            if type(name) == "string" and name ~= "" then
+                names[itemID] = name
+            end
+            if shouldYield then
+                OneWoW.ChunkedJob.YieldIfNeeded(shouldYield)
+            end
         end
-        if type(name) == "string" and name ~= "" then
-            dropNameIndex[itemID] = name
+        if generation == dropIndexGeneration then
+            dropNameIndex = names
         end
     end
     return dropNameIndex
@@ -1478,6 +1517,7 @@ end
 
 function OneWoW_CatDB_ZoneDB_API.InvalidateDataLookups()
     wipe(cardsByKey)
+    dropIndexGeneration = dropIndexGeneration + 1
     dropIndex = nil
     dropNameIndex = nil
     achievementIndex = nil
@@ -1504,8 +1544,10 @@ function OneWoW_CatDB_ZoneDB_API.EnsureEncounters(inst)
     end
     -- ItemSpecial classifies TMog / Mount / Recipe / ... from ItemDB.
     -- Catalog journal hydrate may load Items. ESC, AFK, toasts, and Item Tracker
-    -- must not call this just to show the current zone.
+    -- must not call this just to show the current zone. Loot rows ship with the
+    -- place's expansion, which may not be the player's.
     OneWoW:EnsureCatalogPack("items")
+    OneWoW.CatalogData:EnsureRoleShards("items", inst.expansionID)
     if inst.encountersHydrated then
         return inst
     end

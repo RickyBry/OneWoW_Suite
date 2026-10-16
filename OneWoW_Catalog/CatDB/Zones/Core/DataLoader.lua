@@ -50,6 +50,13 @@ function ns:RegisterTierMembership(source)
     MergeByKey(ns.TierMembership, source)
 end
 
+--- Hand the map -> expansion index to core so it can pick the player's
+--- expansion before any era pack loads.
+---@param source table
+function ns:RegisterMapExpansions(source)
+    OneWoW.CatalogData:SetMapExpansions(source)
+end
+
 --- Merge listing overrides.
 ---@param source table
 function ns:RegisterListingOverrides(source)

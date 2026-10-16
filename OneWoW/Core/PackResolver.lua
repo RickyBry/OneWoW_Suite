@@ -51,9 +51,11 @@ function ns:EnsureCatalogPack(roleOrName)
     return ns.CatalogData:EnsureRole(roleOrName)
 end
 
---- Load Journal places for every wanted expansion, including older packs.
-function ns:EnsureCatalogJournalPlaces()
-    ns.CatalogData:EnsureWantedJournalPlaces()
+--- Load Journal places for the player's place; with includeContents, also the
+--- expansions of the places listed on that map.
+---@param includeContents boolean|nil
+function ns:EnsurePlayerJournalPlaces(includeContents)
+    ns.CatalogData:EnsurePlayerJournalPlaces(includeContents)
 end
 
 --- Load Journal hubs + zone for one suite expansion (no-op for All / 0).
@@ -69,9 +71,9 @@ function ns:EnsureJournalShardsForFilter(expansionID, onUpdate)
     ns.CatalogData:EnsureJournalShardsForFilter(expansionID, onUpdate)
 end
 
---- Load one role's expansion shards. All (0 / -1) loads this expansion first, then the rest.
+--- Load one role's expansion shards. All (0 / -1) loads the player's expansion first, then the rest.
 ---@param role string
----@param expansionID number
+---@param expansionID number suite expansion ID (1-12, 99 Other), or 0 / -1 for All
 ---@param onUpdate function|nil
 function ns:EnsureCatalogRoleShardsForFilter(role, expansionID, onUpdate)
     ns.CatalogData:EnsureRoleShardsForFilter(role, expansionID, onUpdate)
@@ -85,9 +87,9 @@ function ns:GetWantedCatalogExpansions(role, useLeId)
     return ns.CatalogData:GetWantedRoleExpansions(role, useLeId)
 end
 
---- True when wanted expansion Journal place shards are loaded and activated.
-function ns:AreWantedJournalPlacesLoaded()
-    return ns.CatalogData:AreWantedJournalPlacesLoaded()
+--- True when the Journal place shards for the player's place are loaded and activated.
+function ns:ArePlayerJournalPlacesLoaded()
+    return ns.CatalogData:ArePlayerJournalPlacesLoaded()
 end
 
 --- True if the resolved CatDB provider exists and is enabled.

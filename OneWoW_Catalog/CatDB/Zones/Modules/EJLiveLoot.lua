@@ -86,27 +86,33 @@ end
 
 local ejOriginalOnEvent = nil
 local ejSuppressCount = 0
+local ejFrameSuppressed = false
 local ejSavedDifficulty = nil
 local ejSavedSlotFilter = nil
 local ejSavedLootClassID = nil
 local ejSavedLootSpecID = nil
 
-local function SuppressEJ()
-    ejSuppressCount = ejSuppressCount + 1
-    if ejSuppressCount > 1 then
+-- The Journal frame may load mid-scan; a nested Suppress then still mutes it.
+local function SuppressEJFrame()
+    if ejFrameSuppressed or not EncounterJournal then
         return
     end
-    if not EncounterJournal then
-        return
-    end
-    ejSavedDifficulty = EJ_GetDifficulty()
-    ejSavedSlotFilter = C_EncounterJournal.GetSlotFilter()
-    ejSavedLootClassID, ejSavedLootSpecID = EJ_GetLootFilter()
+    ejFrameSuppressed = true
     ejOriginalOnEvent = EncounterJournal:GetScript("OnEvent")
     EncounterJournal:SetScript("OnEvent", nil)
     EncounterJournal:UnregisterEvent("EJ_LOOT_DATA_RECIEVED")
     EncounterJournal:UnregisterEvent("EJ_DIFFICULTY_UPDATE")
     EncounterJournal:UnregisterEvent("UNIT_LEVEL")
+end
+
+local function SuppressEJ()
+    ejSuppressCount = ejSuppressCount + 1
+    if ejSuppressCount == 1 then
+        ejSavedDifficulty = EJ_GetDifficulty()
+        ejSavedSlotFilter = C_EncounterJournal.GetSlotFilter()
+        ejSavedLootClassID, ejSavedLootSpecID = EJ_GetLootFilter()
+    end
+    SuppressEJFrame()
 end
 
 local function UnsuppressEJ()
@@ -115,9 +121,6 @@ local function UnsuppressEJ()
         return
     end
     ejSuppressCount = 0
-    if not EncounterJournal then
-        return
-    end
     if ejSavedDifficulty ~= nil then
         EJ_SetDifficulty(ejSavedDifficulty)
         ejSavedDifficulty = nil
@@ -131,6 +134,10 @@ local function UnsuppressEJ()
         ejSavedLootClassID = nil
         ejSavedLootSpecID = nil
     end
+    if not ejFrameSuppressed then
+        return
+    end
+    ejFrameSuppressed = false
     if ejOriginalOnEvent then
         EncounterJournal:SetScript("OnEvent", ejOriginalOnEvent)
         ejOriginalOnEvent = nil

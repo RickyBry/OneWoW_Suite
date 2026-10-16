@@ -227,6 +227,8 @@ ns.Locale:Register(ADDON_NAME, "zhCN", {
     ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "任务列表包含最新正式服更新加入的任务。",
     ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "任务对话",
     ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "关闭 Catalog 后，任务对话不再报错。",
+    ["WHATS_NEW_H_CATALOG_ERA_TITLE"] = "Catalog - 当前资料片",
+    ["WHATS_NEW_H_CATALOG_ERA_BODY"] = "Catalog 只加载你所在的资料片，因此标签打开更快、占用内存更少。在筛选中选择资料片或全部，或在物品搜索中输入两个及以上字母，即可加载其余资料片。本区域仍会列出地图上的所有地下城、团队副本和地下堡。",
     ["CMD_TOGGLE_ONEWOW"] = "切换 OneWoW",
     ["CMD_KEYWORD_HELP"] = "打开搜索关键词帮助",
     ["CMD_OPEN_ALTTRACKER"] = "打开 AltTracker",

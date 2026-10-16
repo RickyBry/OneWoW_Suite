@@ -52,10 +52,8 @@ function ns.IsListVendor(npc)
     return hasItems
 end
 
-function ns.InvalidateNpcListCache()
-end
-
---- Merge NPC rows keyed by npcID.
+--- Merge NPC rows keyed by npcID. Sinks call this after the runtime has loaded,
+--- so ns.InvalidateNpcListCache (NPCs/Core/API.lua) is defined by then.
 ---@param source table<number, table>
 function ns:RegisterNpcData(source)
     if type(source) ~= "table" then return end

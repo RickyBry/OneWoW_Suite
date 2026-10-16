@@ -37,7 +37,9 @@ local currencyFilter = nil
 local categoryFilter = nil
 local expansionFilter = -1
 local pendingFocusNpcID = nil
+local sweepFocusNpcID = nil
 local RefreshVendorList
+local TrySelectSweepFocus
 
 -- List card stride includes inter-card gap; measured once so getRowHeight
 -- stays cheap for the virtualizer prefix sums.
@@ -140,15 +142,21 @@ local function EnsureVendorCardStride()
     return vendorCardStride
 end
 
+-- Current Zone Only shows this zone across expansions, so it clears the
+-- expansion filter; RefreshVendorList loads the player's expansion for it.
 local function ApplyCurrentZoneOnOpen(panels)
     currentZoneOnly = true
     zoneFilter = nil
     jumpMapIDs = nil
+    expansionFilter = -1
     if panels and panels.zoneCurrentCheckbox then
         panels.zoneCurrentCheckbox:SetChecked(true)
     end
     if panels and panels.zoneDropdownText then
         panels.zoneDropdownText:SetText(L["QUESTS_ZONE_ALL"])
+    end
+    if panels and panels.expDropdownText then
+        panels.expDropdownText:SetText(L["QUESTS_EXPANSION_ALL"])
     end
 end
 
@@ -1845,23 +1853,14 @@ function RefreshVendorList(panels)
     end
 
     local function RefreshAfterShards()
-        RefreshVendorList(panels)
+        if not TrySelectSweepFocus(panels) then
+            RefreshVendorList(panels)
+        end
     end
-    if currentZoneOnly then
-        local loadID = expansionFilter
-        if not loadID or loadID == -1 then
-            ns.EnsureCatalogPack("journal")
-            local journal = ns.GetCatalogPackAPI("journal")
-            loadID = journal and journal.GetPlayerZoneExpansionID()
-            if not loadID then
-                OneWoW:EnsureJournalShardsForFilter(0, RefreshAfterShards)
-            end
-        end
-        if loadID and loadID ~= -1 then
-            ns.EnsureCatalogRoleShardsForFilter("vendors", loadID, RefreshAfterShards)
-        end
+    if currentZoneOnly and expansionFilter == -1 then
+        ns.EnsureCatalogRoleShardsForFilter("vendors", OneWoW.CatalogData:GetPlayerSuiteExpansionID(), RefreshAfterShards)
     else
-        ns.EnsureCatalogRoleShardsForFilter("vendors", expansionFilter, RefreshAfterShards)
+        ns.EnsureCatalogRoleShardsForFilter("vendors", ns.CatalogShardFilterFromLE(expansionFilter), RefreshAfterShards)
     end
 
     local sorted = addon.GetSortedVendors(nil)
@@ -2049,6 +2048,16 @@ local function SelectVendorByNpcID(panels, npcID)
     return true
 end
 
+function TrySelectSweepFocus(panels)
+    local addon = GetDataAddon()
+    if not (sweepFocusNpcID and addon and addon.GetVendor(sweepFocusNpcID)) then
+        return false
+    end
+    local npcID = sweepFocusNpcID
+    sweepFocusNpcID = nil
+    return SelectVendorByNpcID(panels, npcID)
+end
+
 function ns.UI.OpenToVendor(npcID, npcInfo)
     npcID = tonumber(npcID)
     if not npcID then return end
@@ -2091,10 +2100,22 @@ function ns.UI.OpenToVendor(npcID, npcInfo)
         return SelectVendorByNpcID(panels, npcID)
     end
 
-    if not trySelect() then
-        C_Timer.After(0.15, trySelect)
-        C_Timer.After(0.35, trySelect)
+    if addon.GetVendor(npcID) then
+        if not trySelect() then
+            C_Timer.After(0.15, trySelect)
+            C_Timer.After(0.35, trySelect)
+        end
+        return
     end
+    -- NPC lives in an expansion that is not loaded yet: sweep the rest. The
+    -- list refresh callback may replace this one, so both check the pending ID.
+    sweepFocusNpcID = npcID
+    ns.EnsureCatalogRoleShardsForFilter("vendors", 0, function()
+        local panels = ns.UI.vendorsPanels
+        if panels then
+            TrySelectSweepFocus(panels)
+        end
+    end)
 end
 
 local function VendorExpansionLabel(leID)
@@ -2109,6 +2130,14 @@ local function VendorExpansionLabel(leID)
         end
     end
     return L["QUESTS_EXPANSION_ALL"]
+end
+
+---@param leID number -1 for All
+local function SetVendorExpansionFilter(panels, leID)
+    expansionFilter = leID or -1
+    if panels.expDropdownText then
+        panels.expDropdownText:SetText(VendorExpansionLabel(expansionFilter))
+    end
 end
 
 ---@param spec { zoneName?: string, uiMapID?: number, expansionID?: number }
@@ -2416,6 +2445,9 @@ function ns.UI.CreateVendorsTab(parent)
             zoneFilter = nil
             jumpMapIDs = nil
             zoneDropdownText:SetText(L["QUESTS_ZONE_ALL"])
+            SetVendorExpansionFilter(panels, -1)
+        elseif expansionFilter == -1 then
+            SetVendorExpansionFilter(panels, ns.GetPlayerLEExpansionID())
         end
         RefreshVendorList(panels)
     end)
@@ -2427,13 +2459,12 @@ function ns.UI.CreateVendorsTab(parent)
         currentZoneOnly = false
         currencyFilter = nil
         categoryFilter = nil
-        expansionFilter = -1
         searchBox:SetText(searchBox.placeholderText)
         searchBox:ClearFocus()
         zoneDropdownText:SetText(L["QUESTS_ZONE_ALL"])
         currencyDropdownText:SetText(L["VENDORS_CURRENCY_ALL"])
         categoryDropdownText:SetText(L["VENDORS_CATEGORY_ALL"])
-        expDropdownText:SetText(L["QUESTS_EXPANSION_ALL"])
+        SetVendorExpansionFilter(panels, ns.GetPlayerLEExpansionID())
         chkBox:SetChecked(false)
         RefreshVendorList(panels)
     end)

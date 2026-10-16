@@ -227,6 +227,8 @@ ns.Locale:Register(ADDON_NAME, "ptBR", {
     ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "A lista de missões inclui as missões adicionadas na última atualização.",
     ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Diálogos de missão",
     ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Os diálogos de missão não mostram mais um erro quando Catalog está desligado.",
+    ["WHATS_NEW_H_CATALOG_ERA_TITLE"] = "Catalog - Expansão atual",
+    ["WHATS_NEW_H_CATALOG_ERA_BODY"] = "O Catalog carrega só a expansão em que você está, então as abas abrem mais rápido e usam menos memória. Escolha uma expansão ou Todas em um filtro, ou digite duas ou mais letras na Busca de itens, para carregar o resto. Nesta zona continua listando todas as masmorras, raides e Imersões do seu mapa.",
     ["CMD_TOGGLE_ONEWOW"] = "Alternar OneWoW",
     ["CMD_KEYWORD_HELP"] = "Abrir a ajuda de palavras-chave de busca",
     ["CMD_OPEN_ALTTRACKER"] = "Abrir AltTracker",

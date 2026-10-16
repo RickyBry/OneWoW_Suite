@@ -7,11 +7,27 @@
 
 # Catalog
 - Quest list includes quests added in the latest retail update.
+- Catalog loads only the expansion you are standing in, so tabs open faster and use less memory.
+  - Other expansions load when you pick them in a filter, choose All, or search Item Search with two or more letters.
+  - Zones "In This Zone" still lists every dungeon, raid, and Delve on your map, whatever its expansion.
+  - Opening a vendor or instance from a link or waypoint finds it in any expansion.
+- Clearing filters or leaving "In This Zone" on Zones, Vendors, and Quests switches to your current expansion.
+- Item Search no longer hitches when building drop results or checking which alts know a recipe.
+- Vendor lists sort and filter faster while typing.
+
+## Fixes
+- Quest givers no longer list the same quest twice after quest data refreshes.
+- The Adventure Guide keeps its difficulty and loot filter after Catalog reads its loot.
 
 ---
 
-*No user-facing changes this release for Notes, AltTracker, Trackers, QoL, Direct Deposit, Shopping List, Mail, Bags, or DevTool.*
+# Notes
+- Finding a vendor from a waypoint searches every expansion.
 
 ---
 
-- **Last Updated**: Oct 15, 2026
+*No user-facing changes this release for AltTracker, Trackers, QoL, Direct Deposit, Shopping List, Mail, Bags, or DevTool.*
+
+---
+
+- **Last Updated**: Oct 16, 2026

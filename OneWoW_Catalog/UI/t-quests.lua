@@ -4368,8 +4368,18 @@ local function StartCompletionFilter(panels, addon, rawQuests, previousScroll, l
     })
 end
 
+--- Quest-log view needs only the player's expansion (favorites can be from any,
+--- so they keep All). Database mode follows the expansion filter; All there is
+--- the explicit cross-expansion search.
+local function QuestShardFilter()
+    if IsDatabaseMode() or ns.Favorites:HasAny("quests") then
+        return ns.CatalogShardFilterFromLE(expansionFilter)
+    end
+    return OneWoW.CatalogData:GetPlayerSuiteExpansionID()
+end
+
 function RefreshQuestList(panels, invalidateStatus)
-    ns.EnsureCatalogRoleShardsForFilter("quests", expansionFilter, function()
+    ns.EnsureCatalogRoleShardsForFilter("quests", QuestShardFilter(), function()
         RefreshQuestList(panels, invalidateStatus)
     end)
 

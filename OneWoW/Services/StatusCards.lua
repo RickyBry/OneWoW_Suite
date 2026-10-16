@@ -912,10 +912,7 @@ end
 
 local function ResolveCurrentPlace()
     if OneWoW:IsCatalogPackAvailable("journal") then
-        local expansionID = OneWoW.CatalogData:GetCurrentSuiteExpansionID()
-        if expansionID ~= 0 then
-            OneWoW:EnsureJournalShards(expansionID)
-        end
+        OneWoW:EnsurePlayerJournalPlaces()
     end
     return LookupCurrentPlace(OneWoW:GetCatalogPackAPI("journal"))
 end
@@ -966,7 +963,7 @@ function StatusCards:CollectHere(opts)
         OneWoW:BringUp("OneWoW_Notes")
     end
     local place = ResolveCurrentPlace()
-    local journalReady = place ~= nil or OneWoW:AreWantedJournalPlacesLoaded()
+    local journalReady = place ~= nil or OneWoW:ArePlayerJournalPlacesLoaded()
     local zoneText = GetZoneText() or ""
     local subZoneText = GetSubZoneText() or ""
     if subZoneText == zoneText then

@@ -11,7 +11,7 @@ local _, ns = ...
 -- ============================================================================
 
 local pairs = pairs
-local tinsert = tinsert
+local tinsert, tremove = tinsert, tremove
 
 ns.ExternalQuestDB = ns.ExternalQuestDB or {}
 ns.ExternalQuestDBByExpansion = ns.ExternalQuestDBByExpansion or {}
@@ -23,6 +23,7 @@ local byExpansion = ns.ExternalQuestDBByExpansion
 local byNPC = ns.QuestsByNPC
 local byReward = ns.QuestsByRewardItem
 
+-- A quest is indexed once per NPC even when that NPC both starts and ends it.
 local function IndexNPC(npcID, quest)
     if type(npcID) ~= "number" then return end
     local list = byNPC[npcID]
@@ -30,7 +31,40 @@ local function IndexNPC(npcID, quest)
         list = {}
         byNPC[npcID] = list
     end
+    for i = 1, #list do
+        if list[i] == quest then
+            return
+        end
+    end
     tinsert(list, quest)
+end
+
+local function UnindexNPC(npcID, quest)
+    local list = type(npcID) == "number" and byNPC[npcID]
+    if not list then return end
+    for i = #list, 1, -1 do
+        if list[i] == quest then
+            tremove(list, i)
+        end
+    end
+end
+
+local function ForEachRefNPC(refs, fn, quest)
+    if not refs then return end
+    for _, ref in pairs(refs) do
+        if type(ref) == "table" then
+            fn(ref.npcID, quest)
+        elseif type(ref) == "number" then
+            fn(ref, quest)
+        end
+    end
+end
+
+---@param quest table
+---@param fn fun(npcID: number|nil, quest: table)
+local function ForEachQuestNPC(quest, fn)
+    ForEachRefNPC(quest.starts, fn, quest)
+    ForEachRefNPC(quest.ends, fn, quest)
 end
 
 local function RewardItemID(entry)
@@ -89,6 +123,16 @@ function ns:RegisterQuestData(source)
 
     for questID, questData in pairs(source) do
         if type(questID) == "number" and type(questData) == "table" then
+            -- A later shard replacing this quest must not leave the old row
+            -- behind in the NPC / expansion indexes.
+            local old = db[questID]
+            if old and old ~= questData then
+                ForEachQuestNPC(old, UnindexNPC)
+                local oldExpansion = byExpansion[old.expansion]
+                if oldExpansion and oldExpansion[questID] == old then
+                    oldExpansion[questID] = nil
+                end
+            end
             db[questID] = questData
 
             local expansionID = questData.expansion
@@ -97,24 +141,7 @@ function ns:RegisterQuestData(source)
                 byExpansion[expansionID][questID] = questData
             end
 
-            if questData.starts then
-                for _, start in pairs(questData.starts) do
-                    if type(start) == "table" then
-                        IndexNPC(start.npcID, questData)
-                    elseif type(start) == "number" then
-                        IndexNPC(start, questData)
-                    end
-                end
-            end
-            if questData.ends then
-                for _, finish in pairs(questData.ends) do
-                    if type(finish) == "table" then
-                        IndexNPC(finish.npcID, questData)
-                    elseif type(finish) == "number" then
-                        IndexNPC(finish, questData)
-                    end
-                end
-            end
+            ForEachQuestNPC(questData, IndexNPC)
 
             self:IndexQuestRewards(questID, questData)
         end

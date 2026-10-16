@@ -10,7 +10,7 @@ local _, ns = ...
 --   * Do not write player xy onto the quest row or onto starts/ends.
 -- ============================================================================
 
-local ipairs, type, tonumber = ipairs, type, tonumber
+local pairs, ipairs, type, tonumber = pairs, ipairs, type, tonumber
 local tinsert = tinsert
 local strsplit, strtrim = strsplit, strtrim
 local Enum = Enum
@@ -556,15 +556,28 @@ local function ScanActiveQuestLog()
     end
 end
 
+-- Declined offers never reach CaptureQuestFromLog; drop their snapshots once
+-- the dialog closes (after any accept has had time to consume its entry).
+local function PruneDeclinedQuestDetails()
+    for questID in pairs(pendingQuestDetails) do
+        if not C_QuestLog.GetLogIndexForQuestID(questID) then
+            pendingQuestDetails[questID] = nil
+        end
+    end
+end
+
 local scanFrame = CreateFrame("Frame")
 scanFrame:RegisterEvent("QUEST_DETAIL")
 scanFrame:RegisterEvent("QUEST_ACCEPTED")
 scanFrame:RegisterEvent("QUEST_PROGRESS")
 scanFrame:RegisterEvent("QUEST_COMPLETE")
 scanFrame:RegisterEvent("QUEST_TURNED_IN")
+scanFrame:RegisterEvent("QUEST_FINISHED")
 scanFrame:SetScript("OnEvent", function(_, event, arg1)
     if event == "QUEST_DETAIL" then
         CaptureQuestDetailSnapshot()
+    elseif event == "QUEST_FINISHED" then
+        C_Timer.After(1, PruneDeclinedQuestDetails)
     elseif event == "QUEST_ACCEPTED" then
         if type(arg1) == "number" then
             C_Timer.After(0, function() CaptureQuestFromLog(arg1) end)

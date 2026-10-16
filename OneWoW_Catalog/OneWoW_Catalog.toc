@@ -52,6 +52,7 @@ CatDB\Data\TierMembership.lua
 CatDB\Data\ListingOverrides.lua
 CatDB\Data\Currencies.lua
 CatDB\Data\QuestLineMembers.lua
+CatDB\Data\MapExpansion.lua
 CatDB\Core\Sinks.lua
 CatDB\Zones\Core\API.lua
 CatDB\NPCs\Core\API.lua

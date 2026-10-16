@@ -227,6 +227,8 @@ ns.Locale:Register(ADDON_NAME, "esES", {
     ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "La lista de misiones incluye las misiones añadidas en la última actualización.",
     ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Diálogos de misión",
     ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Los diálogos de misión ya no muestran un error cuando Catalog está desactivado.",
+    ["WHATS_NEW_H_CATALOG_ERA_TITLE"] = "Catalog - Expansión actual",
+    ["WHATS_NEW_H_CATALOG_ERA_BODY"] = "Catalog solo carga la expansión en la que estás, así que sus pestañas se abren más rápido y usan menos memoria. Elige una expansión o Todas en un filtro, o escribe dos o más letras en Búsqueda de objetos, para cargar el resto. En esta zona sigue mostrando cada mazmorra, banda y Profundidad de tu mapa.",
     ["CMD_TOGGLE_ONEWOW"] = "Alternar OneWoW",
     ["CMD_KEYWORD_HELP"] = "Abrir la ayuda de palabras clave de búsqueda",
     ["CMD_OPEN_ALTTRACKER"] = "Abrir AltTracker",

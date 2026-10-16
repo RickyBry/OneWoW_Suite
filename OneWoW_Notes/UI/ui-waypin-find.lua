@@ -161,8 +161,10 @@ local function ResolveZone(text)
     return fuzzyID, fuzzyName
 end
 
+-- Find searches every vendor, so it loads every expansion (the rest across frames).
 local function EnsureVendorsAPI()
     OneWoW:EnsureCatalogPack("vendors")
+    OneWoW:EnsureCatalogRoleShardsForFilter("vendors", 0)
     return OneWoW:GetCatalogPackAPI("vendors")
 end
 

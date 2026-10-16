@@ -227,6 +227,8 @@ ns.Locale:Register(ADDON_NAME, "deDE", {
     ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "Die Questliste enthält die Quests aus dem neuesten Retail-Update.",
     ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Questdialoge",
     ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Questdialoge melden keinen Fehler mehr, wenn Catalog ausgeschaltet ist.",
+    ["WHATS_NEW_H_CATALOG_ERA_TITLE"] = "Catalog - Aktuelle Erweiterung",
+    ["WHATS_NEW_H_CATALOG_ERA_BODY"] = "Catalog lädt nur die Erweiterung, in der du dich befindest. Die Tabs öffnen schneller und brauchen weniger Speicher. Wähle in einem Filter eine Erweiterung oder Alle, oder gib in der Gegenstandssuche mindestens zwei Buchstaben ein, um den Rest zu laden. In dieser Zone listet weiterhin jeden Dungeon, Schlachtzug und jede Tiefe auf deiner Karte.",
     ["CMD_TOGGLE_ONEWOW"] = "OneWoW umschalten",
     ["CMD_KEYWORD_HELP"] = "Hilfe zu Suchbegriffen öffnen",
     ["CMD_OPEN_ALTTRACKER"] = "AltTracker öffnen",

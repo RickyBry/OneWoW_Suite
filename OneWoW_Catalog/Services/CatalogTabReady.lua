@@ -1,6 +1,7 @@
 local _, ns = ...
 
 local C_Timer = C_Timer
+local EventRegistry = EventRegistry
 
 -- ============================================================================
 -- Catalog data-ready bootstrap
@@ -31,7 +32,7 @@ function ns.WatchCatalogDataReady(addonName, opts)
     end
 
     local wired = false
-    OneWoW:RegisterDataReadyWatcher(addonName, function()
+    local function TryWire()
         if wired then
             return
         end
@@ -39,6 +40,9 @@ function ns.WatchCatalogDataReady(addonName, opts)
             return
         end
         wired = true
+        if opts.isReady then
+            EventRegistry:UnregisterCallback("ns.CatalogTopicActivated", opts)
+        end
         if opts.emptyList and opts.emptyText then
             opts.emptyList:SetText(opts.emptyText)
         end
@@ -46,5 +50,11 @@ function ns.WatchCatalogDataReady(addonName, opts)
             opts.emptyDetail:SetText(opts.selectText)
         end
         C_Timer.After(opts.delay or 0.1, opts.onReady)
-    end)
+    end
+    OneWoW:RegisterDataReadyWatcher(addonName, TryWire)
+    -- isReady may wait on an expansion shard that activates after the data unit
+    -- signalled ready; re-check as topics activate.
+    if opts.isReady and not wired then
+        EventRegistry:RegisterCallback("ns.CatalogTopicActivated", TryWire, opts)
+    end
 end

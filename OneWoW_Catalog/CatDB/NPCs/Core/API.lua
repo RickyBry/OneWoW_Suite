@@ -26,6 +26,7 @@ local Location = OneWoW.Location
 local viewsByID = {}
 local allVendorsCache
 local allNPCsCache
+local sortedVendorsCache
 
 local function GetNameCache()
     return ns:GetNPCDB().nameCache
@@ -542,6 +543,40 @@ function OneWoW_CatDB_NPCDB_API.GetNPCsByRole(role)
     return out
 end
 
+---@param needle string lowercased search term
+local function VendorMatchesTerm(npcID, vendor, needle)
+    if vendor.name and vendor.name:lower():find(needle, 1, true) then
+        return true
+    end
+    if vendor.title and vendor.title:lower():find(needle, 1, true) then
+        return true
+    end
+    if vendor.locations then
+        for _, loc in pairs(vendor.locations) do
+            if loc.zone and loc.zone:lower():find(needle, 1, true) then
+                return true
+            end
+            if loc.subzone and loc.subzone:lower():find(needle, 1, true) then
+                return true
+            end
+        end
+    end
+    return tostring(npcID):find(needle, 1, true) ~= nil
+end
+
+local function VendorSortLess(a, b)
+    if a.lastScanned and not b.lastScanned then
+        return true
+    end
+    if not a.lastScanned and b.lastScanned then
+        return false
+    end
+    if a.lastScanned and b.lastScanned then
+        return a.lastScanned > b.lastScanned
+    end
+    return (a.npcID or 0) < (b.npcID or 0)
+end
+
 --- Search vendors by name, zone, or NPC ID.
 ---@param term string
 ---@return table results
@@ -552,58 +587,38 @@ function OneWoW_CatDB_NPCDB_API.SearchVendors(term)
     local needle = term:lower()
     local results = {}
     for npcID, vendor in pairs(OneWoW_CatDB_NPCDB_API.GetAllVendors()) do
-        local matched = false
-        if vendor.name and vendor.name:lower():find(needle, 1, true) then
-            matched = true
-        end
-        if not matched and vendor.title and vendor.title:lower():find(needle, 1, true) then
-            matched = true
-        end
-        if not matched and vendor.locations then
-            for _, loc in pairs(vendor.locations) do
-                if loc.zone and loc.zone:lower():find(needle, 1, true) then
-                    matched = true
-                    break
-                end
-                if loc.subzone and loc.subzone:lower():find(needle, 1, true) then
-                    matched = true
-                    break
-                end
-            end
-        end
-        if not matched and tostring(npcID):find(needle, 1, true) then
-            matched = true
-        end
-        if matched then
+        if VendorMatchesTerm(npcID, vendor, needle) then
             results[npcID] = vendor
         end
     end
     return results
 end
 
---- NPCs sorted for list display.
+--- NPCs sorted for list display. The no-term array is cached until the vendor
+--- view changes; treat it as read-only.
 ---@param term string|nil
 ---@return table vendors
 function OneWoW_CatDB_NPCDB_API.GetSortedVendors(term)
-    local vendors = term and OneWoW_CatDB_NPCDB_API.SearchVendors(term)
-        or OneWoW_CatDB_NPCDB_API.GetAllVendors()
-    local sorted = {}
-    for _, vendor in pairs(vendors) do
-        tinsert(sorted, vendor)
+    if not sortedVendorsCache then
+        local sorted = {}
+        for _, vendor in pairs(OneWoW_CatDB_NPCDB_API.GetAllVendors()) do
+            tinsert(sorted, vendor)
+        end
+        sort(sorted, VendorSortLess)
+        sortedVendorsCache = sorted
     end
-    sort(sorted, function(a, b)
-        if a.lastScanned and not b.lastScanned then
-            return true
+    if not term or term == "" then
+        return sortedVendorsCache
+    end
+    local needle = term:lower()
+    local out = {}
+    for i = 1, #sortedVendorsCache do
+        local vendor = sortedVendorsCache[i]
+        if VendorMatchesTerm(vendor.npcID, vendor, needle) then
+            tinsert(out, vendor)
         end
-        if not a.lastScanned and b.lastScanned then
-            return false
-        end
-        if a.lastScanned and b.lastScanned then
-            return a.lastScanned > b.lastScanned
-        end
-        return (a.npcID or 0) < (b.npcID or 0)
-    end)
-    return sorted
+    end
+    return out
 end
 
 --- True when at least one list vendor that stocks this item lists it.
@@ -1054,6 +1069,7 @@ local function InvalidateNPCView(npcID)
     end
     allVendorsCache = nil
     allNPCsCache = nil
+    sortedVendorsCache = nil
 end
 
 function ns.InvalidateNpcListCache()
@@ -1378,6 +1394,7 @@ function OneWoW_CatDB_NPCDB_API.MergeMerchantScan(scan)
     end
     if allVendorsCache and view then
         allVendorsCache[npcID] = view
+        sortedVendorsCache = nil
     end
     if allNPCsCache and view then
         allNPCsCache[npcID] = view

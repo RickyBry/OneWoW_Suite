@@ -42,6 +42,23 @@ function ns.EnsureCatalogRoleShardsForFilter(role, expansionID, onUpdate)
     return OneWoW:EnsureCatalogRoleShardsForFilter(role, expansionID, onUpdate)
 end
 
+--- Shard filter for LE-keyed tabs (Vendors / Quests): -1 / nil is All (0),
+--- otherwise the suite expansion for that LE ID.
+---@param leID number|nil
+---@return number suiteExpansionID
+function ns.CatalogShardFilterFromLE(leID)
+    if leID == nil or leID == -1 then
+        return 0
+    end
+    return OneWoW.CatalogData.LE_TO_SUITE[leID]
+end
+
+--- LE expansion ID of the player's place (Vendors / Quests filter value).
+---@return number|nil leID
+function ns.GetPlayerLEExpansionID()
+    return OneWoW.CatalogData.SUITE_TO_LE[OneWoW.CatalogData:GetPlayerSuiteExpansionID()]
+end
+
 function ns.GetWantedCatalogExpansions(role, useLeId)
     return OneWoW:GetWantedCatalogExpansions(role, useLeId)
 end

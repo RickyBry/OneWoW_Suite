@@ -227,6 +227,8 @@ ns.Locale:Register(ADDON_NAME, "koKR", {
     ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "퀘스트 목록에 최신 정식 서버 업데이트로 추가된 퀘스트가 포함됩니다.",
     ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "퀘스트 대화",
     ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Catalog를 꺼도 퀘스트 대화에서 오류가 나지 않습니다.",
+    ["WHATS_NEW_H_CATALOG_ERA_TITLE"] = "Catalog - 현재 확장팩",
+    ["WHATS_NEW_H_CATALOG_ERA_BODY"] = "Catalog는 지금 있는 확장팩만 로드하므로 탭이 더 빨리 열리고 메모리를 덜 씁니다. 나머지는 필터에서 확장팩이나 전체를 고르거나 아이템 검색에 두 글자 이상 입력하면 로드됩니다. 이 지역에는 지도에 있는 모든 던전, 공격대, 구렁이 계속 표시됩니다.",
     ["CMD_TOGGLE_ONEWOW"] = "OneWoW 전환",
     ["CMD_KEYWORD_HELP"] = "검색 키워드 도움말 열기",
     ["CMD_OPEN_ALTTRACKER"] = "AltTracker 열기",

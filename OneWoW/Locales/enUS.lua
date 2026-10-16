@@ -226,6 +226,8 @@ ns.Locale:Register(ADDON_NAME, "enUS", {
     ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "The quest list includes quests added in the latest retail update.",
     ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Quest dialogs",
     ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Quest dialogs no longer report an error when Catalog is turned off.",
+    ["WHATS_NEW_H_CATALOG_ERA_TITLE"] = "Catalog - Current expansion",
+    ["WHATS_NEW_H_CATALOG_ERA_BODY"] = "Catalog loads only the expansion you are in, so its tabs open faster and use less memory. Pick an expansion or All in a filter, or type two or more letters in Item Search, to load the rest. In This Zone still lists every dungeon, raid, and Delve on your map.",
     ["CMD_TOGGLE_ONEWOW"] = "Toggle OneWoW",
     ["CMD_KEYWORD_HELP"] = "Open Search Keywords help",
     ["CMD_OPEN_ALTTRACKER"] = "Open AltTracker",

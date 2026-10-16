@@ -3191,23 +3191,20 @@ end
 
 function RefreshJournalList(panels)
     wipe(listResults)
-    ns.EnsureCatalogPack("journal")
     if zoneContentsOnly then
+        -- In This Zone lists places across expansions; load just the ones on this map.
         ForceExpansionAll(panels)
-        local addon = GetDataAddon()
-        local zoneExp = addon and addon.GetPlayerZoneExpansionID()
-        if zoneExp then
-            OneWoW:EnsureJournalShards(zoneExp)
-        end
+        OneWoW:EnsurePlayerJournalPlaces(true)
+    else
+        OneWoW:EnsureJournalShardsForFilter(expansionFilter, function()
+            local p = panels_ref or panels
+            if not p then
+                return
+            end
+            InvalidateJournalFilterCache()
+            FillJournalList(p)
+        end)
     end
-    OneWoW:EnsureJournalShardsForFilter(expansionFilter, function()
-        local p = panels_ref or panels
-        if not p then
-            return
-        end
-        InvalidateJournalFilterCache()
-        FillJournalList(p)
-    end)
     FillJournalList(panels)
 end
 
@@ -3356,14 +3353,28 @@ local function ExpansionFilterLabel()
     return L["JOURNAL_EXPANSION_ALL"]
 end
 
+--- Leaving In This Zone falls back to the player's expansion, not All, so it
+--- does not load every pack.
+local function SetExpansionToPlayer(panels)
+    expansionFilter = OneWoW.CatalogData:GetPlayerSuiteExpansionID()
+    if panels.expText then
+        panels.expText:SetText(ExpansionFilterLabel())
+    end
+end
+
 local function SnapExpansionToType(panels)
     if instanceTypeFilter ~= "delve" then
         return
     end
     if expansionFilter ~= 0 and expansionFilter ~= 11 and expansionFilter ~= 12 then
-        expansionFilter = 0
+        -- Delves exist from The War Within on; snap to the current one rather
+        -- than All so this does not load every pack.
+        expansionFilter = OneWoW.CatalogData:GetCurrentSuiteExpansionID()
+        if expansionFilter ~= 11 and expansionFilter ~= 12 then
+            expansionFilter = 0
+        end
         if panels.expText then
-            panels.expText:SetText(L["JOURNAL_EXPANSION_ALL"])
+            panels.expText:SetText(ExpansionFilterLabel())
         end
     end
 end
@@ -3610,6 +3621,8 @@ function ns.UI.CreateJournalTab(parent)
             zoneContentsOnly = self:GetChecked()
             if zoneContentsOnly then
                 ResetOtherJournalFilters()
+            else
+                SetExpansionToPlayer(panels)
             end
             RefreshJournalList(panels)
             if selectedInstance then
@@ -3740,6 +3753,7 @@ function ns.UI.CreateJournalTab(parent)
             panels.zoneContentsChk:SetChecked(false)
         end
         ResetOtherJournalFilters()
+        SetExpansionToPlayer(panels)
         RefreshJournalList(panels)
         if selectedInstance then
             RefreshDetailView(false)
@@ -3918,7 +3932,7 @@ function ns.UI.CreateJournalTab(parent)
         emptyText = L["JOURNAL_EMPTY"],
         selectText = L["JOURNAL_SELECT"],
         isReady = function()
-            return GetDataAddon() ~= nil
+            return ns.IsCatalogRoleReady("journal")
         end,
         onReady = function()
             local addon = GetDataAddon()
@@ -3998,10 +4012,13 @@ function ns.UI.CreateJournalTab(parent)
     end
 end
 
+local sweepOpenSpec
+
 --- Open Zones (Journal) on one place. Number is a mapID (toast / map pin).
 --- Table selects by placeKey / instanceID / mapID and can expand an encounter.
 ---@param spec number|table
-function ns.UI.OpenToInstance(spec)
+---@param fromSweep boolean|nil internal: re-entry after the all-expansion sweep
+function ns.UI.OpenToInstance(spec, fromSweep)
     local mapID, instanceID, placeKey, encounterID
     if type(spec) == "table" then
         mapID = tonumber(spec.mapID) or tonumber(spec.uiMapID)
@@ -4013,7 +4030,6 @@ function ns.UI.OpenToInstance(spec)
     end
 
     local packName = ns.EnsureCatalogPack("journal")
-    OneWoW:EnsureJournalShards(OneWoW.CatalogData:GetCurrentSuiteExpansionID())
     local journalAPI = GetDataAddon()
     if not journalAPI then
         if packName then
@@ -4050,11 +4066,38 @@ function ns.UI.OpenToInstance(spec)
 
     local instData = FindInstance()
     if not instData then
-        OneWoW:EnsureCatalogJournalPlaces()
+        -- Load the expansion the target ships in when the map index or tier
+        -- list knows it.
+        local expansions = mapID and OneWoW.CatalogData:GetMapPlaceExpansions(mapID) or {}
+        local tierExp = instanceID and journalAPI.GetInstanceExpansionID(instanceID)
+        if tierExp then
+            tinsert(expansions, tierExp)
+        end
+        for i = 1, #expansions do
+            OneWoW:EnsureJournalShards(expansions[i])
+        end
         instData = FindInstance()
     end
     if not instData then
+        if fromSweep then
+            return
+        end
+        -- Unknown expansion (encounter-only spec, or a Delve): sweep the rest
+        -- across frames and open once the place turns up.
+        sweepOpenSpec = spec
+        OneWoW:EnsureJournalShardsForFilter(0, function()
+            if sweepOpenSpec ~= spec then
+                return
+            end
+            if FindInstance() then
+                sweepOpenSpec = nil
+                ns.UI.OpenToInstance(spec, true)
+            end
+        end)
         return
+    end
+    if sweepOpenSpec == spec then
+        sweepOpenSpec = nil
     end
 
     OneWoW.UI:Show("catalog")

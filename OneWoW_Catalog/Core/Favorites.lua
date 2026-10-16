@@ -22,6 +22,13 @@ function Fav:SetFavorite(category, id, on)
     end
 end
 
+---@param category string
+---@return boolean
+function Fav:HasAny(category)
+    local bucket = ns.db.global.favorites[category]
+    return bucket ~= nil and next(bucket) ~= nil
+end
+
 --- Returns an array of numeric favorite IDs for a category.
 ---@param category string
 ---@return number[]

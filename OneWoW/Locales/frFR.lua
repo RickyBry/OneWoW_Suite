@@ -227,6 +227,8 @@ ns.Locale:Register(ADDON_NAME, "frFR", {
     ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "La liste des quêtes inclut les quêtes ajoutées avec la dernière mise à jour.",
     ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Dialogues de quête",
     ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "Les dialogues de quête ne signalent plus d'erreur lorsque Catalog est désactivé.",
+    ["WHATS_NEW_H_CATALOG_ERA_TITLE"] = "Catalog - Extension actuelle",
+    ["WHATS_NEW_H_CATALOG_ERA_BODY"] = "Catalog ne charge que l'extension où vous vous trouvez : ses onglets s'ouvrent plus vite et utilisent moins de mémoire. Choisissez une extension ou Tout dans un filtre, ou tapez au moins deux lettres dans Recherche d'objets, pour charger le reste. Dans cette zone liste toujours chaque donjon, raid et Gouffre de votre carte.",
     ["CMD_TOGGLE_ONEWOW"] = "Basculer OneWoW",
     ["CMD_KEYWORD_HELP"] = "Ouvrir l'aide des mots-clés de recherche",
     ["CMD_OPEN_ALTTRACKER"] = "Ouvrir AltTracker",

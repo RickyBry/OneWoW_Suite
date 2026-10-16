@@ -227,6 +227,8 @@ ns.Locale:Register(ADDON_NAME, "itIT", {
     ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "L'elenco delle missioni include le missioni aggiunte nell'ultimo aggiornamento.",
     ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "Dialoghi missione",
     ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "I dialoghi delle missioni non segnalano più un errore quando Catalog è disattivato.",
+    ["WHATS_NEW_H_CATALOG_ERA_TITLE"] = "Catalog - Espansione attuale",
+    ["WHATS_NEW_H_CATALOG_ERA_BODY"] = "Catalog carica solo l'espansione in cui ti trovi, così le schede si aprono più in fretta e usano meno memoria. Scegli un'espansione o Tutte in un filtro, oppure scrivi almeno due lettere in Ricerca oggetti, per caricare il resto. In questa zona elenca ancora ogni spedizione, incursione e Scorribanda della tua mappa.",
     ["CMD_TOGGLE_ONEWOW"] = "Attiva/disattiva OneWoW",
     ["CMD_KEYWORD_HELP"] = "Apri l'aiuto sulle parole chiave di ricerca",
     ["CMD_OPEN_ALTTRACKER"] = "Apri AltTracker",

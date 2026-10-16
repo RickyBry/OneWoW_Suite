@@ -1,7 +1,10 @@
 local _, ns = ...
 
 local C_AddOns = C_AddOns
+local C_Map = C_Map
+local EventRegistry = EventRegistry
 local GetExpansionLevel = GetExpansionLevel
+local GetInstanceInfo = GetInstanceInfo
 local pairs, type, tonumber = pairs, type, tonumber
 local tinsert, sort = tinsert, sort
 
@@ -98,6 +101,9 @@ local activated = {} -- [addon][topic] = true
 local sinks = {} -- [topic] = fn
 local scanned
 local eras -- sorted list of { addon, expansionID, title }
+local mapEras -- { here, instance, contents } from Catalog's MapExpansion.lua
+local playerPlaceKey
+local playerPlace = { here = {}, contents = {} }
 
 local function TopicsStore()
     return ns.db.global.catalogTopics
@@ -315,6 +321,7 @@ function CatalogData:ActivateTopic(addon, topic)
         end
     end
     activated[addon][topic] = true
+    EventRegistry:TriggerEvent("ns.CatalogTopicActivated", addon, topic)
 end
 
 function CatalogData:ActivateEnabled(addon)
@@ -407,7 +414,15 @@ function CatalogData:IsRoleAvailable(roleOrName)
     return true
 end
 
---- Load runtime + present era addons whose topics feed this role, then activate.
+local function FinishRoleRuntime(role)
+    if role == "quests" or role == "archive" then
+        OneWoW_Catalog.EnsureCatDBQuestRuntime()
+    elseif role == "vendors" or role == "npcs" then
+        OneWoW_Catalog.EnsureCatDBVendorRuntime()
+    end
+end
+
+--- Load runtime + the player's expansion for this role, then activate.
 ---@param roleOrName string
 ---@return string|nil runtimeAddon
 function CatalogData:EnsureRole(roleOrName)
@@ -425,10 +440,11 @@ function CatalogData:EnsureRole(roleOrName)
         return RUNTIME_ADDON
     end
     local role = ROLE_TOPICS[roleOrName] and roleOrName or nil
-    -- Journal/zones place tables load per expansion via EnsureJournalShards.
-    -- NPC / quest / item shards use the same current-first, rest-across-frames path.
-    if role and role ~= "journal" and role ~= "zones" then
-        self:EnsureRoleShardsForFilter(role, 0)
+    -- Only the player's expansion. Other eras load on an explicit All filter
+    -- or a cross-era search (EnsureRoleShardsForFilter with 0).
+    if role then
+        self:EnsureRoleShards(role, self:GetPlayerSuiteExpansionID())
+        FinishRoleRuntime(role)
     end
     return RUNTIME_ADDON
 end
@@ -508,7 +524,8 @@ function CatalogData:IsRoleQueryReady(roleOrName)
     return ready > 0
 end
 
---- True when every wanted expansion for this role is loaded and activated.
+--- True when every wanted expansion for this role is loaded and activated
+--- (nothing left to load; also true when no expansion is wanted).
 ---@param roleOrName string
 ---@return boolean
 function CatalogData:IsRoleFullyLoaded(roleOrName)
@@ -529,7 +546,7 @@ function CatalogData:IsRoleFullyLoaded(roleOrName)
         return self:IsEraAddon(roleOrName) and C_AddOns.IsAddOnLoaded(roleOrName)
     end
     local wanted, ready = CountRoleEraReadiness(self, role)
-    return wanted > 0 and ready == wanted
+    return ready == wanted
 end
 
 --- Player-facing reason a Catalog-backed line is empty. Nil when a requested
@@ -558,20 +575,171 @@ function CatalogData:GetUnavailableNotice(roleOrRoles)
     return ns.L["CATALOG_NOT_LOADED"]
 end
 
---- True when Catalog is up and every wanted expansion's Journal place
---- topics (hubs + zone) are loaded and activated. Missing a shard means this
---- place's card/toast should say Zones Catalog is not loaded.
-function CatalogData:AreWantedJournalPlacesLoaded()
+--- Map -> expansion index (Catalog CatDB/Data/MapExpansion.lua). Lets the
+--- player's expansion be picked before any era pack loads.
+---@param source { here: table<number, number>, instance: table<number, number[]>, contents: table<number, number[]> }
+function CatalogData:SetMapExpansions(source)
+    mapEras = source
+    playerPlaceKey = nil
+end
+
+local function FindEra(expansionID)
+    ScanInstalled()
+    for i = 1, #eras do
+        local era = eras[i]
+        if era.expansionID == expansionID then
+            return era
+        end
+    end
+    return nil
+end
+
+local function IsEraWanted(expansionID)
+    local era = FindEra(expansionID)
+    return era ~= nil and ns:IsFeatureWanted(era.addon)
+end
+
+local function AppendUnique(dest, seen, list)
+    if not list then
+        return
+    end
+    for i = 1, #list do
+        local id = list[i]
+        if not seen[id] then
+            seen[id] = true
+            tinsert(dest, id)
+        end
+    end
+end
+
+--- Instance map IDs and world uiMapIDs share numbers; only use instance keys while instanced.
+local function PlayerInstanceMapID()
+    local _, instanceType, _, _, _, _, _, instanceMapID = GetInstanceInfo()
+    if instanceType and instanceType ~= "none" and instanceMapID and instanceMapID > 0 then
+        return instanceMapID
+    end
+    return nil
+end
+
+--- Eras of the player's place ("here") and of the places listed on that map
+--- ("contents"). Mirrors the Zones scope resolver; cached per map.
+local function ResolvePlayerPlace()
+    local instanceMapID = PlayerInstanceMapID()
+    local current = C_Map.GetBestMapForUnit("player")
+    local key = (instanceMapID or 0) * 100000 + (current or 0)
+    if key == playerPlaceKey then
+        return playerPlace
+    end
+    local here, contents = {}, {}
+    playerPlace.here, playerPlace.contents = here, contents
+    if not mapEras then
+        return playerPlace
+    end
+    playerPlaceKey = key
+    local hereSeen, contentsSeen = {}, {}
+
+    local interior = instanceMapID and mapEras.instance[instanceMapID]
+    if interior then
+        AppendUnique(here, hereSeen, interior)
+        AppendUnique(contents, contentsSeen, interior)
+        return playerPlace
+    end
+
+    local root = current
+    local id = current
+    for _ = 1, 8 do
+        if not id or id == 0 then
+            break
+        end
+        local era = mapEras.here[id]
+        if era then
+            root = id
+            AppendUnique(here, hereSeen, { era })
+            break
+        end
+        local info = C_Map.GetMapInfo(id)
+        id = info and info.parentMapID
+    end
+    if not root then
+        return playerPlace
+    end
+    AppendUnique(contents, contentsSeen, here)
+    AppendUnique(contents, contentsSeen, mapEras.contents[root])
+    local children = C_Map.GetMapChildrenInfo(root, nil, true)
+    if children then
+        for i = 1, #children do
+            AppendUnique(contents, contentsSeen, mapEras.contents[children[i].mapID])
+        end
+    end
+    return playerPlace
+end
+
+--- Wanted expansions for the player's place. With includeContents, also the
+--- expansions of the dungeons, raids, Delves, and cities listed on that map.
+--- Empty until Catalog has loaded (the map index ships with it).
+---@param includeContents boolean|nil
+---@return number[] expansionIDs
+function CatalogData:GetPlayerPlaceExpansions(includeContents)
+    local place = ResolvePlayerPlace()
+    local list = includeContents and place.contents or place.here
+    local out = {}
+    for i = 1, #list do
+        if IsEraWanted(list[i]) then
+            tinsert(out, list[i])
+        end
+    end
+    return out
+end
+
+--- Expansions whose places sit on this map (zone card by uiMapID, or interior
+--- places by instance mapID / uiMapID). Empty until Catalog has loaded.
+---@param mapID number
+---@return number[] expansionIDs
+function CatalogData:GetMapPlaceExpansions(mapID)
+    local out, seen = {}, {}
+    if mapEras and mapID then
+        local era = mapEras.here[mapID]
+        if era then
+            seen[era] = true
+            out[1] = era
+        end
+        AppendUnique(out, seen, mapEras.instance[mapID])
+    end
+    return out
+end
+
+--- Suite expansion of the player's place, else the client's current expansion.
+---@return number expansionID 0 when no journal pack is wanted
+function CatalogData:GetPlayerSuiteExpansionID()
+    local here = self:GetPlayerPlaceExpansions(false)
+    if here[1] then
+        return here[1]
+    end
+    return self:GetCurrentSuiteExpansionID()
+end
+
+local function PlayerHereExpansions(self)
+    local here = self:GetPlayerPlaceExpansions(false)
+    if #here == 0 then
+        here[1] = self:GetCurrentSuiteExpansionID()
+    end
+    return here
+end
+
+--- True when Catalog is up and the Journal place topics (hubs + zone) for the
+--- player's place are loaded. Missing a shard means this place's card/toast
+--- should say Zones Catalog is not loaded.
+function CatalogData:ArePlayerJournalPlacesLoaded()
     if not C_AddOns.IsAddOnLoaded(RUNTIME_ADDON) then
         return false
     end
     if not self:GetRoleAPI("journal") then
         return false
     end
-    ScanInstalled()
-    for i = 1, #eras do
-        local era = eras[i]
-        if era.expansionID ~= OTHER_EXPANSION_ID and ns:IsFeatureWanted(era.addon) then
+    local here = PlayerHereExpansions(self)
+    for i = 1, #here do
+        local era = FindEra(here[i])
+        if era then
             if not C_AddOns.IsAddOnLoaded(era.addon) then
                 return false
             end
@@ -677,8 +845,8 @@ function CatalogData:EnsureJournalShards(expansionID)
     end
 end
 
---- Load the selected expansion now. All loads this expansion first, then the rest
---- across frames so opening Zones does not hitch every pack on one paint.
+--- Load the selected expansion now. All loads the player's expansion first, then
+--- the rest across frames so opening Zones does not hitch every pack on one paint.
 ---@param expansionID number
 ---@param onUpdate function|nil
 function CatalogData:EnsureJournalShardsForFilter(expansionID, onUpdate)
@@ -689,11 +857,13 @@ function CatalogData:EnsureJournalShardsForFilter(expansionID, onUpdate)
         self:EnsureJournalShards(expansionID)
         return
     end
-    local current = self:GetCurrentSuiteExpansionID()
+    local current = self:GetPlayerSuiteExpansionID()
     if current ~= 0 then
         self:EnsureJournalShards(current)
     end
-    journalShardOnUpdate = onUpdate
+    if onUpdate then
+        journalShardOnUpdate = onUpdate
+    end
     if journalShardJob then
         return
     end
@@ -710,6 +880,7 @@ function CatalogData:EnsureJournalShardsForFilter(expansionID, onUpdate)
         end
     end
     if #pending == 0 then
+        journalShardOnUpdate = nil
         return
     end
     journalShardJob = ns.ChunkedJob.Start({
@@ -739,14 +910,6 @@ function CatalogData:EnsureJournalShardsForFilter(expansionID, onUpdate)
     })
 end
 
-local function FinishRoleRuntime(role)
-    if role == "quests" or role == "archive" then
-        OneWoW_Catalog.EnsureCatDBQuestRuntime()
-    elseif role == "vendors" or role == "npcs" then
-        OneWoW_Catalog.EnsureCatDBVendorRuntime()
-    end
-end
-
 local function ActivateRoleEra(self, role, era)
     if role == "journal" or role == "zones" then
         ActivateJournalEra(self, era)
@@ -766,13 +929,6 @@ local function ActivateRoleEra(self, role, era)
     end
 end
 
-local function EraMatchesShardFilter(era, expansionID)
-    if era.expansionID == expansionID then
-        return true
-    end
-    return SUITE_TO_LE[era.expansionID] == expansionID
-end
-
 function CatalogData:CancelRoleShardJob(role)
     if role == "journal" or role == "zones" then
         self:CancelJournalShardJob()
@@ -786,7 +942,8 @@ function CatalogData:CancelRoleShardJob(role)
     end
 end
 
---- Load one wanted expansion's topics for this role (suite ID or LE ID).
+--- Load one wanted expansion's topics for this role. Suite IDs only; LE-keyed
+--- tabs convert with LE_TO_SUITE.
 ---@param role string
 ---@param expansionID number
 function CatalogData:EnsureRoleShards(role, expansionID)
@@ -803,7 +960,7 @@ function CatalogData:EnsureRoleShards(role, expansionID)
     ScanInstalled()
     for i = 1, #eras do
         local era = eras[i]
-        if EraMatchesShardFilter(era, expansionID)
+        if era.expansionID == expansionID
             and ns:IsFeatureWanted(era.addon)
             and RoleNeedsEra(self, role, era)
         then
@@ -814,14 +971,15 @@ function CatalogData:EnsureRoleShards(role, expansionID)
     end
 end
 
---- Load the selected expansion now. All loads this expansion first, then the rest
---- across frames so opening NPCs / Quests / Item Search does not hitch every pack.
+--- Load the selected expansion now. All (0 / -1) loads the player's expansion
+--- first, then the rest across frames so opening NPCs / Quests / Item Search does
+--- not hitch every pack.
 ---@param role string
----@param expansionID number
+---@param expansionID number suite expansion ID, or 0 / -1 for All
 ---@param onUpdate function|nil
 function CatalogData:EnsureRoleShardsForFilter(role, expansionID, onUpdate)
     if role == "journal" or role == "zones" then
-        self:EnsureJournalShardsForFilter(expansionID, onUpdate)
+        self:EnsureJournalShardsForFilter(expansionID == -1 and 0 or expansionID, onUpdate)
         return
     end
     if not ns:EnsureLoaded(RUNTIME_ADDON) then
@@ -833,11 +991,13 @@ function CatalogData:EnsureRoleShardsForFilter(role, expansionID, onUpdate)
         self:EnsureRoleShards(role, expansionID)
         return
     end
-    local current = self:GetCurrentSuiteExpansionID()
+    local current = self:GetPlayerSuiteExpansionID()
     if current ~= 0 then
         self:EnsureRoleShards(role, current)
     end
-    roleShardOnUpdate[role] = onUpdate
+    if onUpdate then
+        roleShardOnUpdate[role] = onUpdate
+    end
     if roleShardJobs[role] then
         return
     end
@@ -864,6 +1024,7 @@ function CatalogData:EnsureRoleShardsForFilter(role, expansionID, onUpdate)
     end
     FinishRoleRuntime(role)
     if #pending == 0 then
+        roleShardOnUpdate[role] = nil
         return
     end
     roleShardJobs[role] = ns.ChunkedJob.Start({
@@ -895,34 +1056,19 @@ function CatalogData:EnsureRoleShardsForFilter(role, expansionID, onUpdate)
     })
 end
 
---- Load zone + hubs for every wanted expansion pack (not Other).
---- Used when standing in a place whose expansion topic was off or never loaded.
-function CatalogData:EnsureWantedJournalPlaces()
-    self:CancelJournalShardJob()
-    ns:EnsureLoaded(RUNTIME_ADDON)
-    ScanInstalled()
-    for i = 1, #eras do
-        local era = eras[i]
-        if era.expansionID ~= OTHER_EXPANSION_ID and ns:IsFeatureWanted(era.addon) then
-            ActivateJournalEra(self, era)
-        end
-    end
-end
-
---- Load every present era that has this topic enabled.
----@param topic string
-function CatalogData:EnsureTopic(topic)
-    if not TOPIC_SET[topic] then
+--- Load zone + hubs for the player's place. With includeContents, also the
+--- expansions of the places listed on that map (Zones "In this zone").
+---@param includeContents boolean|nil
+function CatalogData:EnsurePlayerJournalPlaces(includeContents)
+    if not ns:EnsureLoaded(RUNTIME_ADDON) then
         return
     end
-    ns:EnsureLoaded(RUNTIME_ADDON)
-    ScanInstalled()
-    for i = 1, #eras do
-        local era = eras[i]
-        if ns:IsFeatureWanted(era.addon) and self:IsTopicEnabled(era.addon, topic) then
-            ns:EnsureLoaded(era.addon)
-            self:ActivateTopic(era.addon, topic)
-        end
+    local expansions = includeContents and self:GetPlayerPlaceExpansions(true) or PlayerHereExpansions(self)
+    if #expansions == 0 then
+        expansions[1] = self:GetCurrentSuiteExpansionID()
+    end
+    for i = 1, #expansions do
+        self:EnsureJournalShards(expansions[i])
     end
 end
 
@@ -955,4 +1101,5 @@ CatalogData.TRADESKILL_ADDON = TRADESKILL_ADDON
 CatalogData.OTHER_ADDON = OTHER_ADDON
 CatalogData.OTHER_EXPANSION_ID = OTHER_EXPANSION_ID
 CatalogData.SUITE_TO_LE = SUITE_TO_LE
+CatalogData.LE_TO_SUITE = LE_TO_SUITE
 CatalogData.ARCHIVE_LE_MAX = ARCHIVE_LE_MAX

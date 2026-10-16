@@ -56,7 +56,7 @@ local function EnsureArchiveLoaded(expansionID, shouldYield)
     if expansionID ~= nil and expansionID ~= -1 and not ExpansionNeedsArchive(expansionID) then
         return true
     end
-    OneWoW:EnsureCatalogPack(ARCHIVE_HUB)
+    OneWoW:EnsureCatalogRoleShardsForFilter(ARCHIVE_HUB, ns.CatalogShardFilterFromLE(expansionID))
     if shouldYield then
         coroutine_yield()
     end
@@ -463,13 +463,19 @@ function API.ImportQuestData(source)
     ns:RegisterQuestData(source)
 end
 
---- Load the archive pack, then run callback.
+--- Load every archive expansion (across frames), then run callback once.
 ---@param callback function
 function API.EnsureArchiveThen(callback)
-    OneWoW:EnsureCatalogPack(ARCHIVE_HUB)
-    if callback then
+    local done = false
+    local function finish()
+        if done or not OneWoW:IsCatalogRoleFullyLoaded(ARCHIVE_HUB) then
+            return
+        end
+        done = true
         callback()
     end
+    OneWoW:EnsureCatalogRoleShardsForFilter(ARCHIVE_HUB, 0, finish)
+    finish()
 end
 
 --- All quest records keyed by quest ID.

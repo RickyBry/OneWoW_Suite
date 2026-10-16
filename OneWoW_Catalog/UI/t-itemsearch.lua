@@ -256,7 +256,7 @@ local function CreateSourceButton(parent, def)
         GameTooltip:Hide()
     end)
     btn:SetScript("OnClick", function(self)
-        ns.ItemSearch.EnsureFilterPacks(self.sourceKey, RefreshItemList)
+        ns.ItemSearch.EnsureFilterPacks(self.sourceKey, RefreshItemList, currentSearch)
         UpdateSourceButtonStates()
         if not ns.ItemSearch:IsSourceAvailable(self.sourceKey) then
             return
@@ -992,6 +992,7 @@ function ns.UI.CreateItemSearchTab(parent)
             if searchTimer then searchTimer:Cancel() end
             searchTimer = C_Timer.NewTimer(0.3, function()
                 currentSearch = text
+                ns.ItemSearch.EnsureFilterPacks(currentSource, RefreshItemList, currentSearch)
                 selectedItem = nil
                 ClearDetailElements()
                 if emptyDetail then
@@ -1026,7 +1027,7 @@ function ns.UI.CreateItemSearchTab(parent)
         currentSearch = ""
         currentSource = "all"
         selectedItem = nil
-        ns.ItemSearch.EnsureFilterPacks(currentSource, RefreshItemList)
+        ns.ItemSearch.EnsureFilterPacks(currentSource, RefreshItemList, currentSearch)
         ClearDetailElements()
         if emptyDetail then
             emptyDetail:SetText(L["ITEMSEARCH_SELECT"])
@@ -1086,7 +1087,7 @@ function ns.UI.CreateItemSearchTab(parent)
 
     panels.detailScrollChild:SetHeight(100)
 
-    ns.ItemSearch.EnsureFilterPacks(currentSource, RefreshItemList)
+    ns.ItemSearch.EnsureFilterPacks(currentSource, RefreshItemList, currentSearch)
     UpdateSourceButtonStates()
     if emptyList then
         emptyList:SetText(L["ITEMSEARCH_EMPTY"])
@@ -1149,7 +1150,7 @@ function ns.UI.CreateItemSearchTab(parent)
         currentSource = "all"
         currentSearch = query
         selectedItem = nil
-        ns.ItemSearch.EnsureFilterPacks(currentSource, RefreshItemList)
+        ns.ItemSearch.EnsureFilterPacks(currentSource, RefreshItemList, currentSearch)
 
         UpdateSourceButtonStates()
         if searchTimer then
@@ -1182,7 +1183,7 @@ function ns.UI.CreateItemSearchTab(parent)
     end
 
     function parent.Activate()
-        ns.ItemSearch.EnsureFilterPacks(currentSource, RefreshItemList)
+        ns.ItemSearch.EnsureFilterPacks(currentSource, RefreshItemList, currentSearch)
         if UpdateSourceButtonStates() then
             RefreshItemList()
         end

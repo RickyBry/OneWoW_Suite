@@ -227,6 +227,8 @@ ns.Locale:Register(ADDON_NAME, "zhTW", {
     ["WHATS_NEW_H_RETAILQUESTS_BODY"] = "任務列表包含最新正式服更新加入的任務。",
     ["WHATS_NEW_H_QUESTDIALOG_TITLE"] = "任務對話",
     ["WHATS_NEW_H_QUESTDIALOG_BODY"] = "關閉 Catalog 後，任務對話不再報錯。",
+    ["WHATS_NEW_H_CATALOG_ERA_TITLE"] = "Catalog - 目前資料片",
+    ["WHATS_NEW_H_CATALOG_ERA_BODY"] = "Catalog 只載入你所在的資料片，因此分頁開啟更快、佔用記憶體更少。在篩選中選擇資料片或全部，或在物品搜尋中輸入兩個以上字母，即可載入其餘資料片。本區域仍會列出地圖上的所有地城、團隊副本和探究。",
     ["CMD_TOGGLE_ONEWOW"] = "切換 OneWoW",
     ["CMD_KEYWORD_HELP"] = "開啟搜尋關鍵字說明",
     ["CMD_OPEN_ALTTRACKER"] = "開啟 AltTracker",
