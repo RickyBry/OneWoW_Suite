@@ -1026,7 +1026,7 @@ function FirstRun:BuildPanel(parent, opts)
             yOffset = 0,
         })
         groupHeader:ClearAllPoints()
-        table.insert(listItems, groupHeader)
+        tinsert(listItems, groupHeader)
         headerIndices[#listItems] = true
 
         for _, entry in ipairs(FirstRun.CATALOG) do
@@ -1145,7 +1145,7 @@ function FirstRun:BuildPanel(parent, opts)
                 card.loadBtn = loadBtn
 
                 cards[addon] = card
-                table.insert(listItems, card)
+                tinsert(listItems, card)
 
                 local manifest = ns:GetManifestByAddon(addon)
                 if manifest and manifest.stores then
@@ -1192,7 +1192,7 @@ function FirstRun:BuildPanel(parent, opts)
                         sub:ClearAllPoints()
                         storeCards[store] = sub
                         storeMeta[store] = { parent = addon, optional = isOptional }
-                        table.insert(listItems, sub)
+                        tinsert(listItems, sub)
 
                         if ns.CatalogData:IsEraAddon(store) then
                             subRowTightAfter[#listItems] = true
@@ -1255,7 +1255,7 @@ function FirstRun:BuildPanel(parent, opts)
                                 row._layingOut = nil
                             end)
                             topicRows[store] = topicRow
-                            table.insert(listItems, topicRow)
+                            tinsert(listItems, topicRow)
                             if si < #visibleStores then
                                 subRowTightAfter[#listItems] = true
                             end
@@ -1288,7 +1288,7 @@ function FirstRun:BuildPanel(parent, opts)
                         sub:ClearAllPoints()
                         featureCards[feat.id] = sub
                         featureMeta[feat.id] = { parent = addon, feat = feat }
-                        table.insert(listItems, sub)
+                        tinsert(listItems, sub)
                         if fi < #entry.inUnitFeatures then
                             subRowTightAfter[#listItems] = true
                         end

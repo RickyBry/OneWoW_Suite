@@ -1,5 +1,7 @@
 local _, ns = ...
 
+local OneWoW_GUI = OneWoW_GUI
+
 local RecipeKnownUtil = {}
 ns.RecipeKnownUtil = RecipeKnownUtil
 
@@ -194,8 +196,7 @@ function RecipeKnownUtil:IsRecipeKnown(itemID, context)
     end
 
     if OneWoW_AltTracker_Professions_API then
-        local OneWoW_GUI = OneWoW_GUI
-        local charKey = OneWoW_GUI and OneWoW_GUI:BuildCharKey()
+        local charKey = OneWoW_GUI:BuildCharKey()
         local charData = charKey and OneWoW_AltTracker_Professions_API.GetCharacterData(charKey)
         if charData and charData.recipes then
             for _, recipeSet in pairs(charData.recipes) do
@@ -400,8 +401,7 @@ function RecipeKnownUtil:IsRecipeKnownByScopedAlt(itemID, altScope, context)
         return false
     end
 
-    local OneWoW_GUI = OneWoW_GUI
-    local currentCharKey = OneWoW_GUI and OneWoW_GUI:BuildCharKey()
+    local currentCharKey = OneWoW_GUI:BuildCharKey()
     local found = false
 
     for charKey, charData in pairs(OneWoW_AltTracker_Professions_API.GetAllCharacters()) do

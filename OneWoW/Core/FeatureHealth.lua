@@ -28,12 +28,9 @@ local CLASS_REMOTE_UPDATE = "remote_update"
 ---@return string
 local function UnitLabel(addonName)
     local L = ns.L
-    local catalog = ns.FirstRun and ns.FirstRun.CATALOG
-    if catalog then
-        for _, entry in ipairs(catalog) do
-            if entry.addonName == addonName then
-                return L[entry.labelKey]
-            end
+    for _, entry in ipairs(ns.FirstRun.CATALOG) do
+        if entry.addonName == addonName then
+            return L[entry.labelKey]
         end
     end
     local storeKey = ns:GetStoreLabelKey(addonName)
@@ -108,7 +105,7 @@ local function CollectRawAttention()
     end
 
     local coreVersion = ns:GetAddonVersion("OneWoW")
-    local catalog = ns.FirstRun and ns.FirstRun.CATALOG or {}
+    local catalog = ns.FirstRun.CATALOG
 
     -- Version mismatches (non-dismissable).
     local mismatchLabels = {}
@@ -305,7 +302,7 @@ function ns:EvaluateSuiteAttention()
     end
 
     local loaded = 0
-    local catalog = ns.FirstRun and ns.FirstRun.CATALOG or {}
+    local catalog = ns.FirstRun.CATALOG
     for _, entry in ipairs(catalog) do
         local state = self:GetFeatureUnitState(entry.addonName)
         if state == "all" or state == "some" or state == "pending_disable" then

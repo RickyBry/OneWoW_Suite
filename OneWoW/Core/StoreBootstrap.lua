@@ -17,15 +17,13 @@ function ns:BootStore(storeNs, config)
     local defaults = config.defaults
     local initDB = config.initDB
 
-    if config.addonName and ns.Lifecycle then
+    if config.addonName then
         ns.Lifecycle.RegisterUnit(config.addonName, storeNs)
     end
 
     storeNs.AddonInitialized = false
 
-    if ns.Lifecycle then
-        ns.Lifecycle:CreateHandlerRegistry(storeNs)
-    end
+    ns.Lifecycle:CreateHandlerRegistry(storeNs)
 
     if config.withScanCallbacks then
         local scanCallbacks = {}

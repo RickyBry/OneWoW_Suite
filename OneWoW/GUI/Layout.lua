@@ -366,7 +366,7 @@ function OneWoW_GUI:StackVertically(parent, items, options)
     end
 
     function stack:Add(child, gap)
-        table.insert(self.items, child)
+        tinsert(self.items, child)
         if gap then gaps[#self.items] = gap end
         HookSizeChanged(child)
         if child and type(child.OnHeightChanged) == "function" then
@@ -382,7 +382,7 @@ function OneWoW_GUI:StackVertically(parent, items, options)
     if items then
         for _, child in ipairs(items) do
             if child then
-                table.insert(stack.items, child)
+                tinsert(stack.items, child)
                 HookSizeChanged(child)
                 if type(child.OnHeightChanged) == "function" then
                     child:OnHeightChanged(function() stack:Layout() end)
@@ -537,7 +537,7 @@ function OneWoW_GUI:CreateActionBar(parent, options)
 
     function bar:OnHeightChanged(fn)
         if type(fn) == "function" then
-            table.insert(self._heightListeners, fn)
+            tinsert(self._heightListeners, fn)
         end
     end
 
@@ -706,7 +706,7 @@ function OneWoW_GUI:CreateHeroPanel(parent, options)
 
     function panel:OnHeightChanged(fn)
         if type(fn) == "function" then
-            table.insert(self._heightListeners, fn)
+            tinsert(self._heightListeners, fn)
         end
     end
 
@@ -822,7 +822,7 @@ function OneWoW_GUI:CreateSummaryStrip(parent, options)
 
     function strip:OnHeightChanged(fn)
         if type(fn) == "function" then
-            table.insert(self._heightListeners, fn)
+            tinsert(self._heightListeners, fn)
         end
     end
 
@@ -1146,7 +1146,7 @@ function OneWoW_GUI:CreateSelectableCard(parent, options)
 
     function card:OnHeightChanged(fn)
         if type(fn) == "function" then
-            table.insert(self._heightListeners, fn)
+            tinsert(self._heightListeners, fn)
         end
     end
 

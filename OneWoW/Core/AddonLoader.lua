@@ -6,7 +6,6 @@ local ADDON_NAME, ns = ...
 local OneWoW_GUI = OneWoW_GUI
 
 local C_AddOns = C_AddOns
-local CreateFrame = CreateFrame
 local ipairs = ipairs
 local tinsert = tinsert
 local print = print
@@ -24,18 +23,14 @@ local warned = {}
 -- and entering-world passes itself, once, after the whole set is loaded.
 local inBringUp = false
 
-local combatFrame = CreateFrame("Frame")
-combatFrame:SetScript("OnEvent", function(self, event)
-    if event ~= "PLAYER_REGEN_ENABLED" then return end
-    self:UnregisterEvent("PLAYER_REGEN_ENABLED")
-    if #pendingCombat == 0 then return end
+local function FlushCombatQueue()
     local queue = pendingCombat
     pendingCombat = {}
     ns:TraceRecord("combat.flush", nil, { count = #queue })
     for _, entry in ipairs(queue) do
         ns:WithAddon(entry.name, entry.onReady, entry.onFail, entry.opts)
     end
-end)
+end
 
 --- Maps a raw LoadAddOn failure token to a localized, user-facing string.
 --- Falls back to Blizzard's ADDON_* constants, then to the raw token.
@@ -382,8 +377,8 @@ end
 ---@param addonName string
 ---@return string[]
 function ns:GetCatalogDatastores(addonName)
-    local catalog = ns.FirstRun and ns.FirstRun.CATALOG
-    if not catalog or not addonName then return {} end
+    if not addonName then return {} end
+    local catalog = ns.FirstRun.CATALOG
     for _, entry in ipairs(catalog) do
         if entry.addonName == addonName and entry.datastores then
             local resolved = {}
@@ -401,8 +396,8 @@ end
 ---@return string[] consumerAddonNames
 function ns:GetStoreCatalogConsumers(storeAddon)
     local result = {}
-    local catalog = ns.FirstRun and ns.FirstRun.CATALOG
-    if not catalog or not storeAddon then return result end
+    if not storeAddon then return result end
+    local catalog = ns.FirstRun.CATALOG
     for _, entry in ipairs(catalog) do
         for _, ds in ipairs(entry.datastores) do
             if (self:ResolveCatalogPack(ds) or ds) == storeAddon then
@@ -581,7 +576,8 @@ hooksecurefunc(C_AddOns, "LoadAddOn", function(nameOrIndex)
     -- button) that happens after login must catch the unit up on the login and
     -- entering-world hooks it missed. BringUp drives these itself for batches, so
     -- skip while inBringUp to avoid firing them before the whole set is loaded.
-    if not inBringUp and ns._playerLoginFired then
+    -- Manifest units only: a third-party addon loaded mid-session is not ours to drive.
+    if not inBringUp and ns._playerLoginFired and ns:IsManifestUnit(name) then
         local single = { name }
         Settle(single)
         CatchUpEnteringWorld(single)
@@ -646,8 +642,8 @@ end
 
 --- Loads an addon and dispatches a callback, removing the if/else at the call
 --- site. On success runs onReady(); on failure runs onFail(reason), or prints the
---- localized reason once if onFail is nil. A "COMBAT" deferral is queued to
---- PLAYER_REGEN_ENABLED rather than failed.
+--- localized reason once if onFail is nil. A "COMBAT" deferral is queued until
+--- combat ends (Restriction "lockdown" bucket) rather than failed.
 ---@param name string addon (folder/TOC) name to load
 ---@param onReady fun()? called once the addon is loaded
 ---@param onFail fun(reason: string?)? called on failure; if nil, the reason is printed once
@@ -662,7 +658,7 @@ function ns:WithAddon(name, onReady, onFail, opts)
     if reason == "COMBAT" then
         self:TraceRecord("defer.combat", name)
         tinsert(pendingCombat, { name = name, onReady = onReady, onFail = onFail, opts = opts })
-        combatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+        ns.Restriction.RunWhenUnrestricted("lockdown", "AddonLoader.combat", FlushCombatQueue)
         return false
     end
     if onFail then

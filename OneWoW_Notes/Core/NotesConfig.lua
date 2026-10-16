@@ -1,4 +1,6 @@
 local _, ns = ...
+
+local OneWoW_GUI = OneWoW_GUI
 local L = ns.L
 
 ns.NotesConfig = {}
@@ -144,8 +146,7 @@ ns.NotesConfig.THEME_TO_FONT_COLOR = ns.NotesConfig.THEME_TO_COLOR
 
 function ns.NotesConfig:GetResolvedColorConfig(pinColorKey)
     if pinColorKey == "sync" then
-        local OneWoW_GUI = OneWoW_GUI
-        local currentTheme = (OneWoW_GUI and OneWoW_GUI.GetSetting and OneWoW_GUI:GetSetting("theme")) or "green"
+        local currentTheme = OneWoW_GUI:GetSetting("theme") or "green"
         local colorKey = self.THEME_TO_COLOR[currentTheme] or "hunter"
         return self.PIN_COLORS[colorKey] or self.PIN_COLORS["hunter"]
     else
@@ -155,8 +156,7 @@ end
 
 function ns.NotesConfig:GetResolvedFontColor(fontColorKey, pinColorKey)
     if fontColorKey == "sync" then
-        local OneWoW_GUI = OneWoW_GUI
-        local currentTheme = (OneWoW_GUI and OneWoW_GUI.GetSetting and OneWoW_GUI:GetSetting("theme")) or "green"
+        local currentTheme = OneWoW_GUI:GetSetting("theme") or "green"
         local colorKey = self.THEME_TO_FONT_COLOR[currentTheme] or "hunter"
         local colorConfig = self.PIN_COLORS[colorKey]
         if colorConfig then return colorConfig.border end

@@ -29,9 +29,9 @@ end
 function Registry:GetModules()
     local sorted = {}
     for _, mod in pairs(registeredModules) do
-        table.insert(sorted, mod)
+        tinsert(sorted, mod)
     end
-    table.sort(sorted, function(a, b)
+    sort(sorted, function(a, b)
         if a.order ~= b.order then return a.order < b.order end
         return a.name < b.name
     end)
@@ -71,8 +71,8 @@ end
 function Registry:GetSettingsPanels()
     local sorted = {}
     for _, panel in pairs(registeredSettingsPanels) do
-        table.insert(sorted, panel)
+        tinsert(sorted, panel)
     end
-    table.sort(sorted, function(a, b) return a.order < b.order end)
+    sort(sorted, function(a, b) return a.order < b.order end)
     return sorted
 end

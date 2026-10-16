@@ -63,7 +63,6 @@ end
 local COLON_METHODS = {
     "RegisterMinimap",
     "RegisterLoadComponent",
-    "OnAddonLoaded",
     "GetLoadFailureText",
     "IsAddonEnabled",
     "SetAddonEnabled",
@@ -91,7 +90,6 @@ local COLON_METHODS = {
     "IsCatalogRoleReady",
     "IsCatalogRoleFullyLoaded",
     "GetCatalogUnavailableNotice",
-    "IsManifestUnit",
     "BringUp",
     "WithAddon",
     "GetModuleTabOrder",
@@ -110,9 +108,6 @@ local COLON_METHODS = {
     "DismissFeatureAttention",
     "BootStore",
     "GetSettingsDefaults",
-    "InitializeDatabase",
-    "TraceRecord",
-    "DispatchUnitOnAddonLoaded",
     "RegisterAddonLoadedWatcher",
     "SignalDataReady",
     "RegisterDataReadyWatcher",
@@ -120,12 +115,6 @@ local COLON_METHODS = {
     "CreateItemDataLoader",
     "RegisterCoreLoginHandler",
     "RegisterCoreEnteringWorldHandler",
-    "FireCoreLoginHandlers",
-    "FireCoreEnteringWorldHandlers",
-    "NotifyAddonLoadedWatchers",
-    "DispatchAddonLoaded",
-    "RunManifestLoginPhase",
-    "DispatchEnteringWorld",
     "RegisterModule",
     "RegisterSettingsPanel",
     "GetAddonVersion",
@@ -183,5 +172,3 @@ end
 function OneWoW:GetMinimapEntries()
     return ns._minimapEntries
 end
-
-_G["OneWoW"] = OneWoW

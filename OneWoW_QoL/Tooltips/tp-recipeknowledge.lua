@@ -1,5 +1,7 @@
 local _, ns = ...
 
+local OneWoW_GUI = OneWoW_GUI
+
 local OneWoW = OneWoW
 local PE = OneWoW.PredicateEngine
 
@@ -120,8 +122,7 @@ local function RecipeKnowledgeProvider(_, context)
 
     local Util           = OneWoW.RecipeKnownUtil
     local L              = ns.L
-    local OneWoW_GUI     = OneWoW_GUI
-    local currentCharKey = OneWoW_GUI and OneWoW_GUI:BuildCharKey()
+    local currentCharKey = OneWoW_GUI:BuildCharKey()
     local currentKnows   = Util and Util:IsRecipeKnown(context.itemID, {
         hyperlink = context.itemLink,
         tooltipData = context.data,

@@ -161,7 +161,7 @@ end
 
 --- Login-path entry: skip when FirstRun wizard still pending.
 function WhatsNew:TryAutoShow()
-    if ns.FirstRun and ns.FirstRun:ShouldShowWizard() then
+    if ns.FirstRun:ShouldShowWizard() then
         return
     end
     self:Show(false)

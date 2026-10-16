@@ -24,7 +24,7 @@ function Module:CaptureKeybinds()
     for i = 1, GetNumBindings() do
         local command, _, key1, key2 = GetBinding(i)
         if command and (key1 or key2) then
-            table.insert(bindings, { command = command, key1 = key1, key2 = key2 })
+            tinsert(bindings, { command = command, key1 = key1, key2 = key2 })
         end
     end
     return { bindings = bindings, count = #bindings, capturedAt = time() }
@@ -104,7 +104,7 @@ function Module:CaptureAddonSet()
         local name, title = C_AddOns.GetAddOnInfo(i)
         if name then
             local state = C_AddOns.GetAddOnEnableState(name, charName)
-            table.insert(addons, { name = name, title = title or name, enabled = (state == 2) })
+            tinsert(addons, { name = name, title = title or name, enabled = (state == 2) })
         end
     end
     return { addons = addons, count = #addons, capturedAt = time() }
@@ -427,10 +427,10 @@ function Module:GetProfilesList()
     local list = {}
     for name, data in pairs(profiles) do
         if type(data) == "table" and data.name and data.timestamp then
-            table.insert(list, { name = name, data = data })
+            tinsert(list, { name = name, data = data })
         end
     end
-    table.sort(list, function(a, b)
+    sort(list, function(a, b)
         return (a.data.timestamp or 0) > (b.data.timestamp or 0)
     end)
     return list
@@ -511,38 +511,38 @@ function UI:ShowCharProfileRestoreDialog(profileName, profile, onRestored)
 
                 if restoreChecks.keybinds and restoreChecks.keybinds:GetChecked() then
                     local n = M:RestoreKeybinds(profile.keybinds)
-                    table.insert(results, string.format("%d Keybinds", n))
+                    tinsert(results, string.format("%d Keybinds", n))
                 end
 
                 if restoreChecks.accountMacros and restoreChecks.accountMacros:GetChecked() then
                     local n = M:RestoreMacros(
                         { account = type(profile.accountMacros) == "table" and profile.accountMacros.data or {} },
                         true, false)
-                    table.insert(results, string.format("%d Account Macros", n))
+                    tinsert(results, string.format("%d Account Macros", n))
                 end
 
                 if restoreChecks.characterMacros and restoreChecks.characterMacros:GetChecked() then
                     local n = M:RestoreMacros(
                         { character = type(profile.characterMacros) == "table" and profile.characterMacros.data or {} },
                         false, true)
-                    table.insert(results, string.format("%d Character Macros", n))
+                    tinsert(results, string.format("%d Character Macros", n))
                 end
 
                 if restoreChecks.gameSettings and restoreChecks.gameSettings:GetChecked() then
                     local n = M:RestoreGameSettings(profile.gameSettings)
-                    table.insert(results, string.format("%d Game Settings", n))
+                    tinsert(results, string.format("%d Game Settings", n))
                     reloadNeeded = true
                 end
 
                 if restoreChecks.addonSet and restoreChecks.addonSet:GetChecked() then
                     local n = M:RestoreAddonSet(profile.addonSet)
-                    table.insert(results, string.format("%d changes to Addon Set", n))
+                    tinsert(results, string.format("%d changes to Addon Set", n))
                     reloadNeeded = true
                 end
 
                 if restoreChecks.addonSettings and restoreChecks.addonSettings:GetChecked() then
                     local n = M:RestoreAddonSettings(profile.addonSettings)
-                    table.insert(results, string.format("%d Addon Settings", n))
+                    tinsert(results, string.format("%d Addon Settings", n))
                     reloadNeeded = true
                 end
 
@@ -870,22 +870,22 @@ function UI:CreateCharProfilesPanel(parent, opts)
 
             local tags = {}
             if type(data.keybinds) == "table" then
-                table.insert(tags, string.format("Keybinds (%d)", data.keybinds.count or 0))
+                tinsert(tags, string.format("Keybinds (%d)", data.keybinds.count or 0))
             end
             if type(data.accountMacros) == "table" then
-                table.insert(tags, string.format("Acct Macros (%d)", data.accountMacros.count or 0))
+                tinsert(tags, string.format("Acct Macros (%d)", data.accountMacros.count or 0))
             end
             if type(data.characterMacros) == "table" then
-                table.insert(tags, string.format("Char Macros (%d)", data.characterMacros.count or 0))
+                tinsert(tags, string.format("Char Macros (%d)", data.characterMacros.count or 0))
             end
             if type(data.gameSettings) == "table" then
-                table.insert(tags, string.format("CVars (%d)", data.gameSettings.count or 0))
+                tinsert(tags, string.format("CVars (%d)", data.gameSettings.count or 0))
             end
             if type(data.addonSet) == "table" then
-                table.insert(tags, string.format("Addons (%d)", data.addonSet.count or 0))
+                tinsert(tags, string.format("Addons (%d)", data.addonSet.count or 0))
             end
             if type(data.addonSettings) == "table" then
-                table.insert(tags, string.format("Addon Settings (%d)", data.addonSettings.count or 0))
+                tinsert(tags, string.format("Addon Settings (%d)", data.addonSettings.count or 0))
             end
 
             local tagsText = OneWoW_GUI:CreateFS(card, 10)

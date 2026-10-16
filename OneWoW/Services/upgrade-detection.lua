@@ -435,7 +435,7 @@ function UpgradeDetection:GetAltsWhoNeedItem(itemID, itemLink)
         end
     end
 
-    table.sort(upgrades, function(a, b)
+    sort(upgrades, function(a, b)
         if a.isSelf ~= b.isSelf then return a.isSelf end
         return (a.diff or 0) > (b.diff or 0)
     end)

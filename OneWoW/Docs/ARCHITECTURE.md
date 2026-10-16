@@ -166,7 +166,8 @@ for **gameplay** events instead of each creating their own (e.g.
 `OneWoW.Restriction` listens for `PLAYER_REGEN_*` and
 `ADDON_RESTRICTION_STATE_CHANGED` this way, §8.6). `ns.RegisterEvent` **rejects**
 the three lifecycle events: they must flow through the ordered dispatch, not a flat
-fan-out. The GUI toolkit's settings bootstrap
+fan-out. Each handler runs isolated (`pcall` → `geterrorhandler()`), so one failing
+owner never stops the rest of that event's fan-out. The GUI toolkit's settings bootstrap
 (`OneWoW_GUI:InitializeSettings()` in `GUI/Settings.lua`) is called from core's
 `OnAddonLoaded` — it no longer self-registers `ADDON_LOADED`. Embedded `Libs/` are
 unchanged.
@@ -186,15 +187,15 @@ entering-world collection belongs in `BootStore` `onEnteringWorld` (or
 
 ### 3.4 `OnAddonLoaded`
 
-All unit `OnAddonLoaded` paths funnel through `OneWoW:DispatchUnitOnAddonLoaded`
+All unit `OnAddonLoaded` paths funnel through `ns:DispatchUnitOnAddonLoaded`
 (`Core/Lifecycle.lua`), which dispatches the hook **at most once per unit per
 session**. Three drivers call it:
 
 1. `hooksecurefunc(C_AddOns, "LoadAddOn", …)` → `RunPostLoadInit` →
    `DispatchUnitOnAddonLoaded` (primary path for force-loaded LoD units).
-2. `OneWoW:DispatchAddonLoaded` for auto-loaded manifest units that receive WoW's
+2. `ns:DispatchAddonLoaded` for auto-loaded manifest units that receive WoW's
    own `ADDON_LOADED`.
-3. `OneWoW:RunManifestLoginPhase` as a safety net at `PLAYER_LOGIN` for units
+3. `ns:RunManifestLoginPhase` as a safety net at `PLAYER_LOGIN` for units
    whose hook was somehow not driven by the LoadAddOn path — repeat calls are a
    no-op thanks to the central guard.
 
@@ -205,10 +206,12 @@ force-loaded during core's `ADDON_LOADED` never receive their own WoW
 
 **Dispatch is manifest-gated.** `DispatchUnitOnAddonLoaded` only runs the hook
 for `ModuleManifest` units (roots and their `stores`), checked via
-`OneWoW:IsManifestUnit` (`Core/AddonLoader.lua`). A Blizzard or third-party
+`ns:IsManifestUnit` (`Core/AddonLoader.lua`). A Blizzard or third-party
 addon whose `_G` table happens to define `OnAddonLoaded` is never treated as a
 suite load unit; a suppressed would-have-run hook records `dispatch.skip`
-(§3.11). Addon-loaded **watchers** (§3.4.1) remain ungated — they observe every
+(§3.11). The `LoadAddOn` hook's lone-load catch-up (`Settle` + synthetic PEW)
+uses the same gate, so a third-party LoD load mid-session never gets suite
+lifecycle calls. Addon-loaded **watchers** (§3.4.1) remain ungated — they observe every
 addon load, manifest or not.
 
 Data stores use `OneWoW:BootStore(ns, config)` (`Core/StoreBootstrap.lua`).
@@ -217,10 +220,10 @@ Data stores use `OneWoW:BootStore(ns, config)` (`Core/StoreBootstrap.lua`).
 
 `RegisterAddonLoadedWatcher(addonName, fn)` is the "wire when addon X becomes
 available" primitive — the suite analogue of WoW's `ADDON_LOADED`. Fan-out runs
-through `OneWoW:NotifyAddonLoadedWatchers`, gated **at most once per addon name per
+through `ns:NotifyAddonLoadedWatchers`, gated **at most once per addon name per
 session**. Two drivers feed it, mirroring the two real load paths:
 
-1. WoW `ADDON_LOADED` → `OneWoW:DispatchAddonLoaded` → `NotifyAddonLoadedWatchers`.
+1. WoW `ADDON_LOADED` → `ns:DispatchAddonLoaded` → `NotifyAddonLoadedWatchers`.
 2. Any `C_AddOns.LoadAddOn` (orchestrator force-load, `BringUp`, on-demand) →
    `RunPostLoadInit` → `NotifyAddonLoadedWatchers`.
 
@@ -321,9 +324,9 @@ There is no core `DataManager:Query` broker. Cross-unit contracts are explicit
 
 At core `PLAYER_LOGIN`, `Core/Events.lua` invokes `ns:RunCoreLoginSequence()`
 (defined in `OneWoW.lua`, kept there for file-local access to `ADDON_NAME` and the
-banner/wizard helpers): `OneWoW:FireCoreLoginHandlers("early")` (feature inits),
-then the load banner, then `OneWoW:FireCoreLoginHandlers("late")` (integrations),
-then `OneWoW:RunManifestLoginPhase()` walks the manifest and calls
+banner/wizard helpers): `ns:FireCoreLoginHandlers("early")` (feature inits),
+then the load banner, then `ns:FireCoreLoginHandlers("late")` (integrations),
+then `ns:RunManifestLoginPhase()` walks the manifest and calls
 `DispatchUnitOnAddonLoaded` (safety net; no-op when already run) then `OnPlayerLogin()`
 on each loaded unit.
 
@@ -346,7 +349,7 @@ pack-backed tab, quest event, or Item Search source asks (`EnsureLoaded`).
 
 ### 3.6 `OnPlayerEnteringWorld`
 
-On every `PLAYER_ENTERING_WORLD`, `OneWoW:DispatchEnteringWorld(isLogin, isReload)`
+On every `PLAYER_ENTERING_WORLD`, `ns:DispatchEnteringWorld(isLogin, isReload)`
 computes `isZoning = not isLogin and not isReload` and fans out to all loaded
 manifest units.
 
@@ -393,7 +396,9 @@ OneWoW:CreateItemDataLoader(dbTable)            -> ItemDataLoader (shared async 
 - **`BringUp` consumer pulls:** appends `FirstRun.CATALOG[].datastores` for the
   feature (e.g. Bags → Storage + Character) so a Bags-only install loads data
   without AltTracker.
-- **`{ deferInCombat = true }`** queues to `PLAYER_REGEN_ENABLED`.
+- **`{ deferInCombat = true }`** queues the `WithAddon` call (every caller's
+  callbacks, in order) and replays it via
+  `Restriction.RunWhenUnrestricted("lockdown", ...)`.
 - **Lazy Catalog packs:** Catalog `lazyStores` are skipped by login `BringUp` and
   the startup store pass. Opening a `requiresAddon` tab, a quest event (scanner),
   or an Item Search source is the load trigger — explicit user (or gameplay)
@@ -456,12 +461,12 @@ Strings are hardcoded English (dev tool, not user-facing UI).
 `DispatchEnteringWorld`) runs inside core's `ADDON_LOADED`, before any command
 can be typed. So the **enable flag persists** in `OneWoW_DB.global.debugTrace` (default
 `false`, in `Core/Database.lua` defaults) and is read back by `Trace:Sync()` in
-`OneWoW:OnAddonLoaded` right after `InitializeDatabase` — before the orchestrator
+`ns:OnAddonLoaded` right after `InitializeDatabase` — before the orchestrator
 runs. Workflow: `/1wtrace on` → `/reload` → `/1wtrace dump`. The **ring is
 session-only** (cleared each `Sync`), so a dump always reflects the current
 session. `Dump` prints `min(count, RING_SIZE)` lines.
 
-`OneWoW:TraceRecord(phase, unit, detail)` is the single record API — a cheap
+`ns:TraceRecord(phase, unit, detail)` is the single record API — a cheap
 no-op when disabled — called from the lifecycle funnels in `Lifecycle.lua` and
 `AddonLoader.lua`. Recorded phases:
 
@@ -479,7 +484,7 @@ no-op when disabled — called from the lifecycle funnels in `Lifecycle.lua` and
 | `core.loginHandlers` / `core.enteringWorldHandlers` | `FireCore*Handlers` | Core handler fans (`count`; login records once per `phase` — `early` then `late`) |
 | `enteringWorld` | `DispatchEnteringWorld` | Real PEW (`isLogin`, `isReload`, `isZoning`) |
 | `catchUpPEW` | `CatchUpEnteringWorld` | Synthetic mid-session PEW catch-up (attempted per unit) |
-| `defer.combat` / `combat.flush` | `WithAddon`, combat frame | Combat-deferred load queue/flush |
+| `defer.combat` / `combat.flush` | `WithAddon`, `FlushCombatQueue` | Combat-deferred load queue/flush |
 | `error` | `SafeCall` failure | Handler-fan failure, in sequence (complements DevTool ErrorLogger) |
 
 `catchUpPEW` fires for every unit in the set while `OnPlayerEnteringWorld` only
@@ -805,6 +810,8 @@ Every other load unit may read `OneWoW` and `OneWoW_GUI` (shared core surface).
 **Implemented:** internal files use `local ADDON_NAME, ns = ...`; `ns.db` holds the DB
 handle; [`Core/Facade.lua`](../Core/Facade.lua) publishes a **curated facade** on
 `_G.OneWoW` (colon API + declared `OneWoW.*` services only — not a publish of `ns`).
+Lifecycle internals (dispatch, manifest gate, DB init, tracing) stay on `ns` and
+are not on the facade.
 `OneWoW:GetPortalHub()` / `OneWoW:GetCoreGlobal()` replace cross-unit `OneWoW.db`
 reads. Core does **not** need `OneWoW_API` — the `OneWoW` global *is* the API, like
 `OneWoW_GUI`.
@@ -888,9 +895,8 @@ cross-unit data accessors on the lifecycle root as colon-methods (e.g.
 - Colon-methods on `_API` globals
 - Leaking internals on the lifecycle root (`OneWoW_AltTracker.UI = ...`)
 
-**Hook allowlist** (`no-namespace-publish`): `OneWoW/Core/Facade.lua::g_assign_core_ns`
-only — the sole `_G["OneWoW"]` publish (curated facade table, not `ns`). All other
-namespace-publish patterns are enforced.
+**Hook allowlist** (`no-namespace-publish`): empty. `Core/Facade.lua` assigns the
+curated table with `OneWoW = {}`; every namespace-publish pattern is enforced.
 
 Internal db assignment: [`DATABASE.md`](DATABASE.md) — `ns.db` after `DB:Init`.
 
@@ -1189,7 +1195,12 @@ supported replacement for hand-rolled `PLAYER_REGEN_ENABLED` re-arm frames.
 - **`RegisterStateCallback(ownerID, fn)`** — `fn(restrictionType, restrictionState)`
   fires **one frame after** the event so `IsTypeActive` is trustworthy (Blizzard's
   query APIs lie during dispatch). Re-registering the same `ownerID` replaces.
+  State callbacks and deferred `RunWhenUnrestricted` callbacks run through
+  `Lifecycle.SafeCall`, so one failure is reported and the rest still run.
 - **`UnregisterStateCallback(ownerID)`** — drop the subscription (module disable).
+- **`IsChatRestricted()`** — the `Chat` type (addon comms report
+  `AddOnMessageLockdown`). It is outside every gate; use it only to defer
+  addon-message sends (VersionCheck resends when it goes `Inactive`).
 
 State is **event-driven and cached**: `Restriction` listens — via the core
 `ns.RegisterEvent` multiplexer (§3.3) — for `ADDON_RESTRICTION_STATE_CHANGED` and

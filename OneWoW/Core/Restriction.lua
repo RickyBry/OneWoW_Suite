@@ -28,7 +28,9 @@ ns.Restriction = Restriction
 -- gate, including Map). Protected actions / secure-frame mutations use the
 -- PROTECTED_ACTION_TYPES subset below (via IsProtectedActionBlocked) instead.
 -- Chat (addon comms, not secure-frame related; added 12.0.5) is intentionally
--- excluded — route any future chat-comms gating through a dedicated helper.
+-- excluded from both gate sets; it is seeded separately for IsChatRestricted.
+local CHAT_TYPE = Enum.AddOnRestrictionType.Chat
+
 local RESTRICTED_ACTION_TYPES = {
     Enum.AddOnRestrictionType.Combat,
     Enum.AddOnRestrictionType.Encounter,
@@ -68,6 +70,7 @@ local function EnsureSeeded()
     for _, restrictionType in ipairs(RESTRICTED_ACTION_TYPES) do
         state.types[restrictionType] = C_RestrictedActions.GetAddOnRestrictionState(restrictionType) ~= INACTIVE
     end
+    state.types[CHAT_TYPE] = C_RestrictedActions.GetAddOnRestrictionState(CHAT_TYPE) ~= INACTIVE
 end
 
 --- True if `value` is a secret scalar (Midnight secret system). Thin mirror of
@@ -160,6 +163,15 @@ function Restriction.IsTypeActive(restrictionType)
     return state.types[restrictionType] == true
 end
 
+--- True while the Chat restriction (addon comms: SendAddonMessage /
+--- BNSendGameData report AddOnMessageLockdown) is Active or Activating.
+--- Not part of any gate; for addon-comms deferral only.
+---@return boolean
+function Restriction.IsChatRestricted()
+    EnsureSeeded()
+    return state.types[CHAT_TYPE] == true
+end
+
 -- ---------------------------------------------------------------------------
 -- State-change consumer fan-out
 -- ---------------------------------------------------------------------------
@@ -178,12 +190,16 @@ local function FlushStateCallbacks()
     stateNotifyScheduled = false
     if #batch == 0 then return end
 
+    -- Snapshot: a callback may register or unregister owners mid fan-out.
+    local owners = {}
+    for ownerID, fn in pairs(stateCallbacks) do
+        owners[ownerID] = fn
+    end
     for i = 1, #batch do
         local entry = batch[i]
-        for ownerID, fn in pairs(stateCallbacks) do
-            local ok, err = pcall(fn, entry.type, entry.state)
-            if not ok then
-                print("|cFFFF0000OneWoW|r Restriction state callback error [" .. tostring(ownerID) .. "]: " .. tostring(err))
+        for ownerID, fn in pairs(owners) do
+            if stateCallbacks[ownerID] == fn then
+                ns.Lifecycle.SafeCall("Restriction.state:" .. ownerID, fn, entry.type, entry.state)
             end
         end
     end
@@ -254,10 +270,7 @@ local function FlushPending()
 
     for ownerID, entry in pairs(ready) do
         pending[ownerID] = nil
-        local ok, err = pcall(entry.fn)
-        if not ok then
-            print("|cFFFF0000OneWoW|r Restriction callback error [" .. tostring(ownerID) .. "]: " .. tostring(err))
-        end
+        ns.Lifecycle.SafeCall("Restriction.deferred:" .. ownerID, entry.fn)
     end
 end
 
@@ -335,13 +348,17 @@ function Restriction.GetSnapshot()
     for name, value in pairs(Enum.AddOnRestrictionState) do stateNames[value] = name end
 
     local types = {}
-    for _, restrictionType in ipairs(RESTRICTED_ACTION_TYPES) do
+    local function Add(restrictionType)
         local live = C_RestrictedActions.GetAddOnRestrictionState(restrictionType)
         types[typeNames[restrictionType] or restrictionType] = {
             cached = state.types[restrictionType] or false,
             live = stateNames[live] or live,
         }
     end
+    for _, restrictionType in ipairs(RESTRICTED_ACTION_TYPES) do
+        Add(restrictionType)
+    end
+    Add(CHAT_TYPE)
 
     return {
         seeded = seeded,

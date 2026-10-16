@@ -16,7 +16,7 @@ local LOCKOUT_HEIGHT = 40
 local HEADER_HEIGHT = 30
 
 local function GetFactionTheme()
-    return (OneWoW_GUI and OneWoW_GUI.GetSetting and OneWoW_GUI:GetSetting("minimap.theme")) or "horde"
+    return OneWoW_GUI:GetSetting("minimap.theme") or "horde"
 end
 
 local function ApplyFont(fontString, size, flags)

@@ -1,4 +1,4 @@
--- Central lifecycle dispatch for the OneWoW suite. Only ns.lua registers
+-- Central lifecycle dispatch for the OneWoW suite. Only Core/Events.lua registers
 -- ADDON_LOADED, PLAYER_LOGIN, and PLAYER_ENTERING_WORLD for orchestrated units.
 local ADDON_NAME, ns = ...
 

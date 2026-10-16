@@ -30,12 +30,12 @@ local function ShowContextMenu(anchorFrame)
 
     local visibleItems = {}
     if oneWoWEntry then
-        tinsert(visibleItems, { label = oneWoWEntry.label, global = "OneWoW", always = true, action = oneWoWEntry.callback or (function() if ns.UI then ns.UI:Show() end end) })
+        tinsert(visibleItems, { label = oneWoWEntry.label, global = "OneWoW", always = true, action = oneWoWEntry.callback or (function() ns.UI:Show() end) })
     end
     for _, item in ipairs(otherEntries) do
         local action = item.callback
         if not action and item.tabKey then
-            action = function() if ns.UI then ns.UI:Show(item.tabKey) end end
+            action = function() ns.UI:Show(item.tabKey) end
         end
         if action then
             tinsert(visibleItems, { label = item.label, global = item.addon, action = action })

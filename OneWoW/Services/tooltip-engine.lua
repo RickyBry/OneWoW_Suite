@@ -32,7 +32,7 @@ local TOOLTIP_CONFIG = {
 TooltipEngine.TOOLTIP_CONFIG = TOOLTIP_CONFIG
 
 local function sortProviders()
-    table.sort(sectionProviders, function(a, b)
+    sort(sectionProviders, function(a, b)
         return (a.order or 100) < (b.order or 100)
     end)
 end
@@ -48,7 +48,7 @@ function TooltipEngine:RegisterProvider(provider)
             return
         end
     end
-    table.insert(sectionProviders, provider)
+    tinsert(sectionProviders, provider)
     sortProviders()
 end
 
@@ -124,17 +124,17 @@ function TooltipEngine:HookTooltips()
         Enum.TooltipDataType.Quest,
         Enum.TooltipDataType.Toy,
         Enum.TooltipDataType.UnitAura,
+        Enum.TooltipDataType.CompanionPet,
+        Enum.TooltipDataType.Totem,
+        Enum.TooltipDataType.QuestPartyProgress,
+        Enum.TooltipDataType.RecipeRankInfo,
+        Enum.TooltipDataType.EquipmentSet,
+        Enum.TooltipDataType.AzeriteEssence,
+        Enum.TooltipDataType.EnhancedConduit,
+        Enum.TooltipDataType.Outfit,
+        Enum.TooltipDataType.Macro,
+        Enum.TooltipDataType.Object,
     }
-    local optionalTypes = {
-        "CompanionPet", "Totem", "QuestPartyProgress", "RecipeRankInfo",
-        "EquipmentSet", "AzeriteEssence", "EnhancedConduit", "Outfit",
-        "Macro", "Object",
-    }
-    for _, typeName in ipairs(optionalTypes) do
-        if Enum.TooltipDataType[typeName] then
-            table.insert(HANDLED_TYPES, Enum.TooltipDataType[typeName])
-        end
-    end
     local callback = function(tooltip, data)
         self:ProcessTooltipData(tooltip, data)
     end
@@ -291,7 +291,7 @@ function TooltipEngine:ProcessProviders(tooltip, context)
                 end)
                 if lines and #lines > 0 then
                     for _, line in ipairs(lines) do
-                        table.insert(allLines, line)
+                        tinsert(allLines, line)
                     end
                 end
             end
@@ -308,7 +308,7 @@ function TooltipEngine:ProcessProviders(tooltip, context)
         if line.type == "headerRight" and not headerRight then
             headerRight = line
         else
-            table.insert(contentLines, line)
+            tinsert(contentLines, line)
         end
     end
 

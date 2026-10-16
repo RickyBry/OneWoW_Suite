@@ -10,6 +10,10 @@
 - Mail and Auction House overlays appear on items the game had not loaded yet, instead of staying blank.
 - Bag items without durability no longer count as broken in overlays and searches.
 - Talking to vendors and NPCs inside instances no longer risks errors from hidden names.
+- The new-version check sends fewer messages: once per session, when you join a guild, or when your group grows, instead of after every loading screen.
+- A new-version message blocked in a dungeon or raid is sent once afterward, instead of repeating to every channel.
+- The update popup and Home notice only appear after two different players report a newer version, and impossible version numbers are ignored.
+- One feature failing on a game event no longer stops other OneWoW features from reacting to it.
 
 ---
 

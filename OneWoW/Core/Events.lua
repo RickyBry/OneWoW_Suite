@@ -18,6 +18,9 @@ local _, ns = ...
 --      design (ns is private to the OneWoW core); not a public OneWoW.* API.
 -- ============================================================================
 
+local pairs, pcall, tostring, format = pairs, pcall, tostring, string.format
+local geterrorhandler = geterrorhandler
+
 local LIFECYCLE = {
     ADDON_LOADED = true,
     PLAYER_LOGIN = true,
@@ -26,6 +29,37 @@ local LIFECYCLE = {
 
 -- handlers[event][ownerID] = fn(event, ...)
 local handlers = {}
+
+-- Reused per-depth snapshots (owner, fn pairs): handlers may register or
+-- unregister during dispatch, and a handler can fire a nested event.
+local scratch = {}
+local depth = 0
+
+local function FanOut(bucket, event, ...)
+    depth = depth + 1
+    local list = scratch[depth]
+    if not list then
+        list = {}
+        scratch[depth] = list
+    end
+    local n = 0
+    for ownerID, fn in pairs(bucket) do
+        list[n + 1], list[n + 2] = ownerID, fn
+        n = n + 2
+    end
+    for i = 1, n, 2 do
+        local ownerID, fn = list[i], list[i + 1]
+        list[i], list[i + 1] = nil, nil
+        -- Skip a handler unregistered or replaced earlier in this pass.
+        if bucket[ownerID] == fn then
+            local ok, err = pcall(fn, event, ...)
+            if not ok then
+                geterrorhandler()(format("OneWoW event handler '%s' (%s): %s", ownerID, event, tostring(err)))
+            end
+        end
+    end
+    depth = depth - 1
+end
 
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
@@ -49,9 +83,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
     -- (ns.RegisterEvent rejects lifecycle events), so this is a no-op for them.
     local bucket = handlers[event]
     if bucket then
-        for _, fn in pairs(bucket) do
-            fn(event, ...)
-        end
+        FanOut(bucket, event, ...)
     end
 end)
 

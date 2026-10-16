@@ -188,17 +188,13 @@ end
 -- ============================================================
 
 ns:RegisterCoreLoginHandler("profiles.AutoSaveDefault", function()
-    if ns.Profiles and ns.Profiles.AutoSaveDefault then
-        ns.Profiles.AutoSaveDefault()
-    end
+    ns.Profiles.AutoSaveDefault()
 end)
 
 local _autoSaveFrame = CreateFrame("Frame")
 _autoSaveFrame:RegisterEvent("PLAYER_LOGOUT")
 _autoSaveFrame:SetScript("OnEvent", function()
-    if ns.Profiles and ns.Profiles.AutoSaveDefault then
-        ns.Profiles.AutoSaveDefault()
-    end
+    ns.Profiles.AutoSaveDefault()
 end)
 
 -- ============================================================
@@ -388,14 +384,14 @@ function UI:CreateProfilesTab(parent)
 
         local sorted = {}
         if profiles[RESERVED_DEFAULT] then
-            table.insert(sorted, { name = RESERVED_DEFAULT, data = profiles[RESERVED_DEFAULT] })
+            tinsert(sorted, { name = RESERVED_DEFAULT, data = profiles[RESERVED_DEFAULT] })
         end
         for name, data in pairs(profiles) do
             if name ~= RESERVED_DEFAULT and type(data) == "table" then
-                table.insert(sorted, { name = name, data = data })
+                tinsert(sorted, { name = name, data = data })
             end
         end
-        table.sort(sorted, function(a, b)
+        sort(sorted, function(a, b)
             if a.name == RESERVED_DEFAULT then return true end
             if b.name == RESERVED_DEFAULT then return false end
             return a.name:lower() < b.name:lower()
@@ -461,19 +457,19 @@ function UI:CreateProfilesTab(parent)
             local tags = {}
             if data.core then
                 local parts = {}
-                if data.core.theme    then table.insert(parts, data.core.theme)    end
-                if data.core.language then table.insert(parts, data.core.language) end
-                table.insert(tags, "Core" .. (#parts > 0 and (" (" .. table.concat(parts, ", ") .. ")") or ""))
+                if data.core.theme    then tinsert(parts, data.core.theme)    end
+                if data.core.language then tinsert(parts, data.core.language) end
+                tinsert(tags, "Core" .. (#parts > 0 and (" (" .. table.concat(parts, ", ") .. ")") or ""))
             end
             if data.qol then
                 local mc = 0
                 if data.qol.modules then for _ in pairs(data.qol.modules) do mc = mc + 1 end end
-                table.insert(tags, string.format("QoL (%d modules)", mc))
+                tinsert(tags, string.format("QoL (%d modules)", mc))
             end
             if data.cvars then
                 local cc = 0
                 for _ in pairs(data.cvars) do cc = cc + 1 end
-                if cc > 0 then table.insert(tags, string.format("%d CVars", cc)) end
+                if cc > 0 then tinsert(tags, string.format("%d CVars", cc)) end
             end
 
             local tagsText = OneWoW_GUI:CreateFS(card, 10)

@@ -823,9 +823,7 @@ end
 function UI:SelectModuleTab(moduleName, targetSub)
     -- Lazy modules load the first time their tab is opened. Dormant until modules
     -- become LoadOnDemand; a no-op while all modules are login-phase.
-    if ns.LoadOrchestrator then
-        ns.LoadOrchestrator:EnsureModuleForTab(moduleName)
-    end
+    ns.LoadOrchestrator:EnsureModuleForTab(moduleName)
 
     local leave = nil
     if not UI.NavHistory.IsApplying() and UI.NavHistory.IsArmed() then

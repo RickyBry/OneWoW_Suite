@@ -59,12 +59,12 @@ local coreSettingsTabs = {
 function UI:BuildSettingsTabs()
     local tabs = {}
     for _, tab in ipairs(coreSettingsTabs) do
-        table.insert(tabs, tab)
+        tinsert(tabs, tab)
     end
     local addonPanels = ns.ModuleRegistry:GetSettingsPanels()
     for _, panel in ipairs(addonPanels) do
         local capturedCreate = panel.create
-        table.insert(tabs, {
+        tinsert(tabs, {
             name        = panel.name,
             displayName = panel.displayName,
             create      = capturedCreate,

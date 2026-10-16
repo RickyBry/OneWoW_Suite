@@ -634,7 +634,7 @@ function DB:GetAllChars(savedVarName, sortField)
         chars[#chars + 1] = { key = charKey, data = data }
     end
     sortField = sortField or "lastUpdate"
-    table.sort(chars, function(a, b)
+    sort(chars, function(a, b)
         return (a.data[sortField] or 0) > (b.data[sortField] or 0)
     end)
     return chars

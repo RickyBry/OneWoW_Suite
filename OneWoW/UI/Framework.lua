@@ -32,7 +32,7 @@ function ns.UI.SerializeVal(val, depth)
                 else
                     keyStr = "[" .. string.format("%q", tostring(k)) .. "]"
                 end
-                table.insert(parts, inner .. keyStr .. " = " .. vStr)
+                tinsert(parts, inner .. keyStr .. " = " .. vStr)
             end
         end
         if #parts == 0 then return "{}" end
@@ -52,7 +52,7 @@ function ns.UI.CreateScrollableEditBox(parent, onEscape)
     eb:SetMultiLine(true)
     eb:SetAutoFocus(false)
     eb:SetMaxLetters(0)
-    local fontPath = OneWoW_GUI and OneWoW_GUI.GetFont and OneWoW_GUI:GetFont() or "Fonts\\FRIZQT__.TTF"
+    local fontPath = OneWoW_GUI:GetFont() or "Fonts\\FRIZQT__.TTF"
     OneWoW_GUI:SafeSetFont(eb, fontPath, 12)
     eb:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
     eb:SetScript("OnEscapePressed", onEscape or function() end)

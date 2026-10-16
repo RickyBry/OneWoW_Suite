@@ -72,7 +72,7 @@ function VendorPanel:SetVendorTab(tabId)
 end
 
 local function GetBrandIcon()
-    local factionTheme = (OneWoW_GUI and OneWoW_GUI.GetSetting and OneWoW_GUI:GetSetting("minimap.theme")) or "horde"
+    local factionTheme = OneWoW_GUI:GetSetting("minimap.theme") or "horde"
     return OneWoW_GUI:GetBrandIcon(factionTheme)
 end
 

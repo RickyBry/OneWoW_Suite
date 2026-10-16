@@ -18,7 +18,7 @@ end
 
 function ns:RegisterLoadComponent(displayName, version, command, addonName)
     self._registeredAddons[displayName] = true
-    table.insert(self._loadedComponents, {
+    tinsert(self._loadedComponents, {
         name = displayName,
         ver = version,
         cmd = command,
@@ -32,9 +32,7 @@ local function ScheduleDefaultSave()
         _defaultSaveTimer:Cancel()
     end
     _defaultSaveTimer = C_Timer.NewTimer(2, function()
-        if ns.Profiles and ns.Profiles.AutoSaveDefault then
-            ns.Profiles.AutoSaveDefault()
-        end
+        ns.Profiles.AutoSaveDefault()
     end)
 end
 
@@ -47,12 +45,11 @@ local function ApplyLanguage()
 end
 
 local function ResetGUIOnSettingChange(self2)
-    if not self2.UI then return end
     local wasShown = self2.UI:GetMainWindow() and self2.UI:GetMainWindow():IsShown()
     self2.UI:FullReset()
     if wasShown then
         C_Timer.After(0.1, function()
-            if self2.UI then self2.UI:Show() end
+            self2.UI:Show()
         end)
     end
 end
@@ -60,9 +57,7 @@ end
 local function RegisterSlashCommands()
     SLASH_ONEWOW1 = "/1w"
     SlashCmdList["ONEWOW"] = function()
-        if ns.UI then
-            ns.UI:Toggle()
-        end
+        ns.UI:Toggle()
     end
 end
 
@@ -102,19 +97,15 @@ function ns:OnAddonLoaded(loadedAddon)
     end)
     OneWoW_GUI:RegisterSettingsCallback("OnMinimapChanged", self, function(self2, hidden)
         ScheduleDefaultSave()
-        if self2.Minimap then
-            if hidden then
-                self2.Minimap:Hide()
-            else
-                self2.Minimap:Show()
-            end
+        if hidden then
+            self2.Minimap:Hide()
+        else
+            self2.Minimap:Show()
         end
     end)
     OneWoW_GUI:RegisterSettingsCallback("OnIconThemeChanged", self, function(self2)
         ScheduleDefaultSave()
-        if self2.Minimap then
-            self2.Minimap:UpdateIcon()
-        end
+        self2.Minimap:UpdateIcon()
         ResetGUIOnSettingChange(self2)
     end)
     OneWoW_GUI:RegisterSettingsCallback("OnFeatureIconStyleChanged", self, function(self2)
@@ -134,7 +125,7 @@ function ns:OnAddonLoaded(loadedAddon)
     self:RegisterLoadComponent("Core", _ver, "/1w", ADDON_NAME)
 
     self:RegisterMinimap("OneWoW", L["OPEN_ONEWOW"], nil, function()
-        if self.UI then self.UI:Show() end
+        self.UI:Show()
     end)
 
     if isFreshAccount then
@@ -145,9 +136,7 @@ function ns:OnAddonLoaded(loadedAddon)
     -- ADDON_LOADED, before PLAYER_LOGIN). EnsureLoaded drives each unit's
     -- OnAddonLoaded() hook synchronously, so every DB is built in dependency order
     -- before any PLAYER_LOGIN fires.
-    if ns.LoadOrchestrator then
-        ns.LoadOrchestrator:RunStartupPhase()
-    end
+    ns.LoadOrchestrator:RunStartupPhase()
 end
 
 -- The core PLAYER_LOGIN sequence. Lives here (not in Core/Events.lua) so it keeps
@@ -169,7 +158,7 @@ function ns:RunCoreLoginSequence()
         local ver = ns:GetAddonVersion(ADDON_NAME)
         local parts = {}
         for _, c in ipairs(comps) do
-            table.insert(parts, "|cFFFFFFFF" .. c.name .. "|r")
+            tinsert(parts, "|cFFFFFFFF" .. c.name .. "|r")
         end
         print("|cFF00FF00OneWoW|r |cFF888888v." .. ver .. "|r: " .. table.concat(parts, " + ") .. " |cFF00FF00loaded|r - /1w")
     end
@@ -178,17 +167,15 @@ function ns:RunCoreLoginSequence()
     -- seconds so it appears AFTER the suite's load banner and any error
     -- popups have cleared. What's New only auto-shows when the wizard
     -- will not (upgrades, not brand-new installs).
-    if ns.FirstRun and ns.FirstRun:ShouldShowWizard() then
+    if ns.FirstRun:ShouldShowWizard() then
         C_Timer.After(3, function()
-            if ns.FirstRun and ns.FirstRun:ShouldShowWizard() then
+            if ns.FirstRun:ShouldShowWizard() then
                 ns.FirstRun:ShowWizard()
             end
         end)
-    elseif ns.WhatsNew then
+    else
         C_Timer.After(3, function()
-            if ns.WhatsNew then
-                ns.WhatsNew:TryAutoShow()
-            end
+            ns.WhatsNew:TryAutoShow()
         end)
     end
 
@@ -197,9 +184,7 @@ function ns:RunCoreLoginSequence()
 end
 
 _G["1WoW_OnAddonCompartmentClick"] = function()
-    if ns.UI then
-        ns.UI:Toggle()
-    end
+    ns.UI:Toggle()
 end
 
 _G["1WoW_OnAddonCompartmentEnter"] = function(_, button)

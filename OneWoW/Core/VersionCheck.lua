@@ -11,10 +11,15 @@ local OneWoW_GUI = OneWoW_GUI
 --
 -- Protocol (prefix ONEWOW_VER):
 --   V\t<tocVersion>  announce
---   ?                query; reply with V (whisper / BN when the target is usable)
 --
--- Channels: current group (PARTY / RAID / INSTANCE_CHAT), GUILD, YELL once
--- per session, Battle.net Retail friends (staggered). No SAY / CHANNEL.
+-- Cadence: one session announce shortly after the first loading screen
+-- (group, GUILD, YELL, Battle.net Retail friends staggered); GUILD again on
+-- joining a guild; group again only when the roster grows. No SAY / CHANNEL.
+-- Sends that hit AddOnMessageLockdown are kept per channel / BN account and
+-- resent once when the Chat restriction lifts (capped timer fallback).
+--
+-- A newer version is saved (Home row, popup) only after two distinct peers
+-- report it; one peer gets the chat line. Implausible versions are ignored.
 --
 -- Nearby report (REPORT_NEARBY below) is a code-only switch. It ships false
 -- so players never see it. Set true to print a chat line when another OneWoW
@@ -23,10 +28,13 @@ local OneWoW_GUI = OneWoW_GUI
 
 local C_BattleNet = C_BattleNet
 local C_ChatInfo = C_ChatInfo
+local C_DateAndTime = C_DateAndTime
 local C_Timer = C_Timer
 local format = string.format
+local gsub = string.gsub
 local ipairs = ipairs
 local pairs = pairs
+local sort = sort
 local strmatch = string.match
 local strsplit = strsplit
 local wipe = wipe
@@ -38,22 +46,33 @@ local PREFIX = "ONEWOW_VER"
 local DOWNLOAD_URL = "https://onewow.net/"
 local ANNOUNCE_DELAY = 10
 local LOCKDOWN_RETRY = 5
+local MAX_TIMER_RETRIES = 3
 local BN_STAGGER = 0.75
 local LOGIN_POPUP_DELAY = 5
+local PEERS_TO_SAVE = 2
 
 local LOCKDOWN = Enum.SendAddonMessageResult.AddOnMessageLockdown
+local CHAT_RESTRICTION = Enum.AddOnRestrictionType.Chat
+local RESTRICTION_INACTIVE = Enum.AddOnRestrictionState.Inactive
 
 local VersionCheck = {}
 ns.VersionCheck = VersionCheck
 
 local announcePending = false
-local lockdownRetryPending = false
-local sessionWideDone = false
+local sessionAnnounced = false
+local guildAnnounced = false
 local chatPrinted = false
 local popupShownFor = nil
 local groupSize = 0
 local activeDialog = nil
-local bnQueue = {}
+-- Sends that hit lockdown: [channel] = true ("GROUP" / "GUILD" / "YELL"),
+-- and [gameAccountID] = true for Battle.net.
+local pendingChat = {}
+local pendingBN = {}
+local retryTimer = nil
+local timerRetries = 0
+-- [peerKey] = highest plausible newer version that peer reported.
+local peerBest = {}
 -- [kind] = { [id] = true } unique peers heard this session (REPORT_NEARBY).
 local nearbySeen = {}
 
@@ -93,6 +112,23 @@ function VersionCheck.IsNewer(remote, localVer)
     return r3 > l3
 end
 
+--- False for a version no real build could carry yet: a year-month more than
+--- one month past today, or a major more than one past ours.
+---@param remote string
+---@param localVer string
+---@return boolean
+local function IsPlausible(remote, localVer)
+    local r1, r2 = ParseVersion(remote)
+    local l1 = ParseVersion(localVer)
+    if r1 > l1 + 1 then return false end
+    local now = C_DateAndTime.GetCurrentCalendarTime()
+    local year, month = now.year % 100, now.month + 1
+    if month > 12 then
+        year, month = (year + 1) % 100, 1
+    end
+    return r2 <= year * 100 + month
+end
+
 ---@return string|nil version nil when missing or unparseable
 local function LocalVersion()
     local ver = ns:GetAddonVersion(ADDON_NAME)
@@ -112,7 +148,7 @@ end
 
 ---@return boolean
 local function WizardPending()
-    return ns.FirstRun and ns.FirstRun:ShouldShowWizard()
+    return ns.FirstRun:ShouldShowWizard()
 end
 
 ---@param remote string
@@ -217,141 +253,186 @@ local function TryPopup(remote, delay)
     end
 end
 
+---@param remote string
+local function PrintChat(remote)
+    if chatPrinted then return end
+    chatPrinted = true
+    print("|cFF00FF00OneWoW|r: " .. format(ns.L["VERSION_CHECK_CHAT"], remote))
+end
+
 --- Chat once per session; popup once per remote version this session unless dismissed.
 ---@param remote string
 ---@param popupDelay number|nil
 local function Notify(remote, popupDelay)
-    local L = ns.L
-    if not chatPrinted then
-        chatPrinted = true
-        print("|cFF00FF00OneWoW|r: " .. format(L["VERSION_CHECK_CHAT"], remote))
-    end
+    PrintChat(remote)
     TryPopup(remote, popupDelay)
 end
 
+--- Highest version that at least PEERS_TO_SAVE distinct peers report (each
+--- peer counts toward every version up to its own best).
+---@return string|nil
+local function ConfirmedVersion()
+    local versions = {}
+    for _, ver in pairs(peerBest) do
+        versions[#versions + 1] = ver
+    end
+    if #versions < PEERS_TO_SAVE then return nil end
+    sort(versions, function(a, b) return VersionCheck.IsNewer(a, b) end)
+    return versions[PEERS_TO_SAVE]
+end
+
 ---@param remote string
----@param popupDelay number|nil
-local function AcceptRemote(remote, popupDelay)
+---@param peerKey string|nil nil when the sender is secret / unknown
+local function AcceptRemote(remote, peerKey)
     local localVer = LocalVersion()
-    if not localVer or not VersionCheck.IsNewer(remote, localVer) then
+    if not localVer or not VersionCheck.IsNewer(remote, localVer) or not IsPlausible(remote, localVer) then
         return
     end
 
+    PrintChat(remote)
+    if not peerKey then return end
+
+    local best = peerBest[peerKey]
+    if best and not VersionCheck.IsNewer(remote, best) then return end
+    peerBest[peerKey] = remote
+
+    local confirmed = ConfirmedVersion()
+    if not confirmed or not VersionCheck.IsNewer(confirmed, localVer) then return end
+
     local prev = ns.db.global.remoteUpdateLatestSeen
-    if prev == "" or VersionCheck.IsNewer(remote, prev) then
-        ns.db.global.remoteUpdateLatestSeen = remote
+    if prev == "" or VersionCheck.IsNewer(confirmed, prev) then
+        ns.db.global.remoteUpdateLatestSeen = confirmed
         EventRegistry:TriggerEvent("ns.FeatureStateChanged", "remote_update")
     end
-
-    Notify(remote, popupDelay)
+    TryPopup(ns.db.global.remoteUpdateLatestSeen)
 end
 
-local function ScheduleLockdownRetry()
-    if lockdownRetryPending then return end
-    lockdownRetryPending = true
-    C_Timer.After(LOCKDOWN_RETRY, function()
-        lockdownRetryPending = false
-        sessionWideDone = false
-        ns.VersionCheck.Announce()
+local FlushPendingSends
+
+local function ArmRetry()
+    -- While Chat is restricted the state callback flushes; the timer covers
+    -- a lockdown result with no Chat restriction reported.
+    if retryTimer or ns.Restriction.IsChatRestricted() or timerRetries >= MAX_TIMER_RETRIES then return end
+    timerRetries = timerRetries + 1
+    retryTimer = C_Timer.NewTimer(LOCKDOWN_RETRY * timerRetries, function()
+        retryTimer = nil
+        FlushPendingSends()
     end)
 end
 
----@param result number
----@return boolean lockdown
-local function NoteSendResult(result)
-    if result == LOCKDOWN then
-        ScheduleLockdownRetry()
-        return true
-    end
-    return false
-end
-
----@param message string
 ---@param chatType string
----@param target string|nil
-local function SendChat(message, chatType, target)
-    local result = C_ChatInfo.SendAddonMessage(PREFIX, message, chatType, target)
-    NoteSendResult(result)
+---@return boolean lockdown
+local function SendChat(chatType)
+    local ver = LocalVersion()
+    if not ver then return false end
+    return C_ChatInfo.SendAddonMessage(PREFIX, "V\t" .. ver, chatType) == LOCKDOWN
 end
 
----@param message string
-local function SendGroup(message)
-    if IsInRaid() then
-        local instanceOnly = not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)
-        SendChat(message, instanceOnly and "INSTANCE_CHAT" or "RAID")
-    elseif IsInGroup() then
-        local instanceOnly = not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)
-        SendChat(message, instanceOnly and "INSTANCE_CHAT" or "PARTY")
-    end
-end
+local CHANNEL_SENDERS = {
+    GROUP = function()
+        if IsInRaid() then
+            local instanceOnly = not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)
+            return SendChat(instanceOnly and "INSTANCE_CHAT" or "RAID")
+        elseif IsInGroup() then
+            local instanceOnly = not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)
+            return SendChat(instanceOnly and "INSTANCE_CHAT" or "PARTY")
+        end
+        return false
+    end,
+    GUILD = function()
+        return IsInGuild() and SendChat("GUILD")
+    end,
+    YELL = function()
+        return SendChat("YELL")
+    end,
+}
 
----@param message string
-local function SendGuild(message)
-    if IsInGuild() then
-        SendChat(message, "GUILD")
+---@param channel string GROUP / GUILD / YELL
+local function SendChannel(channel)
+    if CHANNEL_SENDERS[channel]() then
+        pendingChat[channel] = true
+        ArmRetry()
     end
 end
 
 ---@param gameAccountID number
----@param message string
-local function SendBNAccount(gameAccountID, message)
-    local result = C_BattleNet.SendGameData(gameAccountID, PREFIX, message)
-    if NoteSendResult(result) then
-        sessionWideDone = false
+local function SendBNAccount(gameAccountID)
+    local ver = LocalVersion()
+    if not ver then return end
+    if C_BattleNet.SendGameData(gameAccountID, PREFIX, "V\t" .. ver) == LOCKDOWN then
+        pendingBN[gameAccountID] = true
+        ArmRetry()
     end
 end
 
----@param message string
-local function SendBN(message)
-    wipe(bnQueue)
+---@param accounts number[]
+local function SendBNStaggered(accounts)
+    for index, gameAccountID in ipairs(accounts) do
+        C_Timer.After((index - 1) * BN_STAGGER, function()
+            SendBNAccount(gameAccountID)
+        end)
+    end
+end
+
+local function SendBNFriends()
+    local accounts = {}
     local myGUID = UnitGUID("player")
-    local numFriends = BNGetNumFriends()
-    for i = 1, numFriends do
-        local numAccounts = C_BattleNet.GetFriendNumGameAccounts(i)
-        for j = 1, numAccounts do
+    for i = 1, BNGetNumFriends() do
+        for j = 1, C_BattleNet.GetFriendNumGameAccounts(i) do
             local info = C_BattleNet.GetFriendGameAccountInfo(i, j)
             if info and info.isOnline and info.gameAccountID and info.gameAccountID > 0
                 and info.clientProgram == "WoW"
                 and (not info.wowProjectID or info.wowProjectID == WOW_PROJECT_ID)
                 and info.playerGuid ~= myGUID
             then
-                bnQueue[#bnQueue + 1] = info.gameAccountID
+                accounts[#accounts + 1] = info.gameAccountID
             end
         end
     end
-
-    for index, gameAccountID in ipairs(bnQueue) do
-        local delay = (index - 1) * BN_STAGGER
-        local accountID = gameAccountID
-        C_Timer.After(delay, function()
-            SendBNAccount(accountID, message)
-        end)
-    end
+    SendBNStaggered(accounts)
 end
 
---- Broadcast this client's parseable TOC version.
-function VersionCheck.Announce()
-    local ver = LocalVersion()
-    if not ver then return end
-
-    local payload = "V\t" .. ver
-    SendGroup(payload)
-    SendGuild(payload)
-
-    if not sessionWideDone then
-        sessionWideDone = true
-        SendChat(payload, "YELL")
-        SendBN(payload)
+--- Resend only what hit lockdown, once.
+FlushPendingSends = function()
+    if retryTimer then
+        retryTimer:Cancel()
+        retryTimer = nil
     end
+    local channels, accounts = {}, {}
+    for channel in pairs(pendingChat) do
+        channels[#channels + 1] = channel
+    end
+    for gameAccountID in pairs(pendingBN) do
+        accounts[#accounts + 1] = gameAccountID
+    end
+    wipe(pendingChat)
+    wipe(pendingBN)
+    for _, channel in ipairs(channels) do
+        SendChannel(channel)
+    end
+    SendBNStaggered(accounts)
 end
 
-local function ScheduleAnnounce()
-    if announcePending then return end
-    announcePending = true
-    C_Timer.After(ANNOUNCE_DELAY, function()
-        announcePending = false
-        VersionCheck.Announce()
-    end)
+local function OnRestrictionState(restrictionType, restrictionState)
+    if restrictionType ~= CHAT_RESTRICTION or restrictionState ~= RESTRICTION_INACTIVE then return end
+    timerRetries = 0
+    FlushPendingSends()
+end
+
+local function AnnounceGuild()
+    if guildAnnounced or not IsInGuild() then return end
+    guildAnnounced = true
+    SendChannel("GUILD")
+end
+
+--- One broadcast per session: group, guild, yell, Battle.net friends.
+local function AnnounceSession()
+    if sessionAnnounced or not LocalVersion() then return end
+    sessionAnnounced = true
+    SendChannel("GROUP")
+    AnnounceGuild()
+    SendChannel("YELL")
+    SendBNFriends()
 end
 
 --- Chat line when a new OneWoW peer is heard on a channel. Names are not
@@ -364,10 +445,7 @@ local function NoteNearby(kindKey, peerID)
     local label = NEARBY_LABEL[kindKey]
     if not label then return end
 
-    local id = peerID
-    if not id or id == "" or ns.Restriction.IsSecretValue(id) then
-        id = "?"
-    end
+    local id = peerID or "?"
 
     local bucket = nearbySeen[kindKey]
     if not bucket then
@@ -384,70 +462,69 @@ local function NoteNearby(kindKey, peerID)
     print("|cFF00FF00OneWoW|r: Nearby: " .. label .. " (" .. n .. ")")
 end
 
+---@param name string
+---@param realm string
+---@return string
+local function PeerKey(name, realm)
+    return name .. "-" .. gsub(realm, "[%s%-]", "")
+end
+
+--- Name-Realm key for a chat sender; nil when missing or secret.
 ---@param sender string|nil
----@return boolean
-local function IsSelfChatSender(sender)
-    if not sender or sender == "" then return false end
-    if ns.Restriction.IsSecretValue(sender) then return false end
+---@return string|nil
+local function ChatPeerKey(sender)
+    if not sender or ns.Restriction.IsSecretValue(sender) or sender == "" then return nil end
     local name, realm = strsplit("-", sender, 2)
-    local myName = UnitName("player")
-    if name ~= myName then return false end
-    if not realm or realm == "" then return true end
-    local norm = GetNormalizedRealmName()
-    local raw = GetRealmName()
-    return realm == norm or realm == raw
+    return PeerKey(name, (realm and realm ~= "") and realm or GetNormalizedRealmName())
+end
+
+---@param peerKey string|nil
+---@return boolean
+local function IsSelf(peerKey)
+    return peerKey == PeerKey(UnitName("player"), GetNormalizedRealmName())
 end
 
 ---@param text string
----@param reply fun(message: string)
 ---@param kindKey string
----@param peerID string|nil
-local function HandlePayload(text, reply, kindKey, peerID)
-    NoteNearby(kindKey, peerID)
-
-    if text == "?" then
-        local ver = LocalVersion()
-        if ver then
-            reply("V\t" .. ver)
-        end
-        return
-    end
-
+---@param peerKey string|nil
+local function HandlePayload(text, kindKey, peerKey)
+    NoteNearby(kindKey, peerKey)
     local remote = strmatch(text, "^V\t(.+)$")
     if remote then
-        AcceptRemote(remote)
+        AcceptRemote(remote, peerKey)
     end
 end
 
 local function OnChatAddon(_, prefix, text, channel, sender)
     if prefix ~= PREFIX or not text then return end
-    if IsSelfChatSender(sender) then return end
-
-    HandlePayload(text, function(message)
-        if sender and sender ~= "" and not ns.Restriction.IsSecretValue(sender) then
-            SendChat(message, "WHISPER", sender)
-        elseif channel and channel ~= "" then
-            SendChat(message, channel)
-        end
-    end, channel, sender)
+    local peerKey = ChatPeerKey(sender)
+    if IsSelf(peerKey) then return end
+    HandlePayload(text, channel, peerKey)
 end
 
 local function OnBNChatAddon(_, prefix, text, _, senderID)
-    if prefix ~= PREFIX or not text then return end
-    local peerID = senderID and senderID > 0 and tostring(senderID) or nil
-    HandlePayload(text, function(message)
-        if senderID and senderID > 0 then
-            SendBNAccount(senderID, message)
-        end
-    end, "BN", peerID)
+    if prefix ~= PREFIX or not text or not senderID or senderID <= 0 then return end
+    local info = C_BattleNet.GetGameAccountInfoByID(senderID)
+    local peerKey = info and info.characterName and info.realmName
+        and PeerKey(info.characterName, info.realmName) or nil
+    HandlePayload(text, "BN", peerKey)
 end
 
 local function OnGroupRoster()
     local num = GetNumGroupMembers()
-    if num > 1 and num > groupSize then
-        ScheduleAnnounce()
+    if sessionAnnounced and num > 1 and num > groupSize then
+        SendChannel("GROUP")
     end
     groupSize = num
+end
+
+local function OnGuildUpdate(_, unit)
+    if unit ~= "player" then return end
+    if not IsInGuild() then
+        guildAnnounced = false
+    elseif sessionAnnounced then
+        AnnounceGuild()
+    end
 end
 
 local function NotifyPersisted()
@@ -464,10 +541,17 @@ ns:RegisterCoreLoginHandler("VersionCheck", function()
     ns.RegisterEvent("CHAT_MSG_ADDON", "VersionCheck", OnChatAddon)
     ns.RegisterEvent("BN_CHAT_MSG_ADDON", "VersionCheck", OnBNChatAddon)
     ns.RegisterEvent("GROUP_ROSTER_UPDATE", "VersionCheck", OnGroupRoster)
+    ns.RegisterEvent("PLAYER_GUILD_UPDATE", "VersionCheck", OnGuildUpdate)
+    ns.Restriction.RegisterStateCallback("VersionCheck", OnRestrictionState)
     groupSize = GetNumGroupMembers()
     NotifyPersisted()
 end)
 
 ns:RegisterCoreEnteringWorldHandler("VersionCheck", function()
-    ScheduleAnnounce()
+    if sessionAnnounced or announcePending then return end
+    announcePending = true
+    C_Timer.After(ANNOUNCE_DELAY, function()
+        announcePending = false
+        AnnounceSession()
+    end)
 end)
