@@ -524,30 +524,26 @@ function FirstRun:ShowStoreAffectedDialog(storeAddon)
     local keys = STORE_AFFECTED_KEYS[storeAddon]
     if not keys then return end
 
-    local dialogKey = "OneWoW_StoreAffectedDialog"
-    if FirstRun._affectedDialog and FirstRun._affectedDialog:IsShown() then
-        FirstRun._affectedDialog:Hide()
-    end
-
-    local result = OneWoW_GUI:CreateDialog({
-        name            = dialogKey,
-        title           = L[keys.title],
+    local result = OneWoW_GUI:GetOrCreateDialog({
+        name            = "OneWoW_StoreAffectedDialog",
         width           = 480,
         height          = 360,
         showScrollFrame = true,
         buttons         = {
             { text = CLOSE, onClick = function(frame) frame:Hide() end },
         },
-    })
-    FirstRun._affectedDialog = result.frame
+    }, function(built)
+        local body = OneWoW_GUI:CreateFS(built.scrollContent, 12)
+        body:SetPoint("TOPLEFT", built.scrollContent, "TOPLEFT", 12, -12)
+        body:SetPoint("TOPRIGHT", built.scrollContent, "TOPRIGHT", -12, -12)
+        body:SetJustifyH("LEFT")
+        body:SetWordWrap(true)
+        built.body = body
+    end)
 
-    local body = OneWoW_GUI:CreateFS(result.scrollContent, 12)
-    body:SetPoint("TOPLEFT", result.scrollContent, "TOPLEFT", 12, -12)
-    body:SetPoint("TOPRIGHT", result.scrollContent, "TOPRIGHT", -12, -12)
-    body:SetJustifyH("LEFT")
-    body:SetWordWrap(true)
-    body:SetText(L[keys.body] or "")
-    result.scrollContent:SetHeight(math.max(40, body:GetStringHeight() + 24))
+    result.titleBar._titleText:SetText(L[keys.title])
+    result.body:SetText(L[keys.body] or "")
+    result.scrollContent:SetHeight(math.max(40, result.body:GetStringHeight() + 24))
 
     result.frame:Show()
     result.frame:Raise()

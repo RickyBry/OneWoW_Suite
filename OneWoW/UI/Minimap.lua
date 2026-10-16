@@ -9,13 +9,58 @@ local position
 
 local OneWoW_GUI = OneWoW_GUI
 
-local function ShowContextMenu(anchorFrame)
-    if contextMenu then
-        contextMenu:Hide()
-        contextMenu:SetParent(nil)
-        contextMenu = nil
-    end
+local ROW_HEIGHT = 22
 
+local function EnsureContextMenu()
+    if contextMenu then return contextMenu end
+    contextMenu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    contextMenu:SetFrameStrata("FULLSCREEN_DIALOG")
+    contextMenu:SetBackdrop(OneWoW_GUI.Constants.BACKDROP_SOFT)
+    contextMenu.rows = {}
+    contextMenu:SetScript("OnUpdate", function(self, elapsed)
+        if not self:IsMouseOver() and not self.anchor:IsMouseOver() then
+            self.timeOutside = self.timeOutside + elapsed
+            if self.timeOutside > 0.5 then
+                self:Hide()
+            end
+        else
+            self.timeOutside = 0
+        end
+    end)
+    contextMenu:Hide()
+    return contextMenu
+end
+
+local function GetMenuRow(index)
+    local row = contextMenu.rows[index]
+    if row then return row end
+
+    row = CreateFrame("Button", nil, contextMenu, "BackdropTemplate")
+    row:SetHeight(ROW_HEIGHT)
+    row:SetPoint("TOPLEFT", contextMenu, "TOPLEFT", 4, -4 - (index - 1) * ROW_HEIGHT)
+    row:SetPoint("TOPRIGHT", contextMenu, "TOPRIGHT", -4, -4 - (index - 1) * ROW_HEIGHT)
+    row:SetBackdrop(OneWoW_GUI.Constants.BACKDROP_SIMPLE)
+    row:SetBackdropColor(0, 0, 0, 0)
+    row.text = OneWoW_GUI:CreateFS(row, 12)
+    row.alertIcon = row:CreateTexture(nil, "OVERLAY")
+    row.alertIcon:SetSize(16, 16)
+    row.alertIcon:SetPoint("LEFT", 4, 0)
+    row.alertIcon:SetAtlas("Ping_Chat_Warning")
+    row:SetScript("OnEnter", function(self)
+        self:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
+    end)
+    row:SetScript("OnLeave", function(self)
+        self:SetBackdropColor(0, 0, 0, 0)
+    end)
+    row:SetScript("OnClick", function(self)
+        contextMenu:Hide()
+        self.action()
+    end)
+    contextMenu.rows[index] = row
+    return row
+end
+
+local function ShowContextMenu(anchorFrame)
     local entries = ns._minimapEntries or {}
     local oneWoWEntry
     local otherEntries = {}
@@ -30,7 +75,7 @@ local function ShowContextMenu(anchorFrame)
 
     local visibleItems = {}
     if oneWoWEntry then
-        tinsert(visibleItems, { label = oneWoWEntry.label, global = "OneWoW", always = true, action = oneWoWEntry.callback or (function() ns.UI:Show() end) })
+        tinsert(visibleItems, { label = oneWoWEntry.label, global = "OneWoW", action = oneWoWEntry.callback or (function() ns.UI:Show() end) })
     end
     for _, item in ipairs(otherEntries) do
         local action = item.callback
@@ -44,96 +89,58 @@ local function ShowContextMenu(anchorFrame)
 
     if #visibleItems == 0 then return end
 
-    contextMenu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-    contextMenu:SetFrameStrata("FULLSCREEN_DIALOG")
-    contextMenu:SetBackdrop(OneWoW_GUI.Constants.BACKDROP_SOFT)
-    contextMenu:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
-    contextMenu:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+    local menu = EnsureContextMenu()
+    menu:Hide()
+    menu:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
+    menu:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
 
-    local yOff = -4
     local maxWidth = 140
-    for _, item in ipairs(visibleItems) do
-        local btn = CreateFrame("Button", nil, contextMenu, "BackdropTemplate")
-        btn:SetHeight(22)
-        btn:SetPoint("TOPLEFT", contextMenu, "TOPLEFT", 4, yOff)
-        btn:SetPoint("TOPRIGHT", contextMenu, "TOPRIGHT", -4, yOff)
-        btn:SetBackdrop(OneWoW_GUI.Constants.BACKDROP_SIMPLE)
-        btn:SetBackdropColor(0, 0, 0, 0)
+    for index, item in ipairs(visibleItems) do
+        local row = GetMenuRow(index)
+        local hasErrorAlert = item.global == "OneWoW_Utility_DevTool"
+            and OneWoW_Utility_DevTool_API ~= nil
+            and OneWoW_Utility_DevTool_API.HasCurrentSessionErrors()
+        row.alertIcon:SetShown(hasErrorAlert)
+        row.text:ClearAllPoints()
+        row.text:SetPoint("LEFT", hasErrorAlert and 24 or 8, 0)
+        row.text:SetText(item.label)
+        row.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        row:SetBackdropColor(0, 0, 0, 0)
+        row.action = item.action
+        row:Show()
 
-        local textLeftOffset = 8
-        local hasErrorAlert = false
-        if item.global == "OneWoW_Utility_DevTool" then
-            if OneWoW_Utility_DevTool_API and OneWoW_Utility_DevTool_API.HasCurrentSessionErrors
-                and OneWoW_Utility_DevTool_API.HasCurrentSessionErrors() then
-                hasErrorAlert = true
-                textLeftOffset = 24
-            end
-        end
-
-        btn.text = OneWoW_GUI:CreateFS(btn, 12)
-        btn.text:SetPoint("LEFT", textLeftOffset, 0)
-        btn.text:SetText(item.label)
-        btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
-
-        if hasErrorAlert then
-            local alertIcon = btn:CreateTexture(nil, "OVERLAY")
-            alertIcon:SetSize(16, 16)
-            alertIcon:SetPoint("LEFT", 4, 0)
-            alertIcon:SetAtlas("Ping_Chat_Warning")
-        end
-
-        local textW = btn.text:GetStringWidth() + 20 + (hasErrorAlert and 16 or 0)
+        local textW = row.text:GetStringWidth() + 20 + (hasErrorAlert and 16 or 0)
         if textW > maxWidth then maxWidth = textW end
-
-        btn:SetScript("OnEnter", function(self)
-            self:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
-        end)
-        btn:SetScript("OnLeave", function(self)
-            self:SetBackdropColor(0, 0, 0, 0)
-        end)
-        btn:SetScript("OnClick", function()
-            contextMenu:Hide()
-            item.action()
-        end)
-
-        yOff = yOff - 22
+    end
+    for index = #visibleItems + 1, #menu.rows do
+        menu.rows[index]:Hide()
     end
 
-    contextMenu:SetSize(maxWidth + 16, math.abs(yOff) + 8)
+    menu:SetSize(maxWidth + 16, #visibleItems * ROW_HEIGHT + 12)
 
     local screenW   = UIParent:GetWidth()
-    local menuW     = contextMenu:GetWidth()
-    local menuH     = contextMenu:GetHeight()
+    local menuW     = menu:GetWidth()
+    local menuH     = menu:GetHeight()
     local ancLeft   = anchorFrame:GetLeft()   or 0
     local ancBottom = anchorFrame:GetBottom() or 0
 
     local goLeft  = (ancLeft + menuW) > screenW
     local goAbove = (ancBottom - menuH) < 0
 
+    menu:ClearAllPoints()
     if goAbove and goLeft then
-        contextMenu:SetPoint("BOTTOMRIGHT", anchorFrame, "TOPRIGHT", 0, 2)
+        menu:SetPoint("BOTTOMRIGHT", anchorFrame, "TOPRIGHT", 0, 2)
     elseif goAbove then
-        contextMenu:SetPoint("BOTTOMLEFT", anchorFrame, "TOPLEFT", 0, 2)
+        menu:SetPoint("BOTTOMLEFT", anchorFrame, "TOPLEFT", 0, 2)
     elseif goLeft then
-        contextMenu:SetPoint("TOPRIGHT", anchorFrame, "BOTTOMRIGHT", 0, -2)
+        menu:SetPoint("TOPRIGHT", anchorFrame, "BOTTOMRIGHT", 0, -2)
     else
-        contextMenu:SetPoint("TOPLEFT", anchorFrame, "BOTTOMLEFT", 0, -2)
+        menu:SetPoint("TOPLEFT", anchorFrame, "BOTTOMLEFT", 0, -2)
     end
 
-    local timeOutside = 0
-    contextMenu:SetScript("OnUpdate", function(self, elapsed)
-        if not contextMenu:IsMouseOver() and not anchorFrame:IsMouseOver() then
-            timeOutside = timeOutside + elapsed
-            if timeOutside > 0.5 then
-                self:Hide()
-                self:SetScript("OnUpdate", nil)
-            end
-        else
-            timeOutside = 0
-        end
-    end)
-
-    contextMenu:Show()
+    menu.anchor = anchorFrame
+    menu.timeOutside = 0
+    menu:Show()
 end
 
 local function GetCurrentIcon()
@@ -202,7 +209,7 @@ local function CreateMinimapButton()
     end)
     minimapBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
     minimapBtn:SetScript("OnClick", function(self, button)
-        if button == "LeftButton" and ns.UI then
+        if button == "LeftButton" then
             ns.UI:Toggle()
         elseif button == "RightButton" then
             ShowContextMenu(self)
@@ -247,7 +254,7 @@ function MinimapMod:Initialize()
             type = "launcher",
             icon = GetCurrentIcon(),
             OnClick = function(myself, button)
-                if button == "LeftButton" and ns.UI then
+                if button == "LeftButton" then
                     ns.UI:Toggle()
                 elseif button == "RightButton" then
                     ShowContextMenu(myself)

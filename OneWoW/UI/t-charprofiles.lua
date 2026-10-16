@@ -492,193 +492,200 @@ end
 -- Dialogs
 -- ============================================================
 
-function UI:ShowCharProfileRestoreDialog(profileName, profile, onRestored)
-    local restoreChecks = {}
-    local yOff = -10
+local RESTORE_ROWS = {
+    { key = "keybinds",        label = "Keybinds" },
+    { key = "accountMacros",   label = "Account Macros" },
+    { key = "characterMacros", label = "Character Macros" },
+    { key = "gameSettings",    label = "WoW Game Settings" },
+    { key = "addonSet",        label = "Addon Set" },
+    { key = "addonSettings",   label = "Addon Settings" },
+}
 
-    local result = OneWoW_GUI:CreateDialog({
+local function IsRestoreChecked(dialog, key)
+    local cb = dialog._restoreChecks[key]
+    return cb:IsShown() and cb:GetChecked()
+end
+
+local function RestoreSelected(dialog)
+    local M = ns.CharProfiles
+    local profile = dialog._profile
+    local results = {}
+    local reloadNeeded = false
+
+    if IsRestoreChecked(dialog, "keybinds") then
+        local n = M:RestoreKeybinds(profile.keybinds)
+        tinsert(results, string.format("%d Keybinds", n))
+    end
+
+    if IsRestoreChecked(dialog, "accountMacros") then
+        local n = M:RestoreMacros(
+            { account = type(profile.accountMacros) == "table" and profile.accountMacros.data or {} },
+            true, false)
+        tinsert(results, string.format("%d Account Macros", n))
+    end
+
+    if IsRestoreChecked(dialog, "characterMacros") then
+        local n = M:RestoreMacros(
+            { character = type(profile.characterMacros) == "table" and profile.characterMacros.data or {} },
+            false, true)
+        tinsert(results, string.format("%d Character Macros", n))
+    end
+
+    if IsRestoreChecked(dialog, "gameSettings") then
+        local n = M:RestoreGameSettings(profile.gameSettings)
+        tinsert(results, string.format("%d Game Settings", n))
+        reloadNeeded = true
+    end
+
+    if IsRestoreChecked(dialog, "addonSet") then
+        local n = M:RestoreAddonSet(profile.addonSet)
+        tinsert(results, string.format("%d changes to Addon Set", n))
+        reloadNeeded = true
+    end
+
+    if IsRestoreChecked(dialog, "addonSettings") then
+        local n = M:RestoreAddonSettings(profile.addonSettings)
+        tinsert(results, string.format("%d Addon Settings", n))
+        reloadNeeded = true
+    end
+
+    dialog:Hide()
+
+    print(string.format("|cFFFFD100OneWoW:|r Character profile restored: %s", dialog._profileName))
+    for _, line in ipairs(results) do
+        print("  |cFFFFD100-|r " .. line)
+    end
+
+    if reloadNeeded then
+        print("|cFFFFD100OneWoW:|r A UI reload is required to apply changes.")
+        C_Timer.After(1.5, function()
+            local reloadDialog = OneWoW_GUI:CreateConfirmDialog({
+                name    = "OneWoW_CharProfileReloadConfirm",
+                title   = "Reload Required",
+                message = "A UI reload is required to apply restored settings. Reload now?",
+                width   = 420,
+                buttons = {
+                    { text = "Reload Now", onClick = function(d) d:Hide(); ReloadUI() end },
+                    { text = "Later",      onClick = function(d) d:Hide() end },
+                },
+            })
+            reloadDialog.frame:Show()
+        end)
+    end
+
+    if dialog._onRestored then dialog._onRestored() end
+end
+
+function UI:ShowCharProfileRestoreDialog(profileName, profile, onRestored)
+    local result = OneWoW_GUI:GetOrCreateDialog({
         name = "OneWoW_CharProfileRestoreDialog",
-        title = "Restore Profile: |cFFFFD100" .. profileName .. "|r",
         width = 480,
         height = 360,
         strata = "FULLSCREEN_DIALOG",
         showBrand = true,
         buttons = {
-            { text = "Restore Profile", onClick = function(dialog)
-                local M = ns.CharProfiles
-                local results = {}
-                local reloadNeeded = false
-
-                if restoreChecks.keybinds and restoreChecks.keybinds:GetChecked() then
-                    local n = M:RestoreKeybinds(profile.keybinds)
-                    tinsert(results, string.format("%d Keybinds", n))
-                end
-
-                if restoreChecks.accountMacros and restoreChecks.accountMacros:GetChecked() then
-                    local n = M:RestoreMacros(
-                        { account = type(profile.accountMacros) == "table" and profile.accountMacros.data or {} },
-                        true, false)
-                    tinsert(results, string.format("%d Account Macros", n))
-                end
-
-                if restoreChecks.characterMacros and restoreChecks.characterMacros:GetChecked() then
-                    local n = M:RestoreMacros(
-                        { character = type(profile.characterMacros) == "table" and profile.characterMacros.data or {} },
-                        false, true)
-                    tinsert(results, string.format("%d Character Macros", n))
-                end
-
-                if restoreChecks.gameSettings and restoreChecks.gameSettings:GetChecked() then
-                    local n = M:RestoreGameSettings(profile.gameSettings)
-                    tinsert(results, string.format("%d Game Settings", n))
-                    reloadNeeded = true
-                end
-
-                if restoreChecks.addonSet and restoreChecks.addonSet:GetChecked() then
-                    local n = M:RestoreAddonSet(profile.addonSet)
-                    tinsert(results, string.format("%d changes to Addon Set", n))
-                    reloadNeeded = true
-                end
-
-                if restoreChecks.addonSettings and restoreChecks.addonSettings:GetChecked() then
-                    local n = M:RestoreAddonSettings(profile.addonSettings)
-                    tinsert(results, string.format("%d Addon Settings", n))
-                    reloadNeeded = true
-                end
-
-                dialog:Hide()
-
-                print(string.format("|cFFFFD100OneWoW:|r Character profile restored: %s", profileName))
-                for _, line in ipairs(results) do
-                    print("  |cFFFFD100-|r " .. line)
-                end
-
-                if reloadNeeded then
-                    print("|cFFFFD100OneWoW:|r A UI reload is required to apply changes.")
-                    C_Timer.After(1.5, function()
-                        local reloadDialog = OneWoW_GUI:CreateConfirmDialog({
-                            name    = "OneWoW_CharProfileReloadConfirm",
-                            title   = "Reload Required",
-                            message = "A UI reload is required to apply restored settings. Reload now?",
-                            width   = 420,
-                            buttons = {
-                                { text = "Reload Now", onClick = function(d) d:Hide(); ReloadUI() end },
-                                { text = "Later",      onClick = function(d) d:Hide() end },
-                            },
-                        })
-                        reloadDialog.frame:Show()
-                    end)
-                end
-
-                if onRestored then onRestored() end
-            end },
+            { text = "Restore Profile", onClick = RestoreSelected },
             { text = "Cancel", onClick = function(dialog) dialog:Hide() end },
         },
-    })
+    }, function(dialog)
+        local cf = dialog.contentFrame
+        local frame = dialog.frame
+
+        frame._savedDate = OneWoW_GUI:CreateFS(cf, 10)
+        frame._savedDate:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, -10)
+        frame._savedDate:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+
+        frame._savedBy = OneWoW_GUI:CreateFS(cf, 10)
+        frame._savedBy:SetPoint("TOPLEFT", frame._savedDate, "BOTTOMLEFT", 0, -4)
+        frame._savedBy:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+
+        frame._selectLabel = OneWoW_GUI:CreateFS(cf, 12)
+        frame._selectLabel:SetText("Select what to restore:")
+        frame._selectLabel:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+
+        frame._restoreChecks = {}
+        for _, def in ipairs(RESTORE_ROWS) do
+            frame._restoreChecks[def.key] = OneWoW_GUI:CreateCheckbox(cf, { label = "" })
+        end
+    end)
 
     local cf = result.contentFrame
+    local frame = result.frame
+    frame._profileName = profileName
+    frame._profile = profile
+    frame._onRestored = onRestored
+    result.titleBar._titleText:SetText("Restore Profile: |cFFFFD100" .. profileName .. "|r")
 
-    local savedDate = OneWoW_GUI:CreateFS(cf, 10)
-    savedDate:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, yOff)
-    savedDate:SetText("Saved: " .. date("%Y-%m-%d %H:%M", profile.timestamp or 0))
-    savedDate:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    local yOff = -10
+    frame._savedDate:SetText("Saved: " .. date("%Y-%m-%d %H:%M", profile.timestamp or 0))
     yOff = yOff - 18
 
     if profile.savedBy then
-        local savedByFS = OneWoW_GUI:CreateFS(cf, 10)
-        savedByFS:SetPoint("TOPLEFT", savedDate, "BOTTOMLEFT", 0, -4)
-        savedByFS:SetText("Saved by: |cFFFFD100" .. profile.savedBy .. "|r")
-        savedByFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        frame._savedBy:SetText("Saved by: |cFFFFD100" .. profile.savedBy .. "|r")
+        frame._savedBy:Show()
         yOff = yOff - 18
+    else
+        frame._savedBy:Hide()
     end
 
-    local selectLabel = OneWoW_GUI:CreateFS(cf, 12)
-    selectLabel:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, yOff - 10)
-    selectLabel:SetText("Select what to restore:")
-    selectLabel:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    frame._selectLabel:ClearAllPoints()
+    frame._selectLabel:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, yOff - 10)
     yOff = yOff - 28
 
-    local function AddRestoreRow(key, labelText, count, available)
-        if not available then return end
-        local cb = OneWoW_GUI:CreateCheckbox(cf, { label = "" })
-        cb:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, yOff)
-        cb:SetChecked(true)
-        local display = count and count > 0
-            and (labelText .. " |cFF888888(" .. count .. ")|r")
-            or labelText
-        if cb.label then cb.label:SetText(display) end
-        restoreChecks[key] = cb
-        yOff = yOff - 30
+    for _, def in ipairs(RESTORE_ROWS) do
+        local cb = frame._restoreChecks[def.key]
+        local section = profile[def.key]
+        if type(section) == "table" then
+            local count = section.count or 0
+            cb:ClearAllPoints()
+            cb:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, yOff)
+            cb:SetChecked(true)
+            cb.label:SetText(count > 0 and (def.label .. " |cFF888888(" .. count .. ")|r") or def.label)
+            cb:Show()
+            yOff = yOff - 30
+        else
+            cb:Hide()
+        end
     end
 
-    AddRestoreRow("keybinds",
-        "Keybinds",
-        type(profile.keybinds) == "table" and profile.keybinds.count or 0,
-        type(profile.keybinds) == "table")
-
-    AddRestoreRow("accountMacros",
-        "Account Macros",
-        type(profile.accountMacros) == "table" and profile.accountMacros.count or 0,
-        type(profile.accountMacros) == "table")
-
-    AddRestoreRow("characterMacros",
-        "Character Macros",
-        type(profile.characterMacros) == "table" and profile.characterMacros.count or 0,
-        type(profile.characterMacros) == "table")
-
-    AddRestoreRow("gameSettings",
-        "WoW Game Settings",
-        type(profile.gameSettings) == "table" and profile.gameSettings.count or 0,
-        type(profile.gameSettings) == "table")
-
-    AddRestoreRow("addonSet",
-        "Addon Set",
-        type(profile.addonSet) == "table" and profile.addonSet.count or 0,
-        type(profile.addonSet) == "table")
-
-    AddRestoreRow("addonSettings",
-        "Addon Settings",
-        type(profile.addonSettings) == "table" and profile.addonSettings.count or 0,
-        type(profile.addonSettings) == "table")
-
-    result.frame:SetHeight(math.abs(yOff) + 28 + 10 + 10 + 28 + 10)
-    result.frame:Show()
+    frame:SetHeight(math.abs(yOff) + 28 + 10 + 10 + 28 + 10)
+    frame:Show()
 end
 
 function UI:ShowCharProfileExportDialog(profileName, serializedStr)
-    local eb
-
-    local result = OneWoW_GUI:CreateDialog({
+    local result = OneWoW_GUI:GetOrCreateDialog({
         name = "OneWoW_CharProfileExportDialog",
-        title = "Export Profile: |cFFFFD100" .. profileName .. "|r",
         width = 620,
         height = 500,
         strata = "FULLSCREEN_DIALOG",
         showBrand = true,
         buttons = {
-            { text = "Select All", onClick = function()
-                eb:SetFocus()
-                eb:HighlightText()
+            { text = "Select All", onClick = function(dialog)
+                dialog._editBox:SetFocus()
+                dialog._editBox:HighlightText()
             end },
             { text = "Close", onClick = function(dialog) dialog:Hide() end },
         },
-    })
+    }, function(dialog)
+        local cf = dialog.contentFrame
 
-    local cf = result.contentFrame
+        local hint = OneWoW_GUI:CreateFS(cf, 10)
+        hint:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, -8)
+        hint:SetText("Select all text and copy (Ctrl+A, Ctrl+C) to share this profile:")
+        hint:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
 
-    local hint = OneWoW_GUI:CreateFS(cf, 10)
-    hint:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, -8)
-    hint:SetText("Select all text and copy (Ctrl+A, Ctrl+C) to share this profile:")
-    hint:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        local textBG = OneWoW_GUI:CreateFrame(cf, { width = 600, height = 420, backdrop = OneWoW_GUI.Constants.BACKDROP_SOFT })
+        textBG:ClearAllPoints()
+        textBG:SetPoint("TOPLEFT",     cf, "TOPLEFT",     10, -28)
+        textBG:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -10, 4)
 
-    local textBG = OneWoW_GUI:CreateFrame(cf, { width = 600, height = 420, backdrop = OneWoW_GUI.Constants.BACKDROP_SOFT })
-    textBG:ClearAllPoints()
-    textBG:SetPoint("TOPLEFT",     cf, "TOPLEFT",     10, -28)
-    textBG:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -10, 4)
+        local eb = UI.CreateScrollableEditBox(textBG, function() dialog.frame:Hide() end)
+        eb:SetAutoFocus(true)
+        dialog.frame._editBox = eb
+    end)
 
-    eb = UI.CreateScrollableEditBox(textBG, function() result.frame:Hide() end)
-    eb:SetAutoFocus(true)
-
+    result.titleBar._titleText:SetText("Export Profile: |cFFFFD100" .. profileName .. "|r")
+    local eb = result.frame._editBox
     result.frame:Show()
     C_Timer.After(0, function()
         eb:SetText(serializedStr or "")
@@ -687,9 +694,7 @@ function UI:ShowCharProfileExportDialog(profileName, serializedStr)
 end
 
 function UI:ShowCharProfileImportDialog(onImported)
-    local eb
-
-    local result = OneWoW_GUI:CreateDialog({
+    local result = OneWoW_GUI:GetOrCreateDialog({
         name = "OneWoW_CharProfileImportDialog",
         title = "Import Character Profile",
         width = 620,
@@ -698,35 +703,37 @@ function UI:ShowCharProfileImportDialog(onImported)
         showBrand = true,
         buttons = {
             { text = "Import", onClick = function(dialog)
-                local text = eb:GetText()
-                local ok, res = ns.CharProfiles:ImportProfile(text)
+                local ok, res = ns.CharProfiles:ImportProfile(dialog._editBox:GetText())
                 if ok then
                     print(string.format("|cFFFFD100OneWoW:|r Character profile imported: %s", res))
                     dialog:Hide()
-                    if onImported then onImported() end
+                    if dialog._onImported then dialog._onImported() end
                 else
                     print(string.format("|cFFFFD100OneWoW:|r Import failed: %s", res or "unknown error"))
                 end
             end },
             { text = "Cancel", onClick = function(dialog) dialog:Hide() end },
         },
-    })
+    }, function(dialog)
+        local cf = dialog.contentFrame
 
-    local cf = result.contentFrame
+        local hint = OneWoW_GUI:CreateFS(cf, 10)
+        hint:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, -8)
+        hint:SetText("Paste exported profile data below, then click Import:")
+        hint:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
 
-    local hint = OneWoW_GUI:CreateFS(cf, 10)
-    hint:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, -8)
-    hint:SetText("Paste exported profile data below, then click Import:")
-    hint:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        local textBG = OneWoW_GUI:CreateFrame(cf, { width = 600, height = 380, backdrop = OneWoW_GUI.Constants.BACKDROP_SOFT })
+        textBG:ClearAllPoints()
+        textBG:SetPoint("TOPLEFT",     cf, "TOPLEFT",     10, -28)
+        textBG:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -10, 4)
 
-    local textBG = OneWoW_GUI:CreateFrame(cf, { width = 600, height = 380, backdrop = OneWoW_GUI.Constants.BACKDROP_SOFT })
-    textBG:ClearAllPoints()
-    textBG:SetPoint("TOPLEFT",     cf, "TOPLEFT",     10, -28)
-    textBG:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -10, 4)
+        local eb = UI.CreateScrollableEditBox(textBG, function() dialog.frame:Hide() end)
+        eb:SetAutoFocus(true)
+        dialog.frame._editBox = eb
+    end)
 
-    eb = UI.CreateScrollableEditBox(textBG, function() result.frame:Hide() end)
-    eb:SetAutoFocus(true)
-
+    result.frame._onImported = onImported
+    result.frame._editBox:SetText("")
     result.frame:Show()
 end
 

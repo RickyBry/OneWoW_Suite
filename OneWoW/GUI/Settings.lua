@@ -13,17 +13,40 @@ OneWoW_GUI._settingsDB = nil
 
 local DEFAULT_THEME_KEY = Constants.DEFAULT_THEME_KEY
 
+-- callbacks[event][owner] = func. Weak keys: a discarded owner frame drops out
+-- without an explicit unregister. Fire order is unspecified.
 local callbacks = {}
 
 function OneWoW_GUI:RegisterSettingsCallback(event, owner, func)
-    if not callbacks[event] then callbacks[event] = {} end
-    tinsert(callbacks[event], { owner = owner, func = func })
+    local bucket = callbacks[event]
+    if not bucket then
+        bucket = setmetatable({}, { __mode = "k" })
+        callbacks[event] = bucket
+    end
+    bucket[owner] = func
+end
+
+function OneWoW_GUI:UnregisterSettingsCallback(event, owner)
+    local bucket = callbacks[event]
+    if bucket then
+        bucket[owner] = nil
+    end
 end
 
 local function FireCallbacks(event, value)
-    if not callbacks[event] then return end
-    for _, cb in ipairs(callbacks[event]) do
-        cb.func(cb.owner, value)
+    local bucket = callbacks[event]
+    if not bucket then return end
+    -- Snapshot: a callback may rebuild UI that registers new owners mid-fire.
+    local owners, funcs, n = {}, {}, 0
+    for owner, func in pairs(bucket) do
+        n = n + 1
+        owners[n], funcs[n] = owner, func
+    end
+    for i = 1, n do
+        local owner = owners[i]
+        if bucket[owner] == funcs[i] then
+            funcs[i](owner, value)
+        end
     end
 end
 

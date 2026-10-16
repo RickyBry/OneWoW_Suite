@@ -728,9 +728,7 @@ function TFV:RenderDetailEditor(list, detailScrollChild, detailRows, yOffset, pa
                 RefreshAllFarmWindows()
             end
         end,
-        createRow = function(row, entry, api)
-            local id = entry.id
-            local qty = entry.data and entry.data.qty or 0
+        createRow = function(row, api)
             row:EnableMouse(true)
             row.icon = row:CreateTexture(nil, "ARTWORK")
             row.icon:SetSize(COL_ICON_W, COL_ICON_W)
@@ -748,7 +746,7 @@ function TFV:RenderDetailEditor(list, detailScrollChild, detailRows, yOffset, pa
                 removeBtn:SetHighlightTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Highlight")
                 removeBtn:SetScript("OnClick", function()
                     if not api.IsEnabled() then return end
-                    if TFV:RemoveItemFromFarmWatchlist(list, id) then
+                    if TFV:RemoveItemFromFarmWatchlist(list, row.itemID) then
                         parent.RefreshList()
                         RefreshAllFarmWindows()
                     end
@@ -761,8 +759,8 @@ function TFV:RenderDetailEditor(list, detailScrollChild, detailRows, yOffset, pa
             end
             row:HookScript("OnSizeChanged", layoutRow)
             layoutRow()
-            LayoutFarmRow(row, id, qty, true)
             row:SetScript("OnEnter", function(myself)
+                local id = myself.itemID
                 GameTooltip:SetOwner(myself, "ANCHOR_RIGHT")
                 local nm, link = C_Item.GetItemInfo(id)
                 if link then
@@ -775,6 +773,9 @@ function TFV:RenderDetailEditor(list, detailScrollChild, detailRows, yOffset, pa
                 GameTooltip:Show()
             end)
             row:SetScript("OnLeave", GameTooltip_Hide)
+        end,
+        bindRow = function(row, entry)
+            LayoutFarmRow(row, entry.id, entry.data and entry.data.qty or 0, true)
             return ROW_H
         end,
         rowHeight = ROW_H,

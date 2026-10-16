@@ -1,5 +1,7 @@
 # OneWoW Suite Changelog
 
+- Dropdown menus, the minimap button menu, profile dialogs, and item lists reuse what they built the first time, so opening them over a long session no longer adds memory or slows the game.
+
 ## Fixes
 - Quest dialogs no longer report an error when Catalog is turned off.
 - Deleted preset overlays stay deleted after a reload.

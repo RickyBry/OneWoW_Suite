@@ -202,35 +202,36 @@ end)
 -- ============================================================
 
 function UI:ShowSettingsProfileExportDialog(profileName, serializedStr)
-    local eb
-    local result = OneWoW_GUI:CreateDialog({
+    local result = OneWoW_GUI:GetOrCreateDialog({
         name   = "OneWoW_SettingsProfileExportDialog",
-        title  = "Export Profile: |cFFFFD100" .. profileName .. "|r",
         width  = 620,
         height = 500,
         strata = "FULLSCREEN_DIALOG",
         showBrand = true,
         buttons = {
-            { text = "Select All", onClick = function() eb:SetFocus(); eb:HighlightText() end },
+            { text = "Select All", onClick = function(d) d._editBox:SetFocus(); d._editBox:HighlightText() end },
             { text = "Close",      onClick = function(d) d:Hide() end },
         },
-    })
+    }, function(dialog)
+        local cf = dialog.contentFrame
 
-    local cf = result.contentFrame
+        local hint = OneWoW_GUI:CreateFS(cf, 10)
+        hint:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, -8)
+        hint:SetText("Select all and copy (Ctrl+A, Ctrl+C) to share this profile:")
+        hint:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
 
-    local hint = OneWoW_GUI:CreateFS(cf, 10)
-    hint:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, -8)
-    hint:SetText("Select all and copy (Ctrl+A, Ctrl+C) to share this profile:")
-    hint:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        local textBG = OneWoW_GUI:CreateFrame(cf, { width = 600, height = 420, backdrop = Constants.BACKDROP_SOFT })
+        textBG:ClearAllPoints()
+        textBG:SetPoint("TOPLEFT",     cf, "TOPLEFT",     10, -28)
+        textBG:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -10, 4)
 
-    local textBG = OneWoW_GUI:CreateFrame(cf, { width = 600, height = 420, backdrop = Constants.BACKDROP_SOFT })
-    textBG:ClearAllPoints()
-    textBG:SetPoint("TOPLEFT",     cf, "TOPLEFT",     10, -28)
-    textBG:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -10, 4)
+        local eb = UI.CreateScrollableEditBox(textBG, function() dialog.frame:Hide() end)
+        eb:SetAutoFocus(true)
+        dialog.frame._editBox = eb
+    end)
 
-    eb = UI.CreateScrollableEditBox(textBG, function() result.frame:Hide() end)
-    eb:SetAutoFocus(true)
-
+    result.titleBar._titleText:SetText("Export Profile: |cFFFFD100" .. profileName .. "|r")
+    local eb = result.frame._editBox
     result.frame:Show()
     C_Timer.After(0, function()
         eb:SetText(serializedStr or "")
@@ -239,8 +240,7 @@ function UI:ShowSettingsProfileExportDialog(profileName, serializedStr)
 end
 
 function UI:ShowSettingsProfileImportDialog(onImported)
-    local eb
-    local result = OneWoW_GUI:CreateDialog({
+    local result = OneWoW_GUI:GetOrCreateDialog({
         name   = "OneWoW_SettingsProfileImportDialog",
         title  = "Import UI & Addon Settings Profile",
         width  = 620,
@@ -249,35 +249,37 @@ function UI:ShowSettingsProfileImportDialog(onImported)
         showBrand = true,
         buttons = {
             { text = "Import", onClick = function(d)
-                local text = eb:GetText()
-                local ok, res = ns.Profiles.ImportProfile(text)
+                local ok, res = ns.Profiles.ImportProfile(d._editBox:GetText())
                 if ok then
                     print(string.format("|cFFFFD100OneWoW:|r Settings profile imported: %s", res))
                     d:Hide()
-                    if onImported then onImported() end
+                    if d._onImported then d._onImported() end
                 else
                     print(string.format("|cFFFFD100OneWoW:|r Import failed: %s", res or "unknown error"))
                 end
             end },
             { text = "Cancel", onClick = function(d) d:Hide() end },
         },
-    })
+    }, function(dialog)
+        local cf = dialog.contentFrame
 
-    local cf = result.contentFrame
+        local hint = OneWoW_GUI:CreateFS(cf, 10)
+        hint:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, -8)
+        hint:SetText("Paste exported profile data below, then click Import:")
+        hint:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
 
-    local hint = OneWoW_GUI:CreateFS(cf, 10)
-    hint:SetPoint("TOPLEFT", cf, "TOPLEFT", 10, -8)
-    hint:SetText("Paste exported profile data below, then click Import:")
-    hint:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        local textBG = OneWoW_GUI:CreateFrame(cf, { width = 600, height = 380, backdrop = Constants.BACKDROP_SOFT })
+        textBG:ClearAllPoints()
+        textBG:SetPoint("TOPLEFT",     cf, "TOPLEFT",     10, -28)
+        textBG:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -10, 4)
 
-    local textBG = OneWoW_GUI:CreateFrame(cf, { width = 600, height = 380, backdrop = Constants.BACKDROP_SOFT })
-    textBG:ClearAllPoints()
-    textBG:SetPoint("TOPLEFT",     cf, "TOPLEFT",     10, -28)
-    textBG:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -10, 4)
+        local eb = UI.CreateScrollableEditBox(textBG, function() dialog.frame:Hide() end)
+        eb:SetAutoFocus(true)
+        dialog.frame._editBox = eb
+    end)
 
-    eb = UI.CreateScrollableEditBox(textBG, function() result.frame:Hide() end)
-    eb:SetAutoFocus(true)
-
+    result.frame._onImported = onImported
+    result.frame._editBox:SetText("")
     result.frame:Show()
 end
 

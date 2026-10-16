@@ -560,6 +560,11 @@ function GUI:CreateItemsPanel(parent)
     dropZoneFrame:RegisterForDrag("LeftButton")
 
     local iconSize = OneWoW_GUI.Constants.GUI.ENTRY_LIST_ICON_SIZE
+    local bankRadioDefs = {
+        { bankType = "warband", bindingKey = "canUseWarband", x = -250, text = L["ITEM_DEPOSIT_WARBAND"], colorKey = "TEXT_FEATURES_ENABLED" },
+        { bankType = "personal", bindingKey = "canUsePersonal", x = -155, text = L["ITEM_DEPOSIT_PERSONAL"], colorKey = "ACCENT_PRIMARY" },
+        { bankType = "guild", bindingKey = "canUseGuild", x = -75, text = GUILD, colorKey = "ACCENT_SECONDARY" },
+    }
     local itemList
     local itemAdd = OneWoW_GUI:CreateValueAddRow(dropZoneFrame, {
         yOffset = -10,
@@ -619,135 +624,96 @@ function GUI:CreateItemsPanel(parent)
             end
             return entries
         end,
-        createRow = function(row, entry, api)
+        createRow = function(row, api)
             local removeBtn = CreateFrame("Button", nil, row)
             removeBtn:SetSize(iconSize, iconSize)
             removeBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
             removeBtn:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
             removeBtn:SetHighlightTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Highlight")
-            local capturedID = entry.id
             removeBtn:SetScript("OnClick", function()
                 if not api.IsEnabled() then return end
-                ns.DirectDeposit:RemoveItemFromList(capturedID)
+                ns.DirectDeposit:RemoveItemFromList(row._itemID)
                 api.RequestRefresh()
             end)
 
-            local bindingInfo = entry.data.bindingInfo
-            if not bindingInfo then
-                bindingInfo = ns.DirectDeposit:GetItemBindingInfo(entry.id)
-            end
-
-            local canWarband = bindingInfo == nil or bindingInfo.canUseWarband ~= false
-            local canPersonal = bindingInfo == nil or bindingInfo.canUsePersonal ~= false
-            local canGuild = bindingInfo == nil or bindingInfo.canUseGuild ~= false
-
             -- Radios sit left of the remove control; offsets mirror the prior layout.
-            local warbandRadio = CreateFrame("CheckButton", nil, row, "UIRadioButtonTemplate")
-            warbandRadio:SetPoint("RIGHT", row, "RIGHT", -250, 0)
-            warbandRadio:SetChecked(entry.data.bankType == "warband")
-            warbandRadio:SetEnabled(canWarband)
-
-            local warbandLabel = OneWoW_GUI:CreateFS(row, 10)
-            warbandLabel:SetPoint("LEFT", warbandRadio, "RIGHT", 3, 0)
-            warbandLabel:SetText(L["ITEM_DEPOSIT_WARBAND"])
-            if canWarband then
-                warbandLabel:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_FEATURES_ENABLED"))
-            else
-                warbandLabel:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            row._bankRadios = {}
+            for _, def in ipairs(bankRadioDefs) do
+                local radio = CreateFrame("CheckButton", nil, row, "UIRadioButtonTemplate")
+                radio:SetPoint("RIGHT", row, "RIGHT", def.x, 0)
+                radio._def = def
+                local label = OneWoW_GUI:CreateFS(row, 10)
+                label:SetPoint("LEFT", radio, "RIGHT", 3, 0)
+                label:SetText(def.text)
+                radio._label = label
+                radio:SetScript("OnClick", function(myself)
+                    if not myself._allowed then
+                        myself:SetChecked(false)
+                        return
+                    end
+                    for _, other in ipairs(row._bankRadios) do
+                        other:SetChecked(other == myself)
+                    end
+                    ns.DirectDeposit:UpdateItemBankType(row._itemID, def.bankType)
+                end)
+                tinsert(row._bankRadios, radio)
             end
 
-            local personalRadio = CreateFrame("CheckButton", nil, row, "UIRadioButtonTemplate")
-            personalRadio:SetPoint("RIGHT", row, "RIGHT", -155, 0)
-            personalRadio:SetChecked(entry.data.bankType == "personal")
-            personalRadio:SetEnabled(canPersonal)
-
-            local personalLabel = OneWoW_GUI:CreateFS(row, 10)
-            personalLabel:SetPoint("LEFT", personalRadio, "RIGHT", 3, 0)
-            personalLabel:SetText(L["ITEM_DEPOSIT_PERSONAL"])
-            if canPersonal then
-                personalLabel:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
-            else
-                personalLabel:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
-            end
-
-            local guildRadio = CreateFrame("CheckButton", nil, row, "UIRadioButtonTemplate")
-            guildRadio:SetPoint("RIGHT", row, "RIGHT", -75, 0)
-            guildRadio:SetChecked(entry.data.bankType == "guild")
-            guildRadio:SetEnabled(canGuild)
-
-            local guildLabel = OneWoW_GUI:CreateFS(row, 10)
-            guildLabel:SetPoint("LEFT", guildRadio, "RIGHT", 3, 0)
-            guildLabel:SetText(GUILD)
-            if canGuild then
-                guildLabel:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_SECONDARY"))
-            else
-                guildLabel:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
-            end
-
-            warbandRadio:SetScript("OnClick", function()
-                if canWarband then
-                    warbandRadio:SetChecked(true)
-                    personalRadio:SetChecked(false)
-                    guildRadio:SetChecked(false)
-                    ns.DirectDeposit:UpdateItemBankType(entry.id, "warband")
-                else
-                    warbandRadio:SetChecked(false)
-                end
-            end)
-
-            personalRadio:SetScript("OnClick", function()
-                if canPersonal then
-                    personalRadio:SetChecked(true)
-                    warbandRadio:SetChecked(false)
-                    guildRadio:SetChecked(false)
-                    ns.DirectDeposit:UpdateItemBankType(entry.id, "personal")
-                else
-                    personalRadio:SetChecked(false)
-                end
-            end)
-
-            guildRadio:SetScript("OnClick", function()
-                if canGuild then
-                    guildRadio:SetChecked(true)
-                    warbandRadio:SetChecked(false)
-                    personalRadio:SetChecked(false)
-                    ns.DirectDeposit:UpdateItemBankType(entry.id, "guild")
-                else
-                    guildRadio:SetChecked(false)
-                end
-            end)
-
-            local left = 0
-            if entry.icon then
-                local iconTex = row:CreateTexture(nil, "ARTWORK")
-                iconTex:SetSize(iconSize, iconSize)
-                iconTex:SetPoint("LEFT", row, "LEFT", 0, 0)
-                iconTex:SetTexture(entry.icon)
-                iconTex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-                left = iconSize + 6
-            end
+            local iconTex = row:CreateTexture(nil, "ARTWORK")
+            iconTex:SetSize(iconSize, iconSize)
+            iconTex:SetPoint("LEFT", row, "LEFT", 0, 0)
+            iconTex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+            row._icon = iconTex
 
             local nameFrame = CreateFrame("Frame", nil, row)
-            nameFrame:SetPoint("LEFT", row, "LEFT", left, 0)
-            nameFrame:SetPoint("RIGHT", warbandRadio, "LEFT", -8, 0)
+            nameFrame:SetPoint("RIGHT", row._bankRadios[1], "LEFT", -8, 0)
             nameFrame:SetHeight(32)
             nameFrame:EnableMouse(true)
             nameFrame:SetScript("OnEnter", function(myself)
                 GameTooltip:SetOwner(myself, "ANCHOR_RIGHT")
-                GameTooltip:SetItemByID(entry.id)
+                GameTooltip:SetItemByID(row._itemID)
                 GameTooltip:Show()
             end)
             nameFrame:SetScript("OnLeave", function()
                 GameTooltip:Hide()
             end)
+            row._nameFrame = nameFrame
 
             local nameText = OneWoW_GUI:CreateFS(nameFrame, 12)
             nameText:SetPoint("LEFT", nameFrame, "LEFT", 0, 0)
             nameText:SetPoint("RIGHT", nameFrame, "RIGHT", 0, 0)
             nameText:SetJustifyH("LEFT")
             nameText:SetWordWrap(false)
-            nameText:SetText(entry.label)
-            nameText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            row._nameText = nameText
+        end,
+        bindRow = function(row, entry)
+            row._itemID = entry.id
+
+            local bindingInfo = entry.data.bindingInfo
+            if not bindingInfo then
+                bindingInfo = ns.DirectDeposit:GetItemBindingInfo(entry.id)
+            end
+
+            for _, radio in ipairs(row._bankRadios) do
+                local def = radio._def
+                local allowed = bindingInfo == nil or bindingInfo[def.bindingKey] ~= false
+                radio._allowed = allowed
+                radio:SetChecked(entry.data.bankType == def.bankType)
+                radio:SetEnabled(allowed)
+                radio._label:SetTextColor(OneWoW_GUI:GetThemeColor(allowed and def.colorKey or "TEXT_MUTED"))
+            end
+
+            local left = 0
+            if entry.icon then
+                row._icon:SetTexture(entry.icon)
+                row._icon:Show()
+                left = iconSize + 6
+            else
+                row._icon:Hide()
+            end
+            row._nameFrame:SetPoint("LEFT", row, "LEFT", left, 0)
+            row._nameText:SetText(entry.label)
+            row._nameText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
 
             return 32
         end,

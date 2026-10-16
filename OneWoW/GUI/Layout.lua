@@ -179,7 +179,7 @@ function OneWoW_GUI:CreateTitleBar(parent, options)
     if showBrand then
         local factionTheme = options.factionTheme
         if not factionTheme then
-            factionTheme = (self.GetSetting and self:GetSetting("minimap.theme")) or "horde"
+            factionTheme = self:GetSetting("minimap.theme") or "horde"
         end
         local brandIcon = titleBg:CreateTexture(nil, "OVERLAY")
         brandIcon:SetSize(14, 14)
@@ -190,7 +190,7 @@ function OneWoW_GUI:CreateTitleBar(parent, options)
         self:RegisterSettingsCallback("OnIconThemeChanged", titleBg, function(owner)
             if owner.brandIcon and owner:IsVisible() then
                 owner.brandIcon:SetTexture(OneWoW_GUI:GetBrandIcon(
-                    (OneWoW_GUI.GetSetting and OneWoW_GUI:GetSetting("minimap.theme")) or "horde"))
+                    OneWoW_GUI:GetSetting("minimap.theme") or "horde"))
             end
         end)
 
@@ -358,17 +358,43 @@ function OneWoW_GUI:StackVertically(parent, items, options)
         return self._totalHeight or 0
     end
 
-    local function HookSizeChanged(child)
-        if not child or not child.HookScript or not child.GetObjectType then return end
-        local kind = child:GetObjectType()
+    -- One deferred pass per frame, however many size changes ask for it.
+    function stack:ScheduleLayout()
+        if self._layoutPending then return end
+        self._layoutPending = true
+        C_Timer.After(0, function()
+            self._layoutPending = false
+            self:Layout()
+        end)
+    end
+
+    -- Hooked once per region; the hook drives whichever stack last claimed it,
+    -- so rebuilding a stack on the same parent / child does not stack hooks.
+    local function HookSizeChanged(region, field, onSize)
+        if not region or not region.HookScript or not region.GetObjectType then return end
+        local kind = region:GetObjectType()
         if kind == "FontString" or kind == "Texture" or kind == "Line" then return end
-        child:HookScript("OnSizeChanged", function() stack:Layout() end)
+        region[field] = onSize
+        local wiredField = field .. "Wired"
+        if region[wiredField] then return end
+        region[wiredField] = true
+        region:HookScript("OnSizeChanged", function(myself)
+            myself[field]()
+        end)
+    end
+
+    local function OnChildSize()
+        stack:Layout()
+    end
+
+    local function HookChild(child)
+        HookSizeChanged(child, "_oneWoWStackChildSize", OnChildSize)
     end
 
     function stack:Add(child, gap)
         tinsert(self.items, child)
         if gap then gaps[#self.items] = gap end
-        HookSizeChanged(child)
+        HookChild(child)
         if child and type(child.OnHeightChanged) == "function" then
             child:OnHeightChanged(function() stack:Layout() end)
         end
@@ -383,7 +409,7 @@ function OneWoW_GUI:StackVertically(parent, items, options)
         for _, child in ipairs(items) do
             if child then
                 tinsert(stack.items, child)
-                HookSizeChanged(child)
+                HookChild(child)
                 if type(child.OnHeightChanged) == "function" then
                     child:OnHeightChanged(function() stack:Layout() end)
                 end
@@ -391,19 +417,13 @@ function OneWoW_GUI:StackVertically(parent, items, options)
         end
     end
 
-    if parent and parent.HookScript and parent.GetObjectType then
-        local kind = parent:GetObjectType()
-        if kind ~= "FontString" and kind ~= "Texture" and kind ~= "Line" then
-            parent:HookScript("OnSizeChanged", function()
-                stack:Layout()
-                C_Timer.After(0, function() stack:Layout() end)
-            end)
-        end
-    end
+    HookSizeChanged(parent, "_oneWoWStackParentSize", function()
+        stack:Layout()
+        stack:ScheduleLayout()
+    end)
 
     stack:Layout()
-    C_Timer.After(0, function() stack:Layout() end)
-    C_Timer.After(0.05, function() stack:Layout() end)
+    stack:ScheduleLayout()
 
     return stack
 end
@@ -1250,6 +1270,7 @@ function OneWoW_GUI:CreateVerticalPaneResizer(options)
             local x = GetCursorPosition()
             myself._owPaneStartCursorX = x / myself:GetEffectiveScale()
             myself._owPaneStartLeftW = leftPanel:GetWidth()
+            myself:SetScript("OnUpdate", myself._owPaneDragUpdate)
         end
     end)
 
@@ -1258,14 +1279,15 @@ function OneWoW_GUI:CreateVerticalPaneResizer(options)
             myself._owPaneDragActive = false
             dividerTex:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
             SetCursor(nil)
+            myself:SetScript("OnUpdate", nil)
             if onWidthChanged then
                 onWidthChanged(leftPanel:GetWidth())
             end
         end
     end)
 
-    divider:SetScript("OnUpdate", function(myself)
-        if not myself._owPaneDragActive then return end
+    -- Installed as OnUpdate only between mouse down and up.
+    divider._owPaneDragUpdate = function(myself)
         local cursorX = GetCursorPosition() / myself:GetEffectiveScale()
         local delta = cursorX - myself._owPaneStartCursorX
         local desiredLeftWidth = max(leftMinWidth, myself._owPaneStartLeftW + delta)
@@ -1299,7 +1321,7 @@ function OneWoW_GUI:CreateVerticalPaneResizer(options)
         end
         local newLeftWidth = max(leftMinWidth, min(desiredLeftWidth, maxLeftWidth))
         leftPanel:SetWidth(newLeftWidth)
-    end)
+    end
 
     rightPanel:ClearAllPoints()
     rightPanel:SetPoint("TOPLEFT", divider, "TOPRIGHT", 0, 0)
@@ -1362,6 +1384,7 @@ function OneWoW_GUI:CreateHorizontalPaneResizer(options)
             local _, y = GetCursorPosition()
             myself._owPaneStartCursorY = y / myself:GetEffectiveScale()
             myself._owPaneStartTopH = topPanel:GetHeight()
+            myself:SetScript("OnUpdate", myself._owPaneDragUpdate)
         end
     end)
 
@@ -1370,14 +1393,15 @@ function OneWoW_GUI:CreateHorizontalPaneResizer(options)
             myself._owPaneDragActive = false
             dividerTex:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
             SetCursor(nil)
+            myself:SetScript("OnUpdate", nil)
             if onHeightChanged then
                 onHeightChanged(bottomPanel:GetHeight())
             end
         end
     end)
 
-    divider:SetScript("OnUpdate", function(myself)
-        if not myself._owPaneDragActive then return end
+    -- Installed as OnUpdate only between mouse down and up.
+    divider._owPaneDragUpdate = function(myself)
         local _, cursorY = GetCursorPosition()
         cursorY = cursorY / myself:GetEffectiveScale()
         local delta = myself._owPaneStartCursorY - cursorY
@@ -1388,7 +1412,7 @@ function OneWoW_GUI:CreateHorizontalPaneResizer(options)
         if maxTopH < topMinHeight then maxTopH = topMinHeight end
         local newTopH = max(topMinHeight, min(desiredTopH, maxTopH))
         topPanel:SetHeight(newTopH)
-    end)
+    end
 
     bottomPanel:ClearAllPoints()
     bottomPanel:SetPoint("TOPLEFT", divider, "BOTTOMLEFT", 0, 0)

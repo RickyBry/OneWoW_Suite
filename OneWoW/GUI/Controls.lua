@@ -2,27 +2,12 @@ local OneWoW_GUI = OneWoW_GUI
 
 local CreateFrame = CreateFrame
 local IsMouseButtonDown = IsMouseButtonDown
+local pairs, ipairs, type, tostring = pairs, ipairs, type, tostring
 local unpack = unpack
-local tinsert = tinsert
+local tinsert, tremove, wipe = tinsert, tremove, wipe
 
 local Constants = OneWoW_GUI.Constants
 local noop = OneWoW_GUI.noop
-
-local _dropdownMenuCount = 0
-local _activeDropdownMenu = nil
-local _activeDropdownOverlay = nil
-
---- Dismiss the open AttachFilterMenu popup (menu + overlay). Menus auto-dismiss via OnUpdate when the user
---- clicks outside their bounds; call this for programmatic teardown (e.g. before reparenting).
-function OneWoW_GUI:CloseAttachFilterMenu()
-    if _activeDropdownMenu then
-        _activeDropdownMenu:Hide()
-    elseif _activeDropdownOverlay then
-        _activeDropdownOverlay:Hide()
-    end
-    _activeDropdownMenu = nil
-    _activeDropdownOverlay = nil
-end
 
 function OneWoW_GUI:CreateToggleRow(parent, options)
     options = options or {}
@@ -303,6 +288,376 @@ function OneWoW_GUI:CreateDropdown(parent, options)
     return dropdown, text
 end
 
+-- One shared popup for every AttachFilterMenu (only one may be open). Built on
+-- first open; rows are pooled per kind and re-bound each open.
+local FM = nil
+
+local function StripCodes(s)
+    return tostring(s):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):lower()
+end
+
+local function ReleaseFilterRows()
+    for kind, list in pairs(FM.active) do
+        local pool = FM.pool[kind]
+        for i = #list, 1, -1 do
+            local region = list[i]
+            region:Hide()
+            region:ClearAllPoints()
+            tinsert(pool, region)
+            list[i] = nil
+        end
+    end
+    wipe(FM.elements)
+end
+
+local function Acquire(kind, build)
+    local region = tremove(FM.pool[kind]) or build()
+    tinsert(FM.active[kind], region)
+    return region
+end
+
+local function BuildHeader()
+    return FM.scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+end
+
+local function BuildDivider()
+    local divider = FM.scrollChild:CreateTexture(nil, "ARTWORK")
+    divider:SetHeight(1)
+    return divider
+end
+
+local function BuildCheckRow()
+    local row = CreateFrame("Button", nil, FM.scrollChild, "BackdropTemplate")
+    row:SetHeight(26)
+    row:SetBackdrop(Constants.BACKDROP_SIMPLE)
+    local cb = CreateFrame("CheckButton", nil, row, "UICheckButtonTemplate")
+    cb:SetSize(18, 18)
+    cb:SetPoint("LEFT", row, "LEFT", 4, 0)
+    row.checkbox = cb
+    local label = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    label:SetPoint("LEFT", cb, "RIGHT", 2, 0)
+    row._label = label
+    return row
+end
+
+local function BuildItemButton()
+    local btn = CreateFrame("Button", nil, FM.scrollChild, "BackdropTemplate")
+    btn:SetBackdrop(Constants.BACKDROP_SIMPLE)
+    btn._icon = btn:CreateTexture(nil, "ARTWORK")
+    btn._icon:SetPoint("LEFT", btn, "LEFT", 8, 0)
+    btn._right = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    btn._right:SetPoint("RIGHT", btn, "RIGHT", -8, 0)
+    btn._right:SetJustifyH("RIGHT")
+    btn._label = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    btn._label:SetJustifyH("LEFT")
+    btn._label:SetWordWrap(false)
+    return btn
+end
+
+local function RenderFilterList(filter)
+    local scrollChild = FM.scrollChild
+    local yPos = -2
+    local isFiltering = filter ~= ""
+    for _, elem in ipairs(FM.elements) do
+        if isFiltering and (elem.type == "header" or elem.type == "divider") then
+            elem.frame:Hide()
+        elseif elem.type == "item" or elem.type == "checkbox" then
+            if not isFiltering or (elem.filterKey and string.find(elem.filterKey, filter, 1, true)) then
+                -- Scroll frame must list every row; do not cap with maxVisible (that hid options 11+).
+                elem.frame:ClearAllPoints()
+                elem.frame:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 2, yPos)
+                elem.frame:SetPoint("TOPRIGHT", scrollChild, "TOPRIGHT", -2, yPos)
+                elem.frame:Show()
+                yPos = yPos - elem.height
+            else
+                elem.frame:Hide()
+            end
+        elseif elem.type == "header" then
+            elem.frame:ClearAllPoints()
+            elem.frame:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 8, yPos - 4)
+            elem.frame:Show()
+            yPos = yPos - elem.height
+        elseif elem.type == "divider" then
+            elem.frame:ClearAllPoints()
+            elem.frame:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 8, yPos - 4)
+            elem.frame:SetPoint("TOPRIGHT", scrollChild, "TOPRIGHT", -8, yPos - 4)
+            elem.frame:Show()
+            yPos = yPos - elem.height
+        end
+    end
+    local actualHeight = math.max(1, math.abs(yPos))
+    scrollChild:SetHeight(actualHeight)
+    return actualHeight
+end
+
+local function EnsureFilterMenu()
+    if FM then return FM end
+    FM = {
+        elements = {},
+        pool = { header = {}, divider = {}, checkbox = {}, item = {} },
+        active = { header = {}, divider = {}, checkbox = {}, item = {} },
+    }
+
+    -- The overlay sits BELOW the host so it only blocks game-world clicks; in-host
+    -- dismiss is handled by the menu's OnUpdate.
+    local overlay = CreateFrame("Button", nil, UIParent)
+    overlay:SetAllPoints(UIParent)
+    overlay:SetToplevel(true)
+    overlay:EnableMouse(true)
+    overlay:RegisterForClicks("AnyDown", "AnyUp")
+    overlay:Hide()
+    FM.overlay = overlay
+
+    local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    menu:SetToplevel(true)
+    menu:SetClampedToScreen(true)
+    menu:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
+    menu:EnableMouse(true)
+    menu:Hide()
+    FM.menu = menu
+
+    overlay:SetScript("OnClick", function()
+        menu:Hide()
+    end)
+
+    -- Dismiss on any mouse-down outside the menu's bounds. Input (OnClick on controls)
+    -- is processed before OnUpdate, so the clicked control fires first, then the menu
+    -- closes in the same frame — single click, no consumed events.
+    menu:SetScript("OnUpdate", function(innerself)
+        local isDown = IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
+        if isDown and not FM.wasDown then
+            if not innerself:IsMouseOver() then
+                innerself:Hide()
+            end
+        end
+        FM.wasDown = isDown
+    end)
+
+    menu:SetScript("OnHide", function()
+        overlay:Hide()
+        local owner = FM.owner
+        if owner and owner._menu == menu then
+            owner._menu = nil
+        end
+        FM.owner = nil
+        GameTooltip:Hide()
+    end)
+
+    local searchBox = CreateFrame("EditBox", nil, menu, "BackdropTemplate")
+    searchBox:SetPoint("TOPLEFT", menu, "TOPLEFT", 2, -2)
+    searchBox:SetBackdrop(Constants.BACKDROP_INNER)
+    searchBox:SetFontObject(GameFontHighlight)
+    searchBox:SetTextInsets(8, 8, 0, 0)
+    searchBox:SetAutoFocus(false)
+    searchBox:SetMaxLetters(50)
+    searchBox:SetScript("OnEditFocusGained", function(s)
+        s:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
+    end)
+    searchBox:SetScript("OnEditFocusLost", function(s)
+        s:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    end)
+    searchBox:SetScript("OnTextChanged", function(s)
+        RenderFilterList(s:GetText():lower())
+    end)
+    searchBox:SetScript("OnEscapePressed", function(s)
+        if s:GetText() ~= "" then
+            s:SetText("")
+            RenderFilterList("")
+        else
+            menu:Hide()
+        end
+    end)
+    OneWoW_GUI:AttachClearButton(searchBox)
+    FM.searchBox = searchBox
+
+    local separator = menu:CreateTexture(nil, "ARTWORK")
+    separator:SetPoint("TOPLEFT", menu, "TOPLEFT", 2, -32)
+    FM.separator = separator
+
+    local scrollContainer = CreateFrame("Frame", nil, menu)
+    FM.scrollContainer = scrollContainer
+
+    local scrollFrame = CreateFrame("ScrollFrame", nil, scrollContainer, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", scrollContainer, "TOPLEFT", 0, 0)
+    scrollFrame:SetPoint("BOTTOMRIGHT", scrollContainer, "BOTTOMRIGHT", 0, 0)
+    scrollFrame:EnableMouseWheel(true)
+    OneWoW_GUI:StyleScrollBar(scrollFrame, { container = scrollContainer, offset = -2 })
+    FM.scrollFrame = scrollFrame
+
+    local scrollChild = CreateFrame("Frame", nil, scrollFrame)
+    scrollChild:SetHeight(1)
+    scrollFrame:SetScrollChild(scrollChild)
+    scrollFrame:HookScript("OnSizeChanged", function(_, w)
+        scrollChild:SetWidth(w)
+    end)
+    FM.scrollChild = scrollChild
+
+    return FM
+end
+
+--- Dismiss the open AttachFilterMenu popup (menu + overlay). Menus auto-dismiss via OnUpdate when the user
+--- clicks outside their bounds; call this for programmatic teardown (e.g. before reparenting).
+function OneWoW_GUI:CloseAttachFilterMenu()
+    if FM then
+        FM.menu:Hide()
+    end
+end
+
+local function AddHeader(item)
+    local header = Acquire("header", BuildHeader)
+    OneWoW_GUI:SafeSetFont(header, OneWoW_GUI:GetFont(), 12)
+    header:SetText(item.text)
+    header:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    tinsert(FM.elements, { frame = header, type = "header", height = 24 })
+end
+
+local function AddDivider()
+    local divider = Acquire("divider", BuildDivider)
+    divider:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    tinsert(FM.elements, { frame = divider, type = "divider", height = 10 })
+end
+
+local function AddCheckbox(item)
+    local row = Acquire("checkbox", BuildCheckRow)
+    local cb, label = row.checkbox, row._label
+    row:SetBackdropColor(0, 0, 0, 0)
+    cb:SetChecked(item.checked or false)
+    OneWoW_GUI:SafeSetFont(label, OneWoW_GUI:GetFont(), 12)
+    label:SetText(item.text)
+    label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+
+    row:SetScript("OnEnter", function(r)
+        r:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
+        label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+    end)
+    row:SetScript("OnLeave", function(r)
+        r:SetBackdropColor(0, 0, 0, 0)
+        label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    end)
+
+    local onToggle = item.onToggle
+    cb:SetScript("OnClick", function(c)
+        if onToggle then onToggle(c:GetChecked()) end
+    end)
+    row:SetScript("OnClick", function()
+        cb:SetChecked(not cb:GetChecked())
+        if onToggle then onToggle(cb:GetChecked()) end
+    end)
+
+    if item.onBind then
+        item.onBind(cb)
+    end
+    -- Strip UI escape codes so class-colored names still filter by plain text.
+    local filterKey = StripCodes(item.filterKey or item.text or "")
+    tinsert(FM.elements, { frame = row, type = "checkbox", height = 26, filterKey = filterKey })
+end
+
+local function AddItem(item, activeValue, dropdown, onSelect)
+    local menu = FM.menu
+    -- Items may opt into rendering their label in a custom font (e.g. font pickers
+    -- draw each row in its own typeface as a live preview).
+    local rowHeight = item.fontPath and 28 or 26
+    local btn = Acquire("item", BuildItemButton)
+    btn:SetHeight(rowHeight)
+    local iconTex, rightFS, txt = btn._icon, btn._right, btn._label
+    local isActive = activeValue == item.value
+
+    if isActive then
+        btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    else
+        btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
+    end
+
+    local leftPad = 8
+    if item.iconAtlas or item.icon then
+        local iconSize = item.iconSize or 14
+        iconTex:SetSize(iconSize, iconSize)
+        if item.iconAtlas then
+            iconTex:SetAtlas(item.iconAtlas)
+        else
+            iconTex:SetTexture(item.icon)
+        end
+        iconTex:Show()
+        leftPad = 8 + iconSize + 6
+    else
+        iconTex:Hide()
+    end
+
+    local hasRight = item.rightText and item.rightText ~= ""
+    if hasRight then
+        OneWoW_GUI:SafeSetFont(rightFS, OneWoW_GUI:GetFont(), item.fontSize or 12)
+        rightFS:SetText(item.rightText)
+        rightFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        rightFS:Show()
+    else
+        rightFS:SetText("")
+        rightFS:Hide()
+    end
+
+    OneWoW_GUI:SafeSetFont(txt, item.fontPath or OneWoW_GUI:GetFont(), item.fontSize or 12)
+    txt:ClearAllPoints()
+    txt:SetPoint("LEFT", btn, "LEFT", leftPad, 0)
+    if hasRight then
+        txt:SetPoint("RIGHT", rightFS, "LEFT", -8, 0)
+    else
+        txt:SetPoint("RIGHT", btn, "RIGHT", -4, 0)
+    end
+    local label = item.text or item.value or ""
+    txt:SetText(label)
+    txt:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+
+    btn:SetScript("OnEnter", function(b)
+        if not isActive then
+            b:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
+            txt:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+            if hasRight then
+                rightFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+            end
+        end
+        local tip = item.tooltip
+        if tip then
+            GameTooltip:SetOwner(b, "ANCHOR_RIGHT")
+            if type(tip) == "table" then
+                GameTooltip:SetText(tip.title or label, 1, 1, 1)
+                if tip.desc and tip.desc ~= "" then
+                    GameTooltip:AddLine(tip.desc, 0.85, 0.85, 0.85, true)
+                end
+            else
+                GameTooltip:SetText(label, 1, 1, 1)
+                if tip ~= "" then
+                    GameTooltip:AddLine(tip, 0.85, 0.85, 0.85, true)
+                end
+            end
+            GameTooltip:Show()
+        end
+        if item.onEnter then item.onEnter(b) end
+    end)
+    btn:SetScript("OnLeave", function(b)
+        if not isActive then
+            b:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
+            txt:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            if hasRight then
+                rightFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+            end
+        end
+        if item.tooltip then
+            GameTooltip:Hide()
+        end
+        if item.onLeave then item.onLeave(b) end
+    end)
+    btn:SetScript("OnClick", function()
+        menu:Hide()
+        dropdown._activeValue = item.value
+        if onSelect then
+            onSelect(item.value, item.text or item.value)
+        end
+    end)
+
+    btn.filterKey = tostring(item.filterKey or label):lower()
+    btn:Hide()
+    tinsert(FM.elements, { frame = btn, type = "item", height = rowHeight + 2, filterKey = btn.filterKey })
+end
+
 function OneWoW_GUI:AttachFilterMenu(dropdown, options)
     options = options or {}
     local searchable = options.searchable ~= false
@@ -318,23 +673,15 @@ function OneWoW_GUI:AttachFilterMenu(dropdown, options)
             return
         end
 
-        -- Only one AttachFilterMenu may be open: hide previous menu+overlay and clear globals (avoids orphan overlays if strata/order prevented a clean hide).
-        if _activeDropdownMenu then
-            _activeDropdownMenu:Hide()
-        end
-        if _activeDropdownOverlay then
-            _activeDropdownOverlay:Hide()
-        end
-        _activeDropdownMenu = nil
-        _activeDropdownOverlay = nil
+        EnsureFilterMenu()
+        local menu, overlay, searchBox = FM.menu, FM.overlay, FM.searchBox
+        -- Only one AttachFilterMenu may be open; hiding releases the previous owner.
+        menu:Hide()
+        ReleaseFilterRows()
 
         local items = buildItems and buildItems() or {}
 
-        _dropdownMenuCount = _dropdownMenuCount + 1
-        local uid = _dropdownMenuCount
-
-        -- Walk up to the top-level frame under UIParent (e.g. DevTool window). The overlay sits BELOW
-        -- the host so it only blocks game-world clicks; in-host dismiss is handled by the menu's OnUpdate.
+        -- Walk up to the top-level frame under UIParent (e.g. DevTool window).
         -- Host OnHide hook handles ESC key close (menu is a UIParent child, won't hide with host).
         local host = myself
         while host:GetParent() and host:GetParent() ~= UIParent do
@@ -356,24 +703,13 @@ function OneWoW_GUI:AttachFilterMenu(dropdown, options)
         end
         local menuLevel = (menuStrata ~= hostStrata) and 100 or math.max(100, hostLevel + 40)
 
-        local overlay = CreateFrame("Button", "OneWoWGUI_DropOverlay_" .. uid, UIParent)
-        overlay:SetAllPoints(UIParent)
         overlay:SetFrameStrata(hostStrata)
         overlay:SetFrameLevel(math.max(0, hostLevel - 2))
-        overlay:SetToplevel(true)
-        overlay:EnableMouse(true)
-        overlay:RegisterForClicks("AnyDown", "AnyUp")
 
-        local menu = CreateFrame("Frame", "OneWoWGUI_DropMenuFrame_" .. uid, UIParent, "BackdropTemplate")
+        FM.owner = myself
         myself._menu = menu
-        _activeDropdownMenu = menu
-        _activeDropdownOverlay = overlay
-        menu._ownerDropdown = myself
-        menu._boundOverlay = overlay
         menu:SetFrameStrata(menuStrata)
         menu:SetFrameLevel(menuLevel)
-        menu:SetToplevel(true)
-        menu:SetClampedToScreen(true)
         -- Prefer an explicit width; otherwise grow from the trigger so short labels
         -- (e.g. "New") do not crush item text into wrapped stubs.
         local width = menuWidth or ((myself:GetWidth() or 0) + 20)
@@ -381,339 +717,68 @@ function OneWoW_GUI:AttachFilterMenu(dropdown, options)
         menu:SetSize(width, menuHeight)
 
         local screenH = UIParent:GetHeight()
-        local dropdownBottom = myself:GetBottom() or 0
-        local spaceBelow = dropdownBottom
+        local spaceBelow = myself:GetBottom() or 0
         local spaceAbove = screenH - (myself:GetTop() or screenH)
         local openUpward = spaceBelow < menuHeight and spaceAbove > spaceBelow
 
+        menu:ClearAllPoints()
         if openUpward then
             menu:SetPoint("BOTTOMLEFT", myself, "TOPLEFT", 0, 2)
         else
             menu:SetPoint("TOPLEFT", myself, "BOTTOMLEFT", 0, -2)
         end
 
-        menu:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
         menu:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
         menu:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
-        menu:EnableMouse(true)
+        FM.wasDown = IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
 
-        -- Dismiss on any mouse-down outside the menu's bounds. Input (OnClick on controls)
-        -- is processed before OnUpdate, so the clicked control fires first, then the menu
-        -- closes in the same frame — single click, no consumed events.
-        local wasDown = IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
-        menu:SetScript("OnUpdate", function(innerself)
-            local isDown = IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
-            if isDown and not wasDown then
-                if not innerself:IsMouseOver() then
-                    innerself:Hide()
-                end
-            end
-            wasDown = isDown
-        end)
-
-        overlay:SetScript("OnClick", function()
-            menu:Hide()
-        end)
-        menu:SetScript("OnHide", function(m)
-            local ov = m._boundOverlay
-            if ov then
-                ov:Hide()
-            end
-            if m._ownerDropdown and m._ownerDropdown._menu == m then
-                m._ownerDropdown._menu = nil
-            end
-            if _activeDropdownMenu == m then
-                _activeDropdownMenu = nil
-            end
-            if ov and _activeDropdownOverlay == ov then
-                _activeDropdownOverlay = nil
-            end
-        end)
-
-        local searchBox
         local contentTopY = -2
-
+        searchBox:SetText("")
         if searchable then
-            searchBox = CreateFrame("EditBox", "OneWoWGUI_DropSearchBox_" .. uid, menu, "BackdropTemplate")
-            searchBox:SetSize(menu:GetWidth() - 15, 28)
-            searchBox:SetPoint("TOPLEFT", menu, "TOPLEFT", 2, -2)
-            searchBox:SetBackdrop(Constants.BACKDROP_INNER)
+            searchBox:SetSize(width - 15, 28)
             searchBox:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
             searchBox:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
-            searchBox:SetFontObject(GameFontHighlight)
-            searchBox:SetTextInsets(8, 8, 0, 0)
-            searchBox:SetAutoFocus(false)
-            searchBox:SetMaxLetters(50)
             searchBox:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
-            searchBox:SetScript("OnEditFocusGained", function(s)
-                s:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
-            end)
-            searchBox:SetScript("OnEditFocusLost", function(s)
-                s:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
-            end)
-
-            local separator = menu:CreateTexture(nil, "ARTWORK")
-            separator:SetSize(menu:GetWidth() - 4, 1)
-            separator:SetPoint("TOPLEFT", menu, "TOPLEFT", 2, -32)
-            separator:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
-
+            searchBox:Show()
+            FM.separator:SetSize(width - 4, 1)
+            FM.separator:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+            FM.separator:Show()
             contentTopY = -36
+        else
+            searchBox:Hide()
+            FM.separator:Hide()
         end
 
-        local scrollContainer = CreateFrame("Frame", "OneWoWGUI_DropScrollContainer_" .. uid, menu)
+        local scrollContainer = FM.scrollContainer
+        scrollContainer:ClearAllPoints()
         scrollContainer:SetPoint("TOPLEFT", menu, "TOPLEFT", 2, contentTopY)
         scrollContainer:SetPoint("BOTTOMRIGHT", menu, "BOTTOMRIGHT", -2, 2)
+        FM.scrollFrame:SetVerticalScroll(0)
 
-        local scrollFrame = CreateFrame("ScrollFrame", "OneWoWGUI_DropMenu_" .. uid, scrollContainer, "UIPanelScrollFrameTemplate")
-        scrollFrame:SetPoint("TOPLEFT", scrollContainer, "TOPLEFT", 0, 0)
-        scrollFrame:SetPoint("BOTTOMRIGHT", scrollContainer, "BOTTOMRIGHT", 0, 0)
-        scrollFrame:EnableMouseWheel(true)
-
-        OneWoW_GUI:StyleScrollBar(scrollFrame, { container = scrollContainer, offset = -2 })
-
-        local scrollChild = CreateFrame("Frame", "OneWoWGUI_DropMenuContent_" .. uid, scrollFrame)
-        scrollChild:SetHeight(1)
-        scrollFrame:SetScrollChild(scrollChild)
-        scrollFrame:HookScript("OnSizeChanged", function(_, w)
-            scrollChild:SetWidth(w)
-        end)
-
-        local elements = {}
         local activeValue = getActiveValue and getActiveValue() or dropdown._activeValue
-        local elemIdx = 0
-
         for _, item in ipairs(items) do
-            elemIdx = elemIdx + 1
             local itemType = item.type or "item"
-
             if itemType == "header" then
-                local header = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                OneWoW_GUI:SafeSetFont(header, OneWoW_GUI:GetFont(), 12)
-                header:SetText(item.text)
-                header:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
-                tinsert(elements, { frame = header, type = "header", height = 24 })
-
+                AddHeader(item)
             elseif itemType == "divider" then
-                local divider = scrollChild:CreateTexture(nil, "ARTWORK")
-                divider:SetHeight(1)
-                divider:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
-                tinsert(elements, { frame = divider, type = "divider", height = 10 })
-
+                AddDivider()
             elseif itemType == "checkbox" then
-                local row = CreateFrame("Button", "OneWoWGUI_DropItem_" .. uid .. "_" .. elemIdx, scrollChild, "BackdropTemplate")
-                row:SetHeight(26)
-                row:SetBackdrop(Constants.BACKDROP_SIMPLE)
-                row:SetBackdropColor(0, 0, 0, 0)
-
-                local cb = CreateFrame("CheckButton", nil, row, "UICheckButtonTemplate")
-                cb:SetSize(18, 18)
-                cb:SetPoint("LEFT", row, "LEFT", 4, 0)
-                cb:SetChecked(item.checked or false)
-
-                local label = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                OneWoW_GUI:SafeSetFont(label, OneWoW_GUI:GetFont(), 12)
-                label:SetPoint("LEFT", cb, "RIGHT", 2, 0)
-                label:SetText(item.text)
-                label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
-
-                row:SetScript("OnEnter", function(r)
-                    r:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
-                    label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
-                end)
-                row:SetScript("OnLeave", function(r)
-                    r:SetBackdropColor(0, 0, 0, 0)
-                    label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
-                end)
-
-                local onToggle = item.onToggle
-                cb:SetScript("OnClick", function(c)
-                    if onToggle then onToggle(c:GetChecked()) end
-                end)
-                row:SetScript("OnClick", function()
-                    cb:SetChecked(not cb:GetChecked())
-                    if onToggle then onToggle(cb:GetChecked()) end
-                end)
-
-                row.checkbox = cb
-                if item.onBind then
-                    item.onBind(cb)
-                end
-                -- Strip UI escape codes so class-colored names still filter by plain text.
-                local filterSrc = item.filterKey or item.text or ""
-                local filterKey = tostring(filterSrc)
-                    :gsub("|c%x%x%x%x%x%x%x%x", "")
-                    :gsub("|r", "")
-                    :lower()
-                tinsert(elements, { frame = row, type = "checkbox", height = 26, filterKey = filterKey })
-
+                AddCheckbox(item)
             else
-                -- Items may opt into rendering their label in a custom font
-                -- (e.g. font pickers want each row drawn in its own typeface
-                -- as a live preview). Falls back to the global UI font.
-                local rowHeight = item.fontPath and 28 or 26
-                local btn = CreateFrame("Button", "OneWoWGUI_DropItem_" .. uid .. "_" .. elemIdx, scrollChild, "BackdropTemplate")
-                btn:SetSize(scrollChild:GetWidth() or (menu:GetWidth() - 20), rowHeight)
-                btn:SetBackdrop(Constants.BACKDROP_SIMPLE)
-
-                if activeValue == item.value then
-                    btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
-                else
-                    btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-                end
-
-                local iconTex
-                local leftPad = 8
-                if item.iconAtlas or item.icon then
-                    local iconSize = item.iconSize or 14
-                    iconTex = btn:CreateTexture(nil, "ARTWORK")
-                    iconTex:SetSize(iconSize, iconSize)
-                    iconTex:SetPoint("LEFT", btn, "LEFT", 8, 0)
-                    if item.iconAtlas then
-                        iconTex:SetAtlas(item.iconAtlas)
-                    else
-                        iconTex:SetTexture(item.icon)
-                    end
-                    leftPad = 8 + iconSize + 6
-                end
-
-                local rightFS
-                if item.rightText and item.rightText ~= "" then
-                    rightFS = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                    OneWoW_GUI:SafeSetFont(rightFS, OneWoW_GUI:GetFont(), item.fontSize or 12)
-                    rightFS:SetPoint("RIGHT", btn, "RIGHT", -8, 0)
-                    rightFS:SetJustifyH("RIGHT")
-                    rightFS:SetText(item.rightText)
-                    rightFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
-                end
-
-                local txt = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                OneWoW_GUI:SafeSetFont(txt, item.fontPath or OneWoW_GUI:GetFont(), item.fontSize or 12)
-                txt:SetPoint("LEFT", btn, "LEFT", leftPad, 0)
-                if rightFS then
-                    txt:SetPoint("RIGHT", rightFS, "LEFT", -8, 0)
-                else
-                    txt:SetPoint("RIGHT", btn, "RIGHT", -4, 0)
-                end
-                txt:SetJustifyH("LEFT")
-                txt:SetWordWrap(false)
-                local label = item.text or item.value or ""
-                txt:SetText(label)
-                txt:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
-
-                btn:SetScript("OnEnter", function(b)
-                    if activeValue ~= item.value then
-                        b:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
-                        txt:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
-                        if rightFS then
-                            rightFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
-                        end
-                    end
-                    local tip = item.tooltip
-                    if tip then
-                        GameTooltip:SetOwner(b, "ANCHOR_RIGHT")
-                        if type(tip) == "table" then
-                            GameTooltip:SetText(tip.title or label, 1, 1, 1)
-                            if tip.desc and tip.desc ~= "" then
-                                GameTooltip:AddLine(tip.desc, 0.85, 0.85, 0.85, true)
-                            end
-                        else
-                            GameTooltip:SetText(label, 1, 1, 1)
-                            if tip ~= "" then
-                                GameTooltip:AddLine(tip, 0.85, 0.85, 0.85, true)
-                            end
-                        end
-                        GameTooltip:Show()
-                    end
-                    if item.onEnter then item.onEnter(b) end
-                end)
-                btn:SetScript("OnLeave", function(b)
-                    if activeValue ~= item.value then
-                        b:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-                        txt:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
-                        if rightFS then
-                            rightFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
-                        end
-                    end
-                    if item.tooltip then
-                        GameTooltip:Hide()
-                    end
-                    if item.onLeave then item.onLeave(b) end
-                end)
-                btn:SetScript("OnClick", function()
-                    menu:Hide()
-                    dropdown._activeValue = item.value
-                    if onSelect then
-                        onSelect(item.value, item.text or item.value)
-                    end
-                end)
-
-                btn.filterKey = tostring(item.filterKey or label):lower()
-                btn:Hide()
-                tinsert(elements, { frame = btn, type = "item", height = rowHeight + 2, filterKey = btn.filterKey })
+                AddItem(item, activeValue, dropdown, onSelect)
             end
         end
 
-        local function renderList(filter)
-            local yPos = -2
-            local shown = 0
-            local isFiltering = filter ~= ""
-            for _, elem in ipairs(elements) do
-                if isFiltering and (elem.type == "header" or elem.type == "divider") then
-                    elem.frame:Hide()
-                elseif elem.type == "item" or elem.type == "checkbox" then
-                    if not isFiltering or (elem.filterKey and string.find(elem.filterKey, filter, 1, true)) then
-                        -- Scroll frame must list every row; do not cap with maxVisible (that hid options 11+).
-                        elem.frame:ClearAllPoints()
-                        elem.frame:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 2, yPos)
-                        elem.frame:SetPoint("TOPRIGHT", scrollChild, "TOPRIGHT", -2, yPos)
-                        elem.frame:Show()
-                        yPos = yPos - elem.height
-                        shown = shown + 1
-                    else
-                        elem.frame:Hide()
-                    end
-                elseif elem.type == "header" then
-                    elem.frame:ClearAllPoints()
-                    elem.frame:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 8, yPos - 4)
-                    elem.frame:Show()
-                    yPos = yPos - elem.height
-                elseif elem.type == "divider" then
-                    elem.frame:ClearAllPoints()
-                    elem.frame:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 8, yPos - 4)
-                    elem.frame:SetPoint("TOPRIGHT", scrollChild, "TOPRIGHT", -8, yPos - 4)
-                    elem.frame:Show()
-                    yPos = yPos - elem.height
-                end
-            end
-            local actualHeight = math.max(1, math.abs(yPos))
-            scrollChild:SetHeight(actualHeight)
-            return actualHeight
-        end
-
-        local contentHeight = renderList("")
+        local contentHeight = RenderFilterList("")
         local dynamicHeight = contentHeight + math.abs(contentTopY) + 2
         local finalHeight = math.min(dynamicHeight, menuHeight)
         finalHeight = math.max(finalHeight, 40)
         menu:SetHeight(finalHeight)
 
-        if searchBox then
-            searchBox:SetScript("OnTextChanged", function(s)
-                renderList(s:GetText():lower())
-            end)
-            searchBox:SetScript("OnEscapePressed", function(s)
-                if s:GetText() ~= "" then
-                    s:SetText("")
-                    renderList("")
-                else
-                    menu:Hide()
-                end
-            end)
-            OneWoW_GUI:AttachClearButton(searchBox)
-        end
-
+        overlay:Show()
         menu:Show()
         menu:Raise()
-        if searchBox then
+        if searchable then
             searchBox:SetFocus()
         end
     end)

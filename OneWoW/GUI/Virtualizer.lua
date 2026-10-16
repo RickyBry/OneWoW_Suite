@@ -225,6 +225,8 @@ function OneWoW_GUI:CreateVirtualizer(parent, options)
 
     -- Forward-declared: Refresh grows the pool; createPoolRow is wired below.
     local ensureRowPool
+    -- Reused per bind; bindRow must not keep a reference to it.
+    local rowState = { selected = false, zebraIndex = 0 }
 
     local function updateVisibleRows()
         local n = getCount()
@@ -254,10 +256,8 @@ function OneWoW_GUI:CreateVirtualizer(parent, options)
                     row:SetPoint("RIGHT", content, "RIGHT", -rowInset, 0)
                     row.entryIndex = idx
                     row._zebraIndex = idx
-                    local rowState = {
-                        selected = state.selectedIndex == idx and rowIsSelectable(idx),
-                        zebraIndex = idx,
-                    }
+                    rowState.selected = state.selectedIndex == idx and rowIsSelectable(idx)
+                    rowState.zebraIndex = idx
                     -- Match legacy CreateVirtualizedList: selection font before consumer bind.
                     if row.SetNormalFontObject then
                         row:SetNormalFontObject(rowState.selected and GameFontHighlightSmall or GameFontNormalSmall)
@@ -440,11 +440,33 @@ function OneWoW_GUI:CreateVirtualizer(parent, options)
         ownedScroll = ownedScroll,
     }
 
-    scrollFrame:HookScript("OnSizeChanged", function(_, w)
+    -- Hooks route through the scroll frame so an adopted scroll that gets a new
+    -- virtualizer (pane rebuild) keeps one hook pair driving the latest list.
+    scrollFrame._oneWoWVirtualizerResize = function(w)
         content:SetWidth(w)
         ensureRowPool()
         Refresh()
-    end)
+    end
+    scrollFrame._oneWoWVirtualizerScroll = updateVisibleRows
+    if not scrollFrame._oneWoWVirtualizerWired then
+        scrollFrame._oneWoWVirtualizerWired = true
+        scrollFrame:HookScript("OnSizeChanged", function(myself, w)
+            myself._oneWoWVirtualizerResize(w)
+        end)
+        -- Owned scrolls: replace OnVerticalScroll. Adopted (e.g. CreateSplitPanel):
+        -- hook so we do not clobber any pre-existing handler.
+        local function onScroll(myself)
+            myself._oneWoWVirtualizerScroll()
+        end
+        if ownedScroll then
+            scrollFrame:SetScript("OnVerticalScroll", onScroll)
+        else
+            if not scrollFrame:GetScript("OnVerticalScroll") then
+                scrollFrame:SetScript("OnVerticalScroll", function() end)
+            end
+            scrollFrame:HookScript("OnVerticalScroll", onScroll)
+        end
+    end
 
     for _ = 1, numVisibleRows do
         createPoolRow()
@@ -454,16 +476,6 @@ function OneWoW_GUI:CreateVirtualizer(parent, options)
     -- OnSizeChanged hook above may never fire until the next resize.
     ensureRowPool()
     Refresh()
-    -- Owned scrolls: replace OnVerticalScroll. Adopted (e.g. CreateSplitPanel):
-    -- hook so we do not clobber any pre-existing handler.
-    if ownedScroll then
-        scrollFrame:SetScript("OnVerticalScroll", updateVisibleRows)
-    else
-        if not scrollFrame:GetScript("OnVerticalScroll") then
-            scrollFrame:SetScript("OnVerticalScroll", function() end)
-        end
-        scrollFrame:HookScript("OnVerticalScroll", updateVisibleRows)
-    end
 
     if enableKeyboardNav and focusCompetitor then
         focusCompetitor:HookScript("OnEditFocusGained", function()

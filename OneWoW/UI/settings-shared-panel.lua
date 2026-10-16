@@ -806,15 +806,7 @@ function UI:BuildSharedSettingsPanel(parent, yOffset)
         end
     end
     if parent then
-        parent._owgRefreshThemePickerLabels = refreshThemePickerLabels
-        if not parent._owgThemePickerHooked then
-            parent._owgThemePickerHooked = true
-            OneWoW_GUI:RegisterSettingsCallback("OnThemeChanged", parent, function(owner)
-                if owner._owgRefreshThemePickerLabels then
-                    owner._owgRefreshThemePickerLabels()
-                end
-            end)
-        end
+        OneWoW_GUI:RegisterSettingsCallback("OnThemeChanged", parent, refreshThemePickerLabels)
     end
 
     return yOffset

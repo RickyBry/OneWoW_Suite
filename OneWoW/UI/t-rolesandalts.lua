@@ -17,46 +17,52 @@ end
 
 -- Small modal: a single text field + Save/Cancel. Used for New Role / Rename.
 local function ShowNamePrompt(titleText, labelText, initial, onAccept)
-    local result = OneWoW_GUI:CreateDialog({
+    local result = OneWoW_GUI:GetOrCreateDialog({
         name = "OneWoW_RoleNamePrompt",
-        title = titleText,
         width = 380,
         height = 150,
         showBrand = false,
-    })
-    local dialog = result.frame
-    local content = result.contentFrame
+    }, function(built)
+        local dialog = built.frame
+        local content = built.contentFrame
 
-    local label = OneWoW_GUI:CreateFS(content, 12)
-    label:SetPoint("TOPLEFT", content, "TOPLEFT", 14, -14)
-    label:SetText(labelText)
-    label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        local label = OneWoW_GUI:CreateFS(content, 12)
+        label:SetPoint("TOPLEFT", content, "TOPLEFT", 14, -14)
+        label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        dialog._label = label
 
-    local box = OneWoW_GUI:CreateEditBox(content, { width = 340, height = 26, maxLetters = 40 })
-    box:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -8)
-    box:SetText(initial or "")
+        local box = OneWoW_GUI:CreateEditBox(content, { width = 340, height = 26, maxLetters = 40 })
+        box:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -8)
+        dialog._box = box
 
-    local saveBtn = OneWoW_GUI:CreateFitTextButton(content, { text = SAVE, height = 28 })
-    saveBtn:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", -14, 12)
+        local saveBtn = OneWoW_GUI:CreateFitTextButton(content, { text = SAVE, height = 28 })
+        saveBtn:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", -14, 12)
 
-    local cancelBtn = OneWoW_GUI:CreateFitTextButton(content, { text = CANCEL, height = 28 })
-    cancelBtn:SetPoint("RIGHT", saveBtn, "LEFT", -8, 0)
-    cancelBtn:SetScript("OnClick", function() dialog:Hide() end)
+        local cancelBtn = OneWoW_GUI:CreateFitTextButton(content, { text = CANCEL, height = 28 })
+        cancelBtn:SetPoint("RIGHT", saveBtn, "LEFT", -8, 0)
+        cancelBtn:SetScript("OnClick", function() dialog:Hide() end)
 
-    local function accept()
-        local text = (box:GetText() or ""):trim()
-        if text ~= "" then
-            onAccept(text)
-            dialog:Hide()
+        local function accept()
+            local text = (box:GetText() or ""):trim()
+            if text ~= "" then
+                dialog._onAccept(text)
+                dialog:Hide()
+            end
         end
-    end
-    saveBtn:SetScript("OnClick", accept)
-    box:SetScript("OnEnterPressed", accept)
-    box:SetScript("OnEscapePressed", function() dialog:Hide() end)
+        saveBtn:SetScript("OnClick", accept)
+        box:SetScript("OnEnterPressed", accept)
+        box:SetScript("OnEscapePressed", function() dialog:Hide() end)
 
-    OneWoW_GUI:ApplyFontToFrame(dialog)
+        OneWoW_GUI:ApplyFontToFrame(dialog)
+    end)
+
+    local dialog = result.frame
+    result.titleBar._titleText:SetText(titleText)
+    dialog._label:SetText(labelText)
+    dialog._box:SetText(initial or "")
+    dialog._onAccept = onAccept
     dialog:Show()
-    box:SetFocus()
+    dialog._box:SetFocus()
 end
 
 -- Sorted (name) list of every known character, or empty when AltTracker is

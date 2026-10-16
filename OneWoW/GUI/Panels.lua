@@ -42,7 +42,7 @@ function OneWoW_GUI:CreateDialog(config)
         frame:SetScript("OnDragStop", function(myself) myself:StopMovingOrSizing() end)
     end
 
-    if escClose and name then
+    if escClose and name and not tContains(UISpecialFrames, name) then
         tinsert(UISpecialFrames, name)
     end
 
@@ -147,6 +147,24 @@ function OneWoW_GUI:CreateDialog(config)
     self:RegisterFontRoot(frame, config.relayout)
 
     frame:Hide()
+    return result
+end
+
+local _dialogsByName = {}
+
+--- Named dialog built once per session. build(result) adds content on the first
+--- call only; later calls return the same result, so per-open state (title,
+--- text, callbacks) belongs on result / result.frame, not in button closures.
+---@param config table CreateDialog config; config.name is required
+---@param build fun(result: table)|nil
+---@return table result
+function OneWoW_GUI:GetOrCreateDialog(config, build)
+    local result = _dialogsByName[config.name]
+    if not result then
+        result = self:CreateDialog(config)
+        if build then build(result) end
+        _dialogsByName[config.name] = result
+    end
     return result
 end
 
@@ -1027,14 +1045,7 @@ function OneWoW_GUI:CreateDataTable(parent, options)
 
     scrollThumb:EnableMouse(true)
     scrollThumb:RegisterForDrag("LeftButton")
-    scrollThumb:SetScript("OnDragStart", function(myself)
-        myself.dragging = true
-        myself.dragStartY = select(2, GetCursorPosition()) / myself:GetEffectiveScale()
-        myself.dragStartScroll = scrollFrame:GetVerticalScroll()
-    end)
-    scrollThumb:SetScript("OnDragStop", function(myself) myself.dragging = false end)
-    scrollThumb:SetScript("OnUpdate", function(myself)
-        if not myself.dragging then return end
+    local function OnThumbDragUpdate(myself)
         local curY = select(2, GetCursorPosition()) / myself:GetEffectiveScale()
         local delta = myself.dragStartY - curY
         local trackHeight = scrollTrack:GetHeight()
@@ -1044,6 +1055,15 @@ function OneWoW_GUI:CreateDataTable(parent, options)
             local newScroll = myself.dragStartScroll + (delta / thumbRange) * maxScroll
             scrollFrame:SetVerticalScroll(math.max(0, math.min(maxScroll, newScroll)))
         end
+    end
+    -- OnUpdate runs only while the thumb is dragged.
+    scrollThumb:SetScript("OnDragStart", function(myself)
+        myself.dragStartY = select(2, GetCursorPosition()) / myself:GetEffectiveScale()
+        myself.dragStartScroll = scrollFrame:GetVerticalScroll()
+        myself:SetScript("OnUpdate", OnThumbDragUpdate)
+    end)
+    scrollThumb:SetScript("OnDragStop", function(myself)
+        myself:SetScript("OnUpdate", nil)
     end)
 
     local scrollContent = CreateFrame("Frame", nil, scrollFrame)

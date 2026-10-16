@@ -315,25 +315,23 @@ local function StartDismissWatcher()
     end)
 end
 
---- Parent is the hub toolbar; search anchors to the right edge of rightAnchor (defaults to parent).
-function Search:Init(parent, rightAnchor)
-    rightAnchor = rightAnchor or parent
+local isPlaceholder = true
+
+local function ShowPlaceholder()
+    searchBox:SetText(searchBox.placeholderText)
+    searchBox:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+    isPlaceholder = true
+end
+
+local function Build(parent)
     local box = CreateFrame("EditBox", "OneWoWSearchBox", parent, "BackdropTemplate")
     box:SetSize(200, 22)
-    box:SetPoint("RIGHT", rightAnchor, "RIGHT", -OneWoW_GUI:GetSpacing("SM"), 0)
     box:SetBackdrop(BACKDROP_INNER)
-    box:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
-    box:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
-    OneWoW_GUI:ApplyFont(box, 10)
     box:SetTextInsets(6, 6, 0, 0)
     box:SetAutoFocus(false)
     box:EnableMouse(true)
     box:SetMaxLetters(80)
     box.placeholderText = ns.L["SEARCH"]
-    box:SetText(box.placeholderText)
-    box:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
-
-    local isPlaceholder = true
 
     box:SetScript("OnEditFocusGained", function(myself)
         if isPlaceholder then
@@ -347,9 +345,7 @@ function Search:Init(parent, rightAnchor)
     box:SetScript("OnEditFocusLost", function(myself)
         myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
         if myself:GetText() == "" then
-            myself:SetText(myself.placeholderText)
-            myself:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
-            isPlaceholder = true
+            ShowPlaceholder()
         end
     end)
 
@@ -392,29 +388,51 @@ function Search:Init(parent, rightAnchor)
     drop:SetFrameStrata("FULLSCREEN_DIALOG")
     drop:SetFrameLevel(100)
     drop:SetBackdrop(BACKDROP_INNER)
-    drop:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
-    drop:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
     drop:SetPoint("TOPRIGHT", box, "BOTTOMRIGHT", 0, -2)
 
     accentBar = drop:CreateTexture(nil, "OVERLAY")
     accentBar:SetHeight(2)
     accentBar:SetPoint("TOPLEFT", drop, "TOPLEFT", 1, -1)
     accentBar:SetPoint("TOPRIGHT", drop, "TOPRIGHT", -1, -1)
-    accentBar:SetColorTexture(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
 
     drop:Hide()
 
     resultsFrame = drop
-
-    ns.Locale:OnApply(function()
-        if not searchBox then
-            return
-        end
-        searchBox.placeholderText = ns.L["SEARCH"]
-        if isPlaceholder then
-            searchBox:SetText(searchBox.placeholderText)
-        end
-    end)
-
-    return box
 end
+
+local function Paint()
+    searchBox:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
+    searchBox:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+    OneWoW_GUI:ApplyFont(searchBox, 10)
+    resultsFrame:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
+    resultsFrame:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    accentBar:SetColorTexture(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+end
+
+--- Parent is the hub toolbar; search anchors to the right edge of rightAnchor (defaults to parent).
+--- The box and results frame are built once; later calls (window rebuilds)
+--- reparent, re-anchor, repaint and reset them.
+function Search:Init(parent, rightAnchor)
+    if not searchBox then
+        Build(parent)
+    end
+    HideResults()
+    searchBox:ClearFocus()
+    searchBox:SetParent(parent)
+    searchBox:ClearAllPoints()
+    searchBox:SetPoint("RIGHT", rightAnchor or parent, "RIGHT", -OneWoW_GUI:GetSpacing("SM"), 0)
+    searchBox:Show()
+    Paint()
+    ShowPlaceholder()
+    return searchBox
+end
+
+ns.Locale:OnApply(function()
+    if not searchBox then
+        return
+    end
+    searchBox.placeholderText = ns.L["SEARCH"]
+    if isPlaceholder then
+        searchBox:SetText(searchBox.placeholderText)
+    end
+end)

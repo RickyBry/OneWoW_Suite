@@ -117,7 +117,12 @@ OneWoW_GUI:RegisterSettingsCallback("OnFontSizeChanged", myAddon, function(self,
     -- reapply fonts / rebuild UI to pick up new size offset
     -- SafeSetFont automatically applies the offset, so just re-call your font application
 end)
+
+OneWoW_GUI:UnregisterSettingsCallback("OnThemeChanged", myAddon)
 ```
+Callbacks are keyed by `(event, owner)`: registering again for the same owner
+replaces its function. Owners are weak keys, so an owner frame that is no longer
+referenced drops out without an explicit unregister.
 
 ## Fonts (Fonts.lua)
 
@@ -582,6 +587,24 @@ Button `color` option: `{r, g, b}` overrides the button background (useful for g
 Buttons are right-aligned in footer. A 1px divider separates content from buttons.
 Frame starts hidden - call `result.frame:Show()` when ready.
 
+Every `CreateDialog` call builds a new frame (WoW never frees frames). For a
+dialog opened more than once, use `GetOrCreateDialog`: `build(result)` runs on
+the first call only, later calls return the same result. Per-open state goes on
+`result.frame` (button `onClick` receives the frame), and the title via
+`result.titleBar._titleText:SetText(...)`.
+```lua
+local result = OneWoW_GUI:GetOrCreateDialog({
+    name = "MyExportDialog",       -- required: the cache key
+    width = 620, height = 500,
+    buttons = { { text = CLOSE, onClick = function(d) d:Hide() end } },
+}, function(built)
+    built.frame._editBox = CreateMyEditBox(built.contentFrame)
+end)
+result.titleBar._titleText:SetText(title)
+result.frame._editBox:SetText(text)
+result.frame:Show()
+```
+
 ### Confirm dialog (simple yes/no)
 ```lua
 local result = OneWoW_GUI:CreateConfirmDialog({
@@ -962,7 +985,10 @@ local list = OneWoW_GUI:CreateEntryList(parent, {
         return { { id = 12345, label = "Name", icon = texturePath, data = {} } }
     end,
     onRemove = function(id) Remove(id) end,
-    -- optional: createRow(row, entry, api) -> height; api.RequestRefresh / IsEnabled / zebraIndex
+    -- optional custom rows (rows are pooled, so pass both):
+    --   createRow(row, api)              builds children once per row
+    --   bindRow(row, entry, api) -> height fills the row on every Refresh
+    -- api.RequestRefresh / IsEnabled; read ids from the row, not create-time closures
     sortKey = "bagbar:blacklist", -- optional Name / Item ID toolbar; per-list preference
 })
 list:Refresh()
@@ -1307,6 +1333,8 @@ stack:Refresh()              -- re-measure on demand
 ```
 Anchors each child `TOPLEFT/TOPRIGHT` inside `parent` using its **measured** height (calling `child:GetMeasuredHeight()` if available, else `child:GetHeight()`). Re-runs whenever any child fires `OnSizeChanged` or notifies via `OnHeightChanged`. Use this everywhere instead of `rowY = rowY + SOME_CONSTANT`.
 
+Layout runs immediately, plus one deferred pass on the next frame (`stack:ScheduleLayout()`) for text that wraps only after its width settles. Repeated requests within a frame coalesce into that single pass, and size hooks are wired once per child, so calling `Add` / `Refresh` often is cheap.
+
 ### Action bar (left + right, auto-wraps when narrow)
 ```lua
 local bar = OneWoW_GUI:CreateActionBar(parent, {
@@ -1432,6 +1460,8 @@ list.SetSelectedIndex(1)
   title text for hover or select (Catalog Journal / Vendors / Item Search).
 - **`createRow` / `bindRow`:** create widgets once; bind on every visible update.
   Nested controls must read `row.entryIndex` (live), not a closed-over create-time index.
+  The `state` table passed to `bindRow` is reused for every row; read it during the
+  call, do not keep a reference.
 - **Reorder on a pooled list:** set `row._reorderIndex` in `bindRow` to the data-bag
   index (not the flattened or pool index). `CreateReorderDrag` prefers that field.
   Attach once in `createRow`. Rows mid-drag (`_oneWoWReorderOrigPoints`) are skipped
@@ -1608,6 +1638,8 @@ OneWoW_GUI:AttachFilterMenu(dropdown, {
 Callers do **not** need to add `CloseAttachFilterMenu()` at navigation boundaries (tab switches, list selection, etc.) — the OnUpdate handles dismiss automatically.
 
 `OneWoW_GUI:CloseAttachFilterMenu()` remains available for programmatic teardown (e.g. before reparenting a host frame) but is not required for normal use.
+
+All dropdowns share one menu frame, one overlay, and pooled header / divider / checkbox / item rows. Opening a dropdown rebinds those rows instead of creating frames, so `buildItems` can run on every open. Only one filter menu is open at a time; opening another closes the first.
 
 ### Reset dropdown text externally
 ```lua

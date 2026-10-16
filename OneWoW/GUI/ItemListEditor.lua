@@ -16,7 +16,6 @@ local CreateFrame = CreateFrame
 local ipairs = ipairs
 local tonumber = tonumber
 local tostring = tostring
-local wipe = wipe
 local tinsert = tinsert
 local sort = sort
 local strcmputf8i = strcmputf8i
@@ -171,14 +170,6 @@ function OneWoW_GUI:CreateItemListSortDropdown(parent, options)
     })
 
     return drop, textFS
-end
-
-local function ClearFrameChildren(frame)
-    local children = { frame:GetChildren() }
-    for _, child in ipairs(children) do
-        child:Hide()
-        child:SetParent(nil)
-    end
 end
 
 --- Label + edit box + Add button + optional chip dropzone.
@@ -419,6 +410,9 @@ end
 
 --- Keyed entry list with empty state. grow=true packs height to content;
 --- otherwise options.height is fixed and content scrolls.
+--- Rows are pooled: custom lists pass createRow(row, api) to build a row's
+--- children once and bindRow(row, entry, api) -> height to fill it on every
+--- Refresh. Both are required together.
 ---@param parent Frame
 ---@param options table
 ---@return table handle
@@ -430,6 +424,7 @@ function OneWoW_GUI:CreateEntryList(parent, options)
     local getEntries = options.getEntries
     local onRemove = options.onRemove
     local createRow = options.createRow
+    local bindRow = options.bindRow
     local rowHeightDefault = options.rowHeight or GUI.ENTRY_LIST_ROW_HEIGHT
     local x = options.x or 12
     local yOffset = options.yOffset
@@ -452,6 +447,8 @@ function OneWoW_GUI:CreateEntryList(parent, options)
         _getEntries = getEntries,
         _onRemove = onRemove,
         _createRow = createRow,
+        _bindRow = bindRow,
+        _rows = {},
         _rowHeight = rowHeightDefault,
         _emptyText = emptyText,
         _grow = grow,
@@ -508,48 +505,64 @@ function OneWoW_GUI:CreateEntryList(parent, options)
     handle.scrollChild = scrollChild
     handle.content = contentParent
 
-    local function buildDefaultRow(row, entry, api)
-        local iconSize = GUI.ENTRY_LIST_ICON_SIZE
-        local left = 0
-        if entry.icon then
-            local iconTex = row:CreateTexture(nil, "ARTWORK")
-            iconTex:SetSize(iconSize, iconSize)
-            iconTex:SetPoint("LEFT", row, "LEFT", 0, 0)
-            iconTex:SetTexture(entry.icon)
-            iconTex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-            left = iconSize + 6
-        end
+    local iconSize = GUI.ENTRY_LIST_ICON_SIZE
+
+    local function createDefaultRow(row, api)
+        local iconTex = row:CreateTexture(nil, "ARTWORK")
+        iconTex:SetSize(iconSize, iconSize)
+        iconTex:SetPoint("LEFT", row, "LEFT", 0, 0)
+        iconTex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        row._icon = iconTex
 
         local removeBtn = CreateFrame("Button", nil, row)
         removeBtn:SetSize(iconSize, iconSize)
         removeBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
         removeBtn:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
         removeBtn:SetHighlightTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Highlight")
-        local capturedID = entry.id
         removeBtn:SetScript("OnClick", function()
             if not handle._enabled then return end
             if handle._onRemove then
-                handle._onRemove(capturedID)
+                handle._onRemove(row._entryID)
             end
             if handle.frame:GetParent() then
                 api.RequestRefresh()
             end
         end)
-        if not handle._enabled then
-            removeBtn:Disable()
-        end
+        removeBtn:SetEnabled(handle._enabled)
         tinsert(handle._removeButtons, removeBtn)
+        row._removeBtn = removeBtn
 
         local nameText = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        nameText:SetPoint("LEFT", row, "LEFT", left, 0)
         nameText:SetPoint("RIGHT", removeBtn, "LEFT", -4, 0)
         nameText:SetJustifyH("LEFT")
         nameText:SetWordWrap(false)
-        nameText:SetText(entry.label or tostring(entry.id))
-        nameText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        row._nameText = nameText
+    end
 
+    local function bindDefaultRow(row, entry)
+        row._entryID = entry.id
+        local left = 0
+        if entry.icon then
+            row._icon:SetTexture(entry.icon)
+            row._icon:Show()
+            left = iconSize + 6
+        else
+            row._icon:Hide()
+        end
+        row._nameText:SetPoint("LEFT", row, "LEFT", left, 0)
+        row._nameText:SetText(entry.label or tostring(entry.id))
+        row._nameText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
         return handle._rowHeight
     end
+
+    local api = {
+        RequestRefresh = function()
+            handle:Refresh()
+        end,
+        IsEnabled = function()
+            return handle._enabled
+        end,
+    }
 
     function handle:GetFrame()
         return listFrame
@@ -560,9 +573,6 @@ function OneWoW_GUI:CreateEntryList(parent, options)
     end
 
     function handle:Refresh()
-        wipe(self._removeButtons)
-        ClearFrameChildren(contentParent)
-
         local entries = self._getEntries and self._getEntries() or {}
         if self._sortKey then
             OneWoW_GUI:SortItemEntries(entries, self._sortKey)
@@ -570,36 +580,33 @@ function OneWoW_GUI:CreateEntryList(parent, options)
         local pad = GUI.ENTRY_LIST_PAD
         local rowOffset = -pad
         local hasItems = false
-
-        local api = {
-            RequestRefresh = function()
-                handle:Refresh()
-            end,
-            IsEnabled = function()
-                return handle._enabled
-            end,
-        }
+        local rows = self._rows
+        local create = self._createRow or createDefaultRow
+        local bind = self._bindRow or bindDefaultRow
 
         for i, entry in ipairs(entries) do
             hasItems = true
-            local row = CreateFrame("Frame", nil, contentParent, "BackdropTemplate")
+            local row = rows[i]
+            if not row then
+                row = CreateFrame("Frame", nil, contentParent, "BackdropTemplate")
+                row:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
+                create(row, api)
+                rows[i] = row
+            end
+            row:ClearAllPoints()
             row:SetPoint("TOPLEFT", contentParent, "TOPLEFT", 10, rowOffset)
             row:SetPoint("TOPRIGHT", contentParent, "TOPRIGHT", -10, rowOffset)
-            row:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
             row:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
             row._zebraIndex = i
-            api.zebraIndex = i
             OneWoW_GUI:ApplyListRowFill(row, { zebraIndex = i })
 
-            local h
-            if self._createRow then
-                h = self._createRow(row, entry, api)
-            else
-                h = buildDefaultRow(row, entry, api)
-            end
-            h = h or self._rowHeight
+            local h = bind(row, entry, api) or self._rowHeight
             row:SetHeight(h)
+            row:Show()
             rowOffset = rowOffset - h - 2
+        end
+        for i = #entries + 1, #rows do
+            rows[i]:Hide()
         end
 
         if hasItems then
@@ -716,6 +723,7 @@ function OneWoW_GUI:CreateItemListEditor(parent, options)
             end
         end,
         createRow = options.createRow,
+        bindRow = options.bindRow,
         rowHeight = options.rowHeight,
         scrollName = options.scrollName,
         sortKey = options.sortKey,
