@@ -555,16 +555,32 @@ function OneWoW_GUI:CreateSplitPanel(parent, options)
 
     local SPLIT_SCROLL_BAR_INSET = 14
 
+    -- Returns a setter for a right-edge reserve (px kept free of the scroll
+    -- area and its bar, e.g. a docked side panel). The gutter callback re-anchors
+    -- on every bar show/hide, so callers must not anchor the scroll frame.
     local function bindSplitScrollGutter(scrollFrame, host)
+        local reserve = 0
+        local sb = scrollFrame.ScrollBar
         local function applyInset(shown)
-            local right = shown and -SPLIT_SCROLL_BAR_INSET or 0
+            local right = -(reserve + (shown and SPLIT_SCROLL_BAR_INSET or 0))
             scrollFrame:ClearAllPoints()
             scrollFrame:SetPoint("TOPLEFT", host, "TOPLEFT", 0, 0)
             scrollFrame:SetPoint("BOTTOMRIGHT", host, "BOTTOMRIGHT", right, 0)
         end
+        local function barShown()
+            return sb and sb:IsShown() and not sb._oneWoWAlwaysHidden
+        end
         scrollFrame._oneWoWOnScrollBarShown = applyInset
-        local sb = scrollFrame.ScrollBar
-        applyInset(sb and sb:IsShown() and not sb._oneWoWAlwaysHidden)
+        applyInset(barShown())
+        return function(px)
+            reserve = px
+            if sb then
+                sb:ClearAllPoints()
+                sb:SetPoint("TOPRIGHT", host, "TOPRIGHT", -2 - px, 0)
+                sb:SetPoint("BOTTOMRIGHT", host, "BOTTOMRIGHT", -2 - px, 0)
+            end
+            applyInset(barShown())
+        end
     end
 
     local listScrollFrame = CreateFrame("ScrollFrame", "OneWoWGUI_Split_List" .. uid, listContainer, "UIPanelScrollFrameTemplate")
@@ -635,7 +651,7 @@ function OneWoW_GUI:CreateSplitPanel(parent, options)
     detailScrollFrame:EnableMouseWheel(true)
 
     self:ApplyScrollBarStyle(detailScrollFrame.ScrollBar, detailContainer, -2)
-    bindSplitScrollGutter(detailScrollFrame, detailContainer)
+    local setDetailRightReserve = bindSplitScrollGutter(detailScrollFrame, detailContainer)
 
     local detailScrollChild = CreateFrame("Frame", "OneWoWGUI_Split_DetailContent" .. uid, detailScrollFrame)
     detailScrollChild:SetHeight(1)
@@ -685,6 +701,7 @@ function OneWoW_GUI:CreateSplitPanel(parent, options)
         LayoutDetailHeader = LayoutDetailHeader,
         detailScrollFrame = detailScrollFrame,
         detailScrollChild = detailScrollChild,
+        SetDetailRightReserve = setDetailRightReserve,
         UpdateDetailThumb = noop,
         searchBox = searchBox,
         leftStatusBar = leftStatusBar,

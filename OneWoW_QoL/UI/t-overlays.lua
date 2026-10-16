@@ -383,22 +383,8 @@ local function CreateSidePreviewPanel(split)
     panel:SetPoint("TOPRIGHT", split.detailPanel, "TOPRIGHT", -8, -32)
     panel:SetPoint("BOTTOMRIGHT", split.detailPanel, "BOTTOMRIGHT", -8, 8)
 
-    -- Make room: end the detail scroll area at the panel's left edge.
-    local sf = split.detailScrollFrame
-    local container = sf:GetParent()
-    sf:ClearAllPoints()
-    sf:SetPoint("TOPLEFT", container, "TOPLEFT", 0, 0)
-    sf:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 0, 0)
-    sf:SetPoint("RIGHT", panel, "LEFT", -18, 0)
-
-    -- The scrollbar was styled against the container's right edge (where the
-    -- preview panel now sits); move it into the gap right of the scroll area.
-    local sb = sf.ScrollBar
-    if sb then
-        sb:ClearAllPoints()
-        sb:SetPoint("TOPLEFT", sf, "TOPRIGHT", 4, 0)
-        sb:SetPoint("BOTTOMLEFT", sf, "BOTTOMRIGHT", 4, 0)
-    end
+    -- Keep the detail scroll area and its bar left of the panel.
+    split.SetDetailRightReserve(SIDE_PREVIEW_WIDTH + 18)
 
     local heading = OneWoW_GUI:CreateFS(panel, 12)
     heading:SetPoint("TOP", panel, "TOP", 0, -10)

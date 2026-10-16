@@ -1513,6 +1513,7 @@ Returns a table with:
 - `panels.detailTitle` - right title font string
 - `panels.LayoutDetailHeader` - inset `detailContainer` for a panel-anchored control strip (old Catalog 38px header). Controls stay on `detailPanel`; do not re-anchor the scroll frame (that fights `bindSplitScrollGutter`).
 - `panels.detailScrollFrame` / `panels.detailScrollChild` - right scroll area
+- `panels.SetDetailRightReserve(px)` - keep `px` at the detail area's right edge free of the scroll area and its bar, for a docked side panel on `detailPanel` (Overlays Preview). Use this instead of re-anchoring the scroll frame, which the gutter resets whenever the bar shows or hides.
 - `panels.searchBox` - search edit box (if showSearch=true)
 - `panels.leftStatusBar` / `panels.leftStatusText` - left status bar
 - `panels.rightStatusBar` / `panels.rightStatusText` - right status bar
