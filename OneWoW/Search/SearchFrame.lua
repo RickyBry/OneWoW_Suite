@@ -87,7 +87,7 @@ local function ReleaseRows()
 end
 
 local function PaintMuted(fs)
-    fs:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+    OneWoW_GUI:BindThemeColor(fs, "text", "TEXT_MUTED")
 end
 
 local function AcquireRow(parent)
@@ -221,15 +221,15 @@ local function ShowResults(hits)
 
         local h = FitRow(row, data.path, data.desc, installed)
         if installed then
-            row.pathText:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
-            row.descText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+            OneWoW_GUI:BindThemeColor(row.pathText, "text", "ACCENT_PRIMARY")
+            OneWoW_GUI:BindThemeColor(row.descText, "text", "TEXT_SECONDARY")
         else
             PaintMuted(row.pathText)
             PaintMuted(row.descText)
         end
 
         if i < #hits then
-            row.sep:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+            OneWoW_GUI:BindThemeColor(row.sep, "texture", "BORDER_SUBTLE")
             row.sep:Show()
         else
             row.sep:Hide()
@@ -238,7 +238,7 @@ local function ShowResults(hits)
         if installed then
             row:EnableMouse(true)
             row:SetScript("OnEnter", function(myself)
-                myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
+                OneWoW_GUI:BindThemeColor(myself, "bg", "BG_HOVER")
             end)
             row:SetScript("OnLeave", function(myself)
                 myself:SetBackdropColor(0, 0, 0, 0)
@@ -319,7 +319,7 @@ local isPlaceholder = true
 
 local function ShowPlaceholder()
     searchBox:SetText(searchBox.placeholderText)
-    searchBox:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+    OneWoW_GUI:BindThemeColor(searchBox, "text", "TEXT_MUTED")
     isPlaceholder = true
 end
 
@@ -336,14 +336,14 @@ local function Build(parent)
     box:SetScript("OnEditFocusGained", function(myself)
         if isPlaceholder then
             myself:SetText("")
-            myself:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(myself, "text", "TEXT_PRIMARY")
             isPlaceholder = false
         end
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
+        OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_FOCUS")
     end)
 
     box:SetScript("OnEditFocusLost", function(myself)
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+        OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_DEFAULT")
         if myself:GetText() == "" then
             ShowPlaceholder()
         end
@@ -351,7 +351,7 @@ local function Build(parent)
 
     box:SetScript("OnEscapePressed", function(myself)
         myself:SetText("")
-        myself:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        OneWoW_GUI:BindThemeColor(myself, "text", "TEXT_MUTED")
         isPlaceholder = true
         myself:ClearFocus()
         HideResults()
@@ -401,12 +401,12 @@ local function Build(parent)
 end
 
 local function Paint()
-    searchBox:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
-    searchBox:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+    OneWoW_GUI:BindThemeColor(searchBox, "bg", "BG_PRIMARY")
+    OneWoW_GUI:BindThemeColor(searchBox, "border", "BORDER_DEFAULT")
     OneWoW_GUI:ApplyFont(searchBox, 10)
-    resultsFrame:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
-    resultsFrame:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
-    accentBar:SetColorTexture(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(resultsFrame, "bg", "BG_PRIMARY")
+    OneWoW_GUI:BindThemeColor(resultsFrame, "border", "ACCENT_PRIMARY")
+    OneWoW_GUI:BindThemeColor(accentBar, "texture", "ACCENT_PRIMARY")
 end
 
 --- Parent is the hub toolbar; search anchors to the right edge of rightAnchor (defaults to parent).

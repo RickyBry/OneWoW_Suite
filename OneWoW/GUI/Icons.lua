@@ -109,7 +109,7 @@ function OneWoW_GUI:CreateItemIcon(parent, options)
             edgeSize = 12,
             insets = { left = 2, right = 2, top = 2, bottom = 2 },
         })
-        borderFrame:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+        OneWoW_GUI:BindThemeColor(borderFrame, "border", "BORDER_SUBTLE")
     end
 
     local ilvlText = nil
@@ -313,7 +313,7 @@ function OneWoW_GUI:SkinIconFrame(frame, options)
         if quality and quality > 1 then
             frame._skinBorder:SetBackdropBorderColor(self:GetItemQualityColor(quality))
         else
-            frame._skinBorder:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(borderColorKey))
+            OneWoW_GUI:BindThemeColor(frame._skinBorder, "border", borderColorKey)
         end
         frame._skinBorderColorKey = borderColorKey
         frame._skinHoverBorderColorKey = hoverBorderColorKey
@@ -351,7 +351,7 @@ function OneWoW_GUI:UpdateIconQuality(frame, quality)
         frame._skinBorder:SetBackdropBorderColor(self:GetItemQualityColor(quality))
     else
         local key = frame._skinBorderColorKey or "BORDER_DEFAULT"
-        frame._skinBorder:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(key))
+        OneWoW_GUI:BindThemeColor(frame._skinBorder, "border", key)
     end
 end
 
@@ -420,7 +420,7 @@ function OneWoW_GUI:CreateSkinnedIcon(parent, options)
         if quality and quality > 1 then
             border:SetBackdropBorderColor(self:GetItemQualityColor(quality))
         else
-            border:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(options.borderColorKey or "BORDER_DEFAULT"))
+            OneWoW_GUI:BindThemeColor(border, "border", options.borderColorKey or "BORDER_DEFAULT")
         end
         iconFrame._skinBorder = border
         iconFrame._skinBorderColorKey = options.borderColorKey or "BORDER_DEFAULT"
@@ -471,7 +471,7 @@ function OneWoW_GUI:CreateSkinnedIcon(parent, options)
     if itemLink then
         iconFrame:SetScript("OnEnter", function(myself)
             if hasHoverBorder then
-                myself._skinBorder:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(myself._skinHoverBorderColorKey or "BORDER_ACCENT"))
+                OneWoW_GUI:BindThemeColor(myself._skinBorder, "border", myself._skinHoverBorderColorKey or "BORDER_ACCENT")
             end
             GameTooltip:SetOwner(myself, "ANCHOR_RIGHT")
             GameTooltip:SetHyperlink(itemLink)
@@ -480,7 +480,7 @@ function OneWoW_GUI:CreateSkinnedIcon(parent, options)
         end)
         iconFrame:SetScript("OnLeave", function(myself)
             if hasHoverBorder then
-                myself._skinBorder:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(myself._skinBorderColorKey or "BORDER_DEFAULT"))
+                OneWoW_GUI:BindThemeColor(myself._skinBorder, "border", myself._skinBorderColorKey or "BORDER_DEFAULT")
             end
             GameTooltip:Hide()
             if onLeave then onLeave(myself) end
@@ -488,7 +488,7 @@ function OneWoW_GUI:CreateSkinnedIcon(parent, options)
     elseif tooltip then
         iconFrame:SetScript("OnEnter", function(myself)
             if hasHoverBorder then
-                myself._skinBorder:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(myself._skinHoverBorderColorKey or "BORDER_ACCENT"))
+                OneWoW_GUI:BindThemeColor(myself._skinBorder, "border", myself._skinHoverBorderColorKey or "BORDER_ACCENT")
             end
             GameTooltip:SetOwner(myself, "ANCHOR_RIGHT")
             if type(tooltip) == "function" then
@@ -501,7 +501,7 @@ function OneWoW_GUI:CreateSkinnedIcon(parent, options)
         end)
         iconFrame:SetScript("OnLeave", function(myself)
             if hasHoverBorder then
-                myself._skinBorder:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(myself._skinBorderColorKey or "BORDER_DEFAULT"))
+                OneWoW_GUI:BindThemeColor(myself._skinBorder, "border", myself._skinBorderColorKey or "BORDER_DEFAULT")
             end
             GameTooltip:Hide()
             if onLeave then onLeave(myself) end
@@ -509,11 +509,11 @@ function OneWoW_GUI:CreateSkinnedIcon(parent, options)
     elseif hasHoverBorder then
         iconFrame:EnableMouse(true)
         iconFrame:SetScript("OnEnter", function(myself)
-            myself._skinBorder:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(myself._skinHoverBorderColorKey or "BORDER_ACCENT"))
+            OneWoW_GUI:BindThemeColor(myself._skinBorder, "border", myself._skinHoverBorderColorKey or "BORDER_ACCENT")
             if onEnter then onEnter(myself) end
         end)
         iconFrame:SetScript("OnLeave", function(myself)
-            myself._skinBorder:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(myself._skinBorderColorKey or "BORDER_DEFAULT"))
+            OneWoW_GUI:BindThemeColor(myself._skinBorder, "border", myself._skinBorderColorKey or "BORDER_DEFAULT")
             if onLeave then onLeave(myself) end
         end)
     end

@@ -156,7 +156,7 @@ local function AppendToEditBox(editBox, token)
     end
     text = text .. token
     editBox:SetText(text)
-    editBox:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(editBox, "text", "TEXT_PRIMARY")
     if editBox:HasScript("OnTextChanged") then
         local handler = editBox:GetScript("OnTextChanged")
         if handler then handler(editBox) end
@@ -196,7 +196,7 @@ local function ApplyChipEntry(chip, entry)
             chip.sub = sub
         end
         chip.sub:SetText(aliasLabel)
-        chip.sub:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        OneWoW_GUI:BindThemeColor(chip.sub, "text", "TEXT_MUTED")
         chip.sub:Show()
     elseif chip.sub then
         chip.sub:Hide()
@@ -228,17 +228,17 @@ local function MakeKeywordChip(parent, entry)
     ---@type OneWoW_GUI_KeywordChip
     local chip = CreateFrame("Button", nil, parent, "BackdropTemplate")
     chip:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    chip:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-    chip:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(chip, "bg", "BG_TERTIARY")
+    OneWoW_GUI:BindThemeColor(chip, "border", "BORDER_SUBTLE")
 
     local label = chip:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     label:SetPoint("LEFT", chip, "LEFT", 6, 0)
-    label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(label, "text", "TEXT_PRIMARY")
     chip.label = label
 
     -- Read from `self`, never from an upvalue captured at creation.
     chip:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_HOVER"))
+        OneWoW_GUI:BindThemeColor(self, "bg", "BTN_HOVER")
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText("#" .. (self.canonical or ""), 1, 1, 1)
         if self.aliasList and #self.aliasList > 0 then
@@ -250,7 +250,7 @@ local function MakeKeywordChip(parent, entry)
         GameTooltip:Show()
     end)
     chip:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
+        OneWoW_GUI:BindThemeColor(self, "bg", "BG_TERTIARY")
         GameTooltip:Hide()
     end)
     chip:SetScript("OnClick", function(self)
@@ -367,7 +367,7 @@ local function LayoutChips()
                 local header = categoryHeaders[catDef.id]
                 if not header then
                     header = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                    header:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+                    OneWoW_GUI:BindThemeColor(header, "text", "ACCENT_PRIMARY")
                     categoryHeaders[catDef.id] = header
                 end
                 header:SetText(catDef.title)
@@ -443,7 +443,7 @@ local function BuildKeywordFrame()
     local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("LEFT", titleBar, "LEFT", 10, 0)
     title:SetText("Search Keywords & Syntax")
-    title:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(title, "text", "ACCENT_PRIMARY")
 
     local closeBtn = CreateFrame("Button", nil, titleBar, "UIPanelCloseButton")
     closeBtn:SetPoint("RIGHT", titleBar, "RIGHT", -2, 0)
@@ -463,7 +463,7 @@ local function BuildKeywordFrame()
     local gHeaderFS = grammarFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     gHeaderFS:SetPoint("TOPLEFT", grammarFrame, "TOPLEFT", 10, gy)
     gHeaderFS:SetText("Syntax & Operators")
-    gHeaderFS:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(gHeaderFS, "text", "ACCENT_PRIMARY")
     gy = gy - 18
 
     local grammarRowGap = 4
@@ -477,7 +477,7 @@ local function BuildKeywordFrame()
         leftFS:SetJustifyH("LEFT")
         leftFS:SetWordWrap(true)
         leftFS:SetText(row.left)
-        leftFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(leftFS, "text", "TEXT_PRIMARY")
 
         local rightFS = grammarFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         rightFS:SetHeight(0)
@@ -486,7 +486,7 @@ local function BuildKeywordFrame()
         rightFS:SetJustifyH("LEFT")
         rightFS:SetWordWrap(true)
         rightFS:SetText(row.right)
-        rightFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        OneWoW_GUI:BindThemeColor(rightFS, "text", "TEXT_MUTED")
 
         local rowH = math.max(leftFS:GetHeight(), rightFS:GetHeight(), 14)
         gy = gy - rowH - grammarRowGap
@@ -517,7 +517,7 @@ local function BuildKeywordFrame()
     footer:SetJustifyH("LEFT")
     footer:SetWordWrap(true)
     footer:SetText("Click any keyword to insert it into the search box. Combine with & | ! (or and / or / not).")
-    footer:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+    OneWoW_GUI:BindThemeColor(footer, "text", "TEXT_MUTED")
 
     -- Built-ins are engine state and only ever grow, so they are built once.
     local PE = GetPE()
@@ -590,23 +590,23 @@ function OneWoW_GUI:CreateKeywordHelpButton(parent, options)
     local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
     btn:SetSize(size, size)
     btn:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-    btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(btn, "bg", "BG_TERTIARY")
+    OneWoW_GUI:BindThemeColor(btn, "border", "BORDER_SUBTLE")
 
     local label = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     label:SetPoint("CENTER", btn, "CENTER", 0, 0)
     label:SetText("?")
-    label:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(label, "text", "ACCENT_PRIMARY")
 
     btn:SetScript("OnEnter", function(myself)
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_HOVER"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_HOVER")
         GameTooltip:SetOwner(myself, "ANCHOR_RIGHT")
         GameTooltip:SetText(title, 1, 1, 1)
         GameTooltip:AddLine(desc, 0.8, 0.8, 0.8, true)
         GameTooltip:Show()
     end)
     btn:SetScript("OnLeave", function(myself)
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BG_TERTIARY")
         GameTooltip:Hide()
     end)
     btn:SetScript("OnClick", function()

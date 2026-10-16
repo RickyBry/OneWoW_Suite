@@ -463,9 +463,9 @@ function UI:CreateSearchShortcutsTab(parent)
     RegisterPopups()
 
     -- Everything holding a frame lives in this scope, not at file scope. The
-    -- builder runs again on every UI:FullReset() — theme, language and minimap
-    -- changes all trigger one — and a cache that outlives the rebuild keeps rows
-    -- parented to a window that no longer exists.
+    -- builder runs again whenever the hub retires tab content (theme, language,
+    -- font and icon changes), and a cache that outlives the rebuild keeps rows
+    -- parented to retired content.
     local rows = {}
     local listContent, emptyText
     local activeKind = nil ---@type string|nil

@@ -129,7 +129,7 @@ function OneWoW_GUI:CreateEntityIdField(parent, options)
         if info.quality then
             nameFS:SetTextColor(OneWoW_GUI:GetItemQualityColor(info.quality))
         else
-            nameFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_FEATURES_ENABLED"))
+            OneWoW_GUI:BindThemeColor(nameFS, "text", "TEXT_FEATURES_ENABLED")
         end
         if info.icon then
             icon:SetTexture(info.icon)
@@ -143,14 +143,14 @@ function OneWoW_GUI:CreateEntityIdField(parent, options)
         field._info = nil
         icon:Hide()
         nameFS:SetText(RETRIEVING_DATA)
-        nameFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_WARNING"))
+        OneWoW_GUI:BindThemeColor(nameFS, "text", "TEXT_WARNING")
     end
 
     local function ApplyInvalid()
         field._info = nil
         icon:Hide()
         nameFS:SetText("")
-        nameFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_FEATURES_DISABLED"))
+        OneWoW_GUI:BindThemeColor(nameFS, "text", "TEXT_FEATURES_DISABLED")
     end
 
     local function ApplyEmpty()
@@ -196,7 +196,7 @@ function OneWoW_GUI:CreateEntityIdField(parent, options)
     function field:SetText(text)
         box:SetText(text or "")
         if text and text ~= "" and text ~= box.placeholderText then
-            box:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(box, "text", "TEXT_PRIMARY")
         end
         self:Refresh()
     end

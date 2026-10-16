@@ -40,9 +40,9 @@ function OneWoW_GUI:AttachClearButton(box, options)
 
     local function PaintClearIcon(hovered)
         if hovered then
-            clearTex:SetVertexColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(clearTex, "vertex", "TEXT_PRIMARY")
         else
-            clearTex:SetVertexColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(clearTex, "vertex", "TEXT_MUTED")
         end
     end
     PaintClearIcon(false)
@@ -61,7 +61,7 @@ function OneWoW_GUI:AttachClearButton(box, options)
     end)
     clearBtn:SetScript("OnClick", function()
         box:SetText("")
-        box:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(box, "text", "TEXT_PRIMARY")
         if box.RestorePlaceholder and box.placeholderText and box.placeholderText ~= "" then
             box:RestorePlaceholder()
         end
@@ -140,13 +140,13 @@ function OneWoW_GUI:CreateEditBox(parent, options)
         box:SetHeight(height)
     end
     box:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    box:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-    box:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(box, "bg", "BG_TERTIARY")
+    OneWoW_GUI:BindThemeColor(box, "border", "BORDER_SUBTLE")
     box:SetFontObject(GameFontHighlight)
     box:SetTextInsets(spacing, spacing, 0, 0)
     box:SetAutoFocus(false)
     box:EnableMouse(true)
-    box:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+    OneWoW_GUI:BindThemeColor(box, "text", "TEXT_MUTED")
     box:SetText(placeholderText)
 
     if maxLetters then
@@ -156,22 +156,22 @@ function OneWoW_GUI:CreateEditBox(parent, options)
     box:SetScript("OnEscapePressed", function(myself) myself:ClearFocus() end)
 
     box:SetScript("OnEditFocusGained", function(myself)
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_ACCENT"))
+        OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_ACCENT")
         if myself:GetText() == myself.placeholderText then
             myself:SetText("")
-            myself:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(myself, "text", "TEXT_PRIMARY")
         end
     end)
 
     box:SetScript("OnEditFocusLost", function(myself)
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+        OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_SUBTLE")
         myself:RestorePlaceholder()
     end)
 
     function box:RestorePlaceholder()
         if self:GetText() == "" and self.placeholderText and self.placeholderText ~= "" then
             self:SetText(self.placeholderText)
-            self:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(self, "text", "TEXT_MUTED")
         end
         if self.UpdateClearButton then
             self:UpdateClearButton()
@@ -240,7 +240,7 @@ function OneWoW_GUI:CreateScrollEditBox(parent, options)
     if options.textColor then
         editBox:SetTextColor(unpack(options.textColor))
     else
-        editBox:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(editBox, "text", "TEXT_PRIMARY")
     end
 
     scrollFrame:SetScrollChild(editBox)

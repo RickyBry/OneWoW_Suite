@@ -6,7 +6,7 @@
 -- Design decisions:
 --   - Cap 8 entries including current; drop the oldest
 --   - New navigation truncates the forward side (browser rule)
---   - Hide / FullReset clear the stack; lastModuleTab still persists separately
+--   - Hide clears the stack; lastModuleTab still persists separately
 --   - Same-frame Show + SelectSubTab coalesces in MainWindow, not here
 --
 -- Full design rationale: OneWoW/Docs/ARCHITECTURE.md §5

@@ -15,33 +15,33 @@ function OneWoW_GUI:CreateButton(parent, options)
     local btn = CreateFrame("Button", name, parent, "BackdropTemplate")
     btn:SetSize(width, height)
     btn:SetBackdrop(Constants.BACKDROP_INNER)
-    btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_NORMAL"))
-    btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_BORDER"))
+    OneWoW_GUI:BindThemeColor(btn, "bg", "BTN_NORMAL")
+    OneWoW_GUI:BindThemeColor(btn, "border", "BTN_BORDER")
 
     btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     OneWoW_GUI:SetFontBaseSize(btn.text, 12)
     OneWoW_GUI:SafeSetFont(btn.text, OneWoW_GUI:GetFont(), 12)
     btn.text:SetPoint("CENTER")
     btn.text:SetText(text)
-    btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_PRIMARY")
 
     local function applyEnabledChrome(myself)
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_NORMAL"))
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_BORDER"))
-        myself.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_NORMAL")
+        OneWoW_GUI:BindThemeColor(myself, "border", "BTN_BORDER")
+        OneWoW_GUI:BindThemeColor(myself.text, "text", "TEXT_PRIMARY")
     end
 
     local function applyDisabledChrome(myself)
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_NORMAL"))
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_BORDER"))
-        myself.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_NORMAL")
+        OneWoW_GUI:BindThemeColor(myself, "border", "BTN_BORDER")
+        OneWoW_GUI:BindThemeColor(myself.text, "text", "TEXT_MUTED")
     end
 
     btn:SetScript("OnEnter", function(myself)
         if not myself:IsEnabled() then return end
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_HOVER"))
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_BORDER_HOVER"))
-        myself.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_HOVER")
+        OneWoW_GUI:BindThemeColor(myself, "border", "BTN_BORDER_HOVER")
+        OneWoW_GUI:BindThemeColor(myself.text, "text", "TEXT_ACCENT")
     end)
     btn:SetScript("OnLeave", function(myself)
         if myself:IsEnabled() then
@@ -52,14 +52,14 @@ function OneWoW_GUI:CreateButton(parent, options)
     end)
     btn:SetScript("OnMouseDown", function(myself)
         if not myself:IsEnabled() then return end
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_PRESSED"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_PRESSED")
     end)
     btn:SetScript("OnMouseUp", function(myself)
         if not myself:IsEnabled() then return end
         if myself:IsMouseOver() then
-            myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_HOVER"))
+            OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_HOVER")
         else
-            myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_NORMAL"))
+            OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_NORMAL")
         end
     end)
 
@@ -158,7 +158,7 @@ function OneWoW_GUI:CreateIconButton(parent, options)
             tex:SetTexCoord(texCoord[1], texCoord[2], texCoord[3], texCoord[4])
         end
         if tint then
-            tex:SetVertexColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(tex, "vertex", "ACCENT_PRIMARY")
         end
     end
 
@@ -298,21 +298,21 @@ function OneWoW_GUI:CreateFitTextButton(parent, options)
 
     if danger then
         local function applyNormal(myself)
-            myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_DANGER_NORMAL"))
-            myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_DANGER_BORDER"))
-            myself.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_DANGER_NORMAL")
+            OneWoW_GUI:BindThemeColor(myself, "border", "BTN_DANGER_BORDER")
+            OneWoW_GUI:BindThemeColor(myself.text, "text", "TEXT_PRIMARY")
         end
 
         local function applyHover(myself)
-            myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_DANGER_HOVER"))
-            myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_DANGER_BORDER_HOVER"))
-            myself.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_DANGER_HOVER")
+            OneWoW_GUI:BindThemeColor(myself, "border", "BTN_DANGER_BORDER_HOVER")
+            OneWoW_GUI:BindThemeColor(myself.text, "text", "TEXT_PRIMARY")
         end
 
         local function applyDisabled(myself)
-            myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_DANGER_NORMAL"))
-            myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_DANGER_BORDER"))
-            myself.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_DANGER_NORMAL")
+            OneWoW_GUI:BindThemeColor(myself, "border", "BTN_DANGER_BORDER")
+            OneWoW_GUI:BindThemeColor(myself.text, "text", "TEXT_MUTED")
         end
 
         btn:SetScript("OnEnter", function(myself)
@@ -328,7 +328,7 @@ function OneWoW_GUI:CreateFitTextButton(parent, options)
         end)
         btn:SetScript("OnMouseDown", function(myself)
             if not myself:IsEnabled() then return end
-            myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_DANGER_HOVER"))
+            OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_DANGER_HOVER")
         end)
         btn:SetScript("OnMouseUp", function(myself)
             if not myself:IsEnabled() then return end
@@ -355,32 +355,32 @@ function OneWoW_GUI:CreateFitTextButton(parent, options)
 
         local function applyNormal(myself)
             if myself.isActive then
-                myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_ACTIVE"))
-                myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
-                myself.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+                OneWoW_GUI:BindThemeColor(myself, "bg", "BG_ACTIVE")
+                OneWoW_GUI:BindThemeColor(myself, "border", "ACCENT_PRIMARY")
+                OneWoW_GUI:BindThemeColor(myself.text, "text", "TEXT_ACCENT")
             else
-                myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_NORMAL"))
-                myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_BORDER"))
-                myself.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+                OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_NORMAL")
+                OneWoW_GUI:BindThemeColor(myself, "border", "BTN_BORDER")
+                OneWoW_GUI:BindThemeColor(myself.text, "text", "TEXT_PRIMARY")
             end
         end
 
         local function applyHover(myself)
             if myself.isActive then
-                myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_ACTIVE"))
-                myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
-                myself.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+                OneWoW_GUI:BindThemeColor(myself, "bg", "BG_ACTIVE")
+                OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_FOCUS")
+                OneWoW_GUI:BindThemeColor(myself.text, "text", "TEXT_ACCENT")
             else
-                myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_HOVER"))
-                myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_BORDER_HOVER"))
-                myself.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+                OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_HOVER")
+                OneWoW_GUI:BindThemeColor(myself, "border", "BTN_BORDER_HOVER")
+                OneWoW_GUI:BindThemeColor(myself.text, "text", "TEXT_ACCENT")
             end
         end
 
         btn:SetScript("OnEnter", applyHover)
         btn:SetScript("OnLeave", applyNormal)
         btn:SetScript("OnMouseDown", function(myself)
-            myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_PRESSED"))
+            OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_PRESSED")
         end)
         btn:SetScript("OnMouseUp", function(myself)
             if myself:IsMouseOver() then
@@ -448,7 +448,8 @@ function OneWoW_GUI:CreateTextLink(parent, options)
     end
     btn.underline = underline
 
-    local function ApplyLinkColors(state)
+    local function PaintLink()
+        local state = btn._linkState
         if state == "disabled" then
             local r, g, b, a = OneWoW_GUI:GetThemeColor("TEXT_MUTED")
             label:SetTextColor(r, g, b, a)
@@ -456,16 +457,18 @@ function OneWoW_GUI:CreateTextLink(parent, options)
             underline:SetColorTexture(r, g, b, 0.25)
             return
         end
-        if state == "hover" then
-            label:SetTextColor(OneWoW_GUI:GetThemeColor("LINK_HOVER"))
-            if chevron then chevron:SetTextColor(OneWoW_GUI:GetThemeColor("LINK_HOVER")) end
-            underline:SetColorTexture(OneWoW_GUI:GetThemeColor("LINK_UNDERLINE"))
-            return
-        end
-        label:SetTextColor(OneWoW_GUI:GetThemeColor("LINK_IDLE"))
-        if chevron then chevron:SetTextColor(OneWoW_GUI:GetThemeColor("LINK_IDLE")) end
+        local textKey = state == "hover" and "LINK_HOVER" or "LINK_IDLE"
+        label:SetTextColor(OneWoW_GUI:GetThemeColor(textKey))
+        if chevron then chevron:SetTextColor(OneWoW_GUI:GetThemeColor(textKey)) end
         underline:SetColorTexture(OneWoW_GUI:GetThemeColor("LINK_UNDERLINE"))
     end
+
+    local function ApplyLinkColors(state)
+        btn._linkState = state
+        PaintLink()
+    end
+    btn._linkState = "idle"
+    OneWoW_GUI:BindThemePainter(btn, PaintLink)
 
     local function FitWidth()
         local w = label:GetStringWidth() or 0
@@ -478,7 +481,6 @@ function OneWoW_GUI:CreateTextLink(parent, options)
         -- +2 leaves room for the underline below the baseline.
         btn:SetSize(w, h + 2)
     end
-    ApplyLinkColors("idle")
     FitWidth()
 
     function btn:SetText(newText)
@@ -564,23 +566,23 @@ function OneWoW_GUI:CreateFitFrameButtons(parent, options)
 
     local function applyNormal(btn)
         if btn.isActive then
-            btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_ACTIVE"))
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_ACCENT"))
-            btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+            OneWoW_GUI:BindThemeColor(btn, "bg", "BG_ACTIVE")
+            OneWoW_GUI:BindThemeColor(btn, "border", "BORDER_ACCENT")
+            OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_ACCENT")
         else
-            btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_NORMAL"))
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_BORDER"))
-            btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(btn, "bg", "BTN_NORMAL")
+            OneWoW_GUI:BindThemeColor(btn, "border", "BTN_BORDER")
+            OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_MUTED")
         end
     end
 
     local function applyHover(btn)
         if btn.isActive then
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
+            OneWoW_GUI:BindThemeColor(btn, "border", "BORDER_FOCUS")
         else
-            btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_HOVER"))
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_BORDER_HOVER"))
-            btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+            OneWoW_GUI:BindThemeColor(btn, "bg", "BTN_HOVER")
+            OneWoW_GUI:BindThemeColor(btn, "border", "BTN_BORDER_HOVER")
+            OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_SECONDARY")
         end
     end
 
@@ -597,7 +599,7 @@ function OneWoW_GUI:CreateFitFrameButtons(parent, options)
 
         btn:SetScript("OnEnter", function(myself) applyHover(myself) end)
         btn:SetScript("OnLeave", function(myself) applyNormal(myself) end)
-        btn:SetScript("OnMouseDown", function(myself) myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_PRESSED")) end)
+        btn:SetScript("OnMouseDown", function(myself) OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_PRESSED") end)
         btn:SetScript("OnMouseUp", function(myself) applyNormal(myself) end)
         btn:SetScript("OnClick", function(myself)
             for _, ob in ipairs(buttons) do
@@ -679,32 +681,32 @@ function OneWoW_GUI:CreateOnOffToggleButtons(parent, options)
     local function applyNormal()
         if not btn:GetParent() then return end
         if isEnabled ~= true then
-            btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
-            btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(btn, "bg", "BG_SECONDARY")
+            OneWoW_GUI:BindThemeColor(btn, "border", "BORDER_SUBTLE")
+            OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_MUTED")
             return
         end
         if currentValue then
-            btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_FEATURES_ENABLED"))
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("DOT_FEATURES_ENABLED"))
-            btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_FEATURES_ENABLED"))
+            OneWoW_GUI:BindThemeColor(btn, "bg", "BG_FEATURES_ENABLED")
+            OneWoW_GUI:BindThemeColor(btn, "border", "DOT_FEATURES_ENABLED")
+            OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_FEATURES_ENABLED")
         else
-            btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_NORMAL"))
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_BORDER"))
-            btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_FEATURES_DISABLED"))
+            OneWoW_GUI:BindThemeColor(btn, "bg", "BTN_NORMAL")
+            OneWoW_GUI:BindThemeColor(btn, "border", "BTN_BORDER")
+            OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_FEATURES_DISABLED")
         end
     end
 
     local function applyHover()
         if not btn:GetParent() or isEnabled ~= true then return end
         if currentValue then
-            btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_FEATURES_ENABLED_HOVER"))
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("TEXT_FEATURES_ENABLED"))
-            btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_FEATURES_ENABLED"))
+            OneWoW_GUI:BindThemeColor(btn, "bg", "BG_FEATURES_ENABLED_HOVER")
+            OneWoW_GUI:BindThemeColor(btn, "border", "TEXT_FEATURES_ENABLED")
+            OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_FEATURES_ENABLED")
         else
-            btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_HOVER"))
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BTN_BORDER_HOVER"))
-            btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_FEATURES_DISABLED"))
+            OneWoW_GUI:BindThemeColor(btn, "bg", "BTN_HOVER")
+            OneWoW_GUI:BindThemeColor(btn, "border", "BTN_BORDER_HOVER")
+            OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_FEATURES_DISABLED")
         end
     end
 
@@ -739,7 +741,7 @@ function OneWoW_GUI:CreateOnOffToggleButtons(parent, options)
     end)
     btn:SetScript("OnMouseDown", function(myself)
         if isEnabled ~= true then return end
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BTN_PRESSED"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BTN_PRESSED")
     end)
     btn:SetScript("OnMouseUp", function(myself)
         if myself:IsMouseOver() and isEnabled == true then
@@ -821,23 +823,23 @@ function OneWoW_GUI:CreateFavoriteToggleButton(parent, options)
         end
     end)
 
-    local tTitle = options.tooltipTitle
-    local tText = options.tooltipText
-    if tTitle or tText then
-        btn:SetScript("OnEnter", function(myself)
-            GameTooltip:SetOwner(myself, "ANCHOR_RIGHT")
-            if tTitle then
-                GameTooltip:SetText(tTitle, 1, 1, 1)
-            end
-            if tText then
-                GameTooltip:AddLine(tText, 0.8, 0.8, 0.8, true)
-            end
-            GameTooltip:Show()
-        end)
-        btn:SetScript("OnLeave", function()
-            GameTooltip:Hide()
-        end)
-    end
+    btn.tooltipTitle = options.tooltipTitle
+    btn.tooltipText = options.tooltipText
+    btn:SetScript("OnEnter", function(myself)
+        local title, tip = myself.tooltipTitle, myself.tooltipText
+        if not (title or tip) then return end
+        GameTooltip:SetOwner(myself, "ANCHOR_RIGHT")
+        if title then
+            GameTooltip:SetText(title, 1, 1, 1)
+        end
+        if tip then
+            GameTooltip:AddLine(tip, 0.8, 0.8, 0.8, true)
+        end
+        GameTooltip:Show()
+    end)
+    btn:SetScript("OnLeave", function(myself)
+        if GameTooltip:IsOwned(myself) then GameTooltip:Hide() end
+    end)
 
     return btn
 end

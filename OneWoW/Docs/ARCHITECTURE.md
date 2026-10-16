@@ -653,7 +653,7 @@ at the top of the L2 menu. Order persists in `ns.db.global.subTabFavorites`
 
 The title bar has session-only **Back** and **Forward** (cap 8).
 `SelectModuleTab` / `SelectSubTab` and `Open*` jumps record the leaving
-`(module, subtab, entity)`. Hide and `FullReset` wipe the stack; last-tab
+`(module, subtab, entity)`. Hide wipes the stack; last-tab
 SavedVariables are unchanged. Content frames may implement `GetNavEntity` /
 `RestoreNavEntity` so Back can re-select a quest, NPC, vendor, or similar.
 
@@ -994,7 +994,7 @@ modeled on `OneWoW_GUI:ApplyTheme` / `Constants.ACTIVE_THEME` (a metatable
 - **Language switching is centralized.** `OneWoW.Locale:SetLanguage(lang)` refolds
   every scope **in place** (so cached views update), fires `OnApply` listeners
   (for UI rebuilds), and pushes any `BINDING_*` keys to `_G` (keybinding labels).
-  Core calls it once on `OnLanguageChanged` (then `FullReset`s the hub) and once on
+  Core calls it once on `OnLanguageChanged` (then `UI:RebuildContent()`) and once on
   profile apply (`t-profiles`) — addons must **not** loop their own `SetLanguage`.
   `Locale.SUPPORTED` (ordered code+native) drives the picker; `Locale.ALIASES`
   normalizes client locales (`enGB`→`enUS`; esMX is its own SUPPORTED locale, not aliased).
@@ -1081,13 +1081,26 @@ Fail fast — no defensive nil-chain guards on methods.
 | `font` | — | `OnFontChanged` |
 | `fontSizeOffset` | — | `OnFontSizeChanged` + `OnFontChanged` |
 
-Hub runs `GUI:FullReset()` on theme change.
+`ApplyTheme()` repaints every region painted through `OneWoW_GUI:BindThemeColor`
+/ `BindThemePainter` when the palette changes (bindings still showing the previous
+theme's color only; caller overrides are left alone). The hub keeps the single
+`OneWoWMainWindow` for the session and never recreates it:
+
+- **Theme:** `UI:RefreshTheme()` — chrome repaints through bindings; cached tab
+  content that implements `frame:ApplyTheme()` repaints in place, the rest is
+  retired and rebuilt when next shown (the visible tab on the next frame).
+- **Language, font / size, icon theme, feature icon style:** `UI:RebuildContent()`
+  — chrome relabels in place (the window is a font root, so it re-fonts too); all
+  tab content is retired and the visible tab rebuilds on the next frame.
+
+Retired content is hidden, unbound, and parked under a hidden sink parented to
+`UIParent`, never `SetParent(nil)`. See `Docs/GUI.md` (Live theme repaint).
 
 ### 8.3 Profile apply
 
 `UI/t-profiles.lua` reapplies theme and language via `SyncSettingToChildAddons` —
 iterates integrated addons and calls `ApplyTheme()` / `ApplyLanguage()` where present,
-then `GUI:FullReset()`. Font/size not part of profile sync.
+then `UI:RebuildContent()`. Font/size not part of profile sync.
 
 ### 8.4 Font sizing
 

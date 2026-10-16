@@ -29,6 +29,7 @@ local subNavDropdown = nil
 local subNavText = nil
 local subNavChevron = nil
 local favoriteStar = nil
+local mainTitleBar = nil
 local pinReorder = nil
 local pinSink = nil             -- hidden host so retired pins never orphan onto UIParent
 local allPinFrames = {}        -- every pin created this refresh (visible + spilled)
@@ -41,14 +42,6 @@ local FRAME_NAME = "OneWoWMainWindow"
 local PIN_HEIGHT = 20
 local PIN_FONT_SIZE = 11
 local PIN_PAD_X = 14
-
-local function RemoveFromUISpecialFrames(name)
-    for i = #UISpecialFrames, 1, -1 do
-        if UISpecialFrames[i] == name then
-            tremove(UISpecialFrames, i)
-        end
-    end
-end
 
 local function EnsureInUISpecialFrames(name)
     for _, v in ipairs(UISpecialFrames) do
@@ -162,13 +155,13 @@ local function MoveFavoriteEntry(moduleName, fromIndex, toIndex)
 end
 
 local function StyleToolbarDropdown(dropdown)
-    dropdown:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
-    dropdown:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+    OneWoW_GUI:BindThemeColor(dropdown, "bg", "BG_PRIMARY")
+    OneWoW_GUI:BindThemeColor(dropdown, "border", "BORDER_DEFAULT")
     dropdown:SetScript("OnEnter", function(myself)
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
+        OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_FOCUS")
     end)
     dropdown:SetScript("OnLeave", function(myself)
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+        OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_DEFAULT")
     end)
 end
 
@@ -183,18 +176,18 @@ local function CreateFavoritePinButton(parent, text, subTabName)
     btn.text:SetText(text)
     btn:SetWidth((btn.text:GetStringWidth() or 40) + PIN_PAD_X)
 
-    btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-    btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
-    btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(btn, "bg", "BG_SECONDARY")
+    OneWoW_GUI:BindThemeColor(btn, "border", "BORDER_SUBTLE")
+    OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_PRIMARY")
 
     btn:SetScript("OnEnter", function(self)
         if self.subTabName ~= currentSubTab then
-            self:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
+            OneWoW_GUI:BindThemeColor(self, "bg", "BG_HOVER")
         end
     end)
     btn:SetScript("OnLeave", function(self)
         if self.subTabName ~= currentSubTab then
-            self:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
+            OneWoW_GUI:BindThemeColor(self, "bg", "BG_SECONDARY")
         end
     end)
     btn:SetScript("OnClick", function(self)
@@ -213,13 +206,13 @@ end
 local function UpdateRow2Styling()
     for _, btn in ipairs(row2Buttons) do
         if btn.subTabName == currentSubTab then
-            btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_ACTIVE"))
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_ACCENT"))
-            btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+            OneWoW_GUI:BindThemeColor(btn, "bg", "BG_ACTIVE")
+            OneWoW_GUI:BindThemeColor(btn, "border", "BORDER_ACCENT")
+            OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_ACCENT")
         else
-            btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
-            btn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(btn, "bg", "BG_SECONDARY")
+            OneWoW_GUI:BindThemeColor(btn, "border", "BORDER_SUBTLE")
+            OneWoW_GUI:BindThemeColor(btn.text, "text", "TEXT_PRIMARY")
         end
     end
 end
@@ -294,13 +287,13 @@ local function EnsurePinReorder()
             end
         end,
         onPickup = function(btn)
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
+            OneWoW_GUI:BindThemeColor(btn, "border", "BORDER_FOCUS")
         end,
         onRestore = function()
             UpdateRow2Styling()
         end,
         onHover = function(btn)
-            btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(btn, "border", "ACCENT_PRIMARY")
         end,
         onUnhover = function()
             UpdateRow2Styling()
@@ -527,6 +520,12 @@ end
 
 local activeContentFrame = nil
 
+-- Retired tab content parks here, hidden and outside MainWindow, so a stray
+-- Show cannot paint it and font-root walks skip it.
+local contentSink = CreateFrame("Frame", nil, UIParent)
+contentSink:Hide()
+local reselectQueued = false
+
 local function HideAllContent()
     if activeContentFrame and activeContentFrame.Deactivate then
         activeContentFrame:Deactivate()
@@ -537,6 +536,53 @@ local function HideAllContent()
     for _, frame in pairs(moduleContentFrames) do
         frame:Hide()
     end
+end
+
+local function RetireContentFrame(frame)
+    if frame == activeContentFrame then
+        if frame.Deactivate then frame:Deactivate() end
+        activeContentFrame = nil
+    end
+    frame:Hide()
+    OneWoW_GUI:UnbindThemeSubtree(frame)
+    frame:SetParent(contentSink)
+end
+
+--- Retire cached tab content. With keepThemed, frames that implement
+--- ApplyTheme repaint in place instead. Returns true when visible content went.
+local function RetireContent(keepThemed)
+    local retiredVisible = false
+    local function retire(frame)
+        if keepThemed and frame.ApplyTheme then
+            frame:ApplyTheme()
+            return false
+        end
+        retiredVisible = retiredVisible or frame:IsShown()
+        RetireContentFrame(frame)
+        return true
+    end
+    for key, frame in pairs(moduleContentFrames) do
+        if retire(frame) then
+            moduleContentFrames[key] = nil
+        end
+    end
+    if homePanel and retire(homePanel) then homePanel = nil end
+    if settingsPanel and retire(settingsPanel) then settingsPanel = nil end
+    return retiredVisible
+end
+
+-- Rebuild the visible tab on the next frame: appearance changes usually come
+-- from a control inside that tab, and several can arrive together (profiles).
+local function QueueReselect()
+    if reselectQueued then return end
+    reselectQueued = true
+    C_Timer.After(0, function()
+        reselectQueued = false
+        if not isInitialized then return end
+        UI.NavHistory.SetApplying(true)
+        UI:SelectModuleTab(currentModuleTab, currentSubTab)
+        UI.NavHistory.SetApplying(false)
+    end)
 end
 
 -- Hub sections for the toolbar dropdown: Home, always-show / registered modules,
@@ -634,7 +680,7 @@ function UI:RefreshRow1ModuleTabs()
 end
 
 -- Re-query the Home tab's per-feature status rows in place. Safe before the panel
--- is built and after FullReset (homePanel is nil); the OnShow hook covers those.
+-- is built and after RebuildContent (homePanel is nil); the OnShow hook covers those.
 function UI:RefreshHomeStatus()
     if homePanel and homePanel.RefreshStatus then
         homePanel.RefreshStatus()
@@ -694,10 +740,10 @@ local function PaintNavIcon(btn, hover)
     icon:SetDesaturated(true)
     if btn._navEnabled then
         local key = hover and "TEXT_ACCENT" or "ACCENT_PRIMARY"
-        icon:SetVertexColor(OneWoW_GUI:GetThemeColor(key))
+        OneWoW_GUI:BindThemeColor(icon, "vertex", key)
         icon:SetAlpha(1)
     else
-        icon:SetVertexColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        OneWoW_GUI:BindThemeColor(icon, "vertex", "TEXT_MUTED")
         icon:SetAlpha(0.45)
     end
 end
@@ -1028,8 +1074,7 @@ function UI:SelectSubTab(moduleName, subTabName)
     local cached = moduleContentFrames[key]
     if cached and cached._isPlaceholder then
         if moduleTab and SubTabContentAvailable(moduleTab) then
-            cached:Hide()
-            cached:SetParent(nil)
+            RetireContentFrame(cached)
             moduleContentFrames[key] = nil
         end
     end
@@ -1132,6 +1177,7 @@ function UI:InitMainWindow()
         showBrand = true,
         onClose = function() UI:Hide() end,
     })
+    mainTitleBar = titleBar
     titleBar:ClearAllPoints()
     titleBar:SetPoint("TOPLEFT", MainWindow, "TOPLEFT", OneWoW_GUI:GetSpacing("XS"), -OneWoW_GUI:GetSpacing("XS"))
     titleBar:SetPoint("TOPRIGHT", MainWindow, "TOPRIGHT", -OneWoW_GUI:GetSpacing("XS"), -OneWoW_GUI:GetSpacing("XS"))
@@ -1292,9 +1338,7 @@ function UI:InitMainWindow()
         refreshingPinRow = false
     end)
 
-    if UI.BuildSettingsTabs then
-        UI:BuildSettingsTabs()
-    end
+    UI:BuildSettingsTabs()
 
     local resizeBtn = CreateFrame("Button", nil, MainWindow)
     resizeBtn:SetSize(16, 16)
@@ -1318,6 +1362,7 @@ function UI:InitMainWindow()
     isInitialized = true
 
     OneWoW_GUI:ApplyFontToFrame(MainWindow)
+    OneWoW_GUI:RegisterFontRoot(MainWindow)
 
     local lastTab = ns.db.global.lastModuleTab
     if not IsValidSection(lastTab) then
@@ -1384,11 +1429,11 @@ function UI:CreateAddonPlaceholderFrame(parent, info)
     local nameText = OneWoW_GUI:CreateFS(parent, 16)
     nameText:SetPoint("TOP", icon, "BOTTOM", 0, -16)
     nameText:SetText(ns.Locale:GetOptional(ADDON_NAME, info.localeKey) or info.name)
-    nameText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(nameText, "text", "TEXT_PRIMARY")
 
     local statusText = OneWoW_GUI:CreateFS(parent, 12)
     statusText:SetPoint("TOP", nameText, "BOTTOM", 0, -8)
-    statusText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+    OneWoW_GUI:BindThemeColor(statusText, "text", "TEXT_MUTED")
 
     local function RefreshPlaceholderStatus()
         local state = ns:GetFeatureUnitState(parent.addonName)
@@ -1424,14 +1469,14 @@ function UI:CreateAggregatorPlaceholderFrame(parent, info)
     local nameText = OneWoW_GUI:CreateFS(parent, 16)
     nameText:SetPoint("TOP", icon, "BOTTOM", 0, -16)
     nameText:SetText(info.name or "")
-    nameText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(nameText, "text", "TEXT_PRIMARY")
 
     local descText = OneWoW_GUI:CreateFS(parent, 12)
     descText:SetWidth(440)
     descText:SetJustifyH("CENTER")
     descText:SetPoint("TOP", nameText, "BOTTOM", 0, -10)
     descText:SetText(ns.L["AGGREGATOR_PLACEHOLDER_DESC"])
-    descText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    OneWoW_GUI:BindThemeColor(descText, "text", "TEXT_SECONDARY")
 
     -- One status line per source addon (localized name + current load state).
     local sourceRows = {}
@@ -1451,7 +1496,7 @@ function UI:CreateAggregatorPlaceholderFrame(parent, info)
             local state = ns:GetFeatureUnitState(fs._addon)
             local loaded = C_AddOns.IsAddOnLoaded(fs._addon)
             fs:SetText(fs._label .. "  -  " .. ns:GetFeatureUnitStatusLabel(state))
-            fs:SetTextColor(OneWoW_GUI:GetThemeColor(loaded and "TEXT_PRIMARY" or "TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(fs, "text", loaded and "TEXT_PRIMARY" or "TEXT_MUTED")
         end
     end
 
@@ -1474,50 +1519,38 @@ function UI:ResetUIToDefaults()
     local defH = math.min(C.WINDOW_HEIGHT, screenH)
     ns.db.global.mainFrameSize = { width = defW, height = defH }
     ns.db.global.mainFramePosition = nil
-    UI:FullReset()
-    C_Timer.After(0.1, function() UI:Show() end)
+    if MainWindow then
+        MainWindow:SetSize(defW, defH)
+        MainWindow:ClearAllPoints()
+        MainWindow:SetPoint("CENTER")
+    end
+    UI:Show()
 end
 
-function UI:FullReset()
-    RemoveFromUISpecialFrames(FRAME_NAME)
-    ClearPinRow()
-    if MainWindow then
-        MainWindow:Hide()
-        MainWindow:SetParent(nil)
+--- Theme change: window chrome repaints through its theme bindings. Cached tab
+--- content that implements frame:ApplyTheme() repaints in place; the rest is
+--- retired and rebuilt when next shown (the visible tab on the next frame).
+function UI:RefreshTheme()
+    if not isInitialized then return end
+    UpdateRow2Styling()
+    UI:RefreshNavButtons()
+    if RetireContent(true) then
+        QueueReselect()
     end
-    MainWindow = nil
-    isInitialized = false
-    currentModuleTab = "home"
-    currentSubTab = nil
-    row2Buttons = {}
-    moduleContentFrames = {}
-    row1Container = nil
-    row2Container = nil
-    pinSink = nil
-    contentArea = nil
-    homePanel = nil
-    settingsPanel = nil
-    placeholderData = {}
-    sectionNavDropdown = nil
-    sectionNavText = nil
-    subNavDropdown = nil
-    subNavText = nil
-    subNavChevron = nil
-    favoriteStar = nil
-    pinReorder = nil
-    wipe(allPinFrames)
-    wipe(spilledFavoriteNames)
-    pinLayoutPending = false
-    refreshingSubNav = false
-    wipe(sectionModuleNames)
-    wipe(sectionLabels)
-    navBackBtn = nil
-    navForwardBtn = nil
-    pendingLeaveSnapshot = nil
-    pendingCoalesceLeave = nil
-    pendingCoalesceArrive = nil
-    coalesceQueued = false
-    UI.NavHistory.Clear()
+end
+
+--- Language, font, or icon change: relabel the window chrome, retire all tab
+--- content, and rebuild the visible tab on the next frame. The window itself
+--- is kept.
+function UI:RebuildContent()
+    if not isInitialized then return end
+    mainTitleBar._titleText:SetText(L["ADDON_TITLE"])
+    favoriteStar.tooltipText = L["SUBNAV_FAVORITE_TIP"]
+    UI:BuildSettingsTabs()
+    BuildSectionList()
+    UpdateSectionNavLabel()
+    RetireContent(false)
+    QueueReselect()
 end
 
 EventRegistry:RegisterCallback("ns.ModuleRegistered", function()

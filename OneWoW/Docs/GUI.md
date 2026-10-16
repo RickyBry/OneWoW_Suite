@@ -260,11 +260,11 @@ OneWoW_GUI:SafeSetFont(myFontString, fontPath, 12)
 
 ### Live font updates: font roots
 
-The main OneWoW window re-applies fonts by rebuilding itself on font change. Frames
-that live **outside** it — standalone dialogs and panels docked to Blizzard frames
-(Auction House, merchant, inspect) — are not caught by that rebuild, so their text
-stays the old size until `/reload`. Register such frames as **font roots** and the
-toolkit handles them centrally.
+Text keeps the font it had at creation until `/reload` unless its frame is under a
+**font root**. The main OneWoW window is one (its tab content is also rebuilt on
+the next frame, since it measures text at build time). Register standalone dialogs
+and panels docked to Blizzard frames (Auction House, merchant, inspect) as font
+roots and the toolkit handles them centrally.
 
 ```lua
 -- Docked / hand-rolled panel: register once at build.
@@ -308,7 +308,7 @@ Only runs once (sets `_migrated` flag). Safe to call every load.
 
 ### Window Position Persistence
 
-Use `SaveWindowPosition` and `RestoreWindowPosition` for movable main windows. Standard DB key: `mainFramePosition` (shape: `{ point, relativePoint, x, y, width?, height? }`). Save on `OnHide` so position persists on close, FullReset, and theme change.
+Use `SaveWindowPosition` and `RestoreWindowPosition` for movable main windows. Standard DB key: `mainFramePosition` (shape: `{ point, relativePoint, x, y, width?, height? }`). Save on `OnHide` so position persists on close and `/reload`.
 
 `RestoreWindowPosition` clamps restored width/height to the screen. On first show it nudges the frame if any edge is partially off-screen (UI scale / resolution changes), and only centers when the frame is fully off-screen. Corrected size and point are written back to storage.
 
@@ -337,7 +337,8 @@ function addon:OnInitialize()
 
     OneWoW_GUI:RegisterSettingsCallback("OnThemeChanged", self, function(self2)
         OneWoW_GUI:ApplyTheme(self2)
-        -- rebuild UI
+        -- bound regions repaint on their own (see Live theme repaint); only
+        -- refresh colors you paint outside BindThemeColor / BindThemePainter
     end)
     OneWoW_GUI:RegisterSettingsCallback("OnLanguageChanged", self, function(self2)
         -- locale view auto-updates; rebuild standalone UI you own
@@ -376,6 +377,53 @@ frame:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
 -- Preview a non-active palette (settings theme picker rows / swatches):
 local pr, pg, pb = OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY", "blue")
 ```
+
+### Live theme repaint (bind theme colors)
+
+Paint theme colors through a binding so the region repaints when the theme
+changes. Toolkit constructors already do this for everything they create.
+
+```lua
+OneWoW_GUI:BindThemeColor(frame, "bg", "BG_PRIMARY")        -- SetBackdropColor
+OneWoW_GUI:BindThemeColor(frame, "border", "BORDER_SUBTLE") -- SetBackdropBorderColor
+OneWoW_GUI:BindThemeColor(label, "text", "TEXT_PRIMARY")    -- SetTextColor
+OneWoW_GUI:BindThemeColor(icon, "vertex", "ACCENT_PRIMARY") -- SetVertexColor
+OneWoW_GUI:BindThemeColor(tex, "texture", "BG_SECONDARY")   -- SetColorTexture
+
+-- Derived or stateful colors (hover, mixed alpha): the painter runs now and
+-- on every theme change.
+OneWoW_GUI:BindThemePainter(thumb, function(t)
+    t:SetColorTexture(OneWoW_GUI:GetScrollThumbColor(scrollBar:IsMouseOver()))
+end)
+
+-- Retiring a subtree (parked, not reused): drop its bindings.
+OneWoW_GUI:UnbindThemeSubtree(frame)
+```
+
+Rules:
+
+- **Bind every theme paint**, including state changes (hover, selected,
+  disabled): `BindThemeColor(btn, "bg", "BTN_HOVER")` both paints and records
+  the latest key. Bindings are weak-keyed; they never keep a frame alive.
+- **Overrides are left alone.** On a theme change a `bg`/`border`/`text`/`vertex`
+  binding repaints only while the region still shows the previous theme's color
+  for its key. A caller recolor (or a constant color) is skipped.
+- **`texture` cannot be read back**, so it always repaints. Never mix a bound
+  `texture` slot with direct `SetColorTexture` calls on the same texture; use a
+  painter instead.
+- Repaint runs only when `ApplyTheme` switches to a different palette, so
+  several addons calling `ApplyTheme` for one change repaint once.
+
+### Tab content: `frame:ApplyTheme()` contract
+
+Hub tab content may implement `frame:ApplyTheme()` to repaint colors it does not
+bind. On a theme change the hub calls it on every cached content frame that has
+it. Content without it is retired (hidden, unbound, parked under a hidden sink)
+and rebuilt the next time it is shown; the visible tab rebuilds on the next
+frame. Language, font, icon-theme, and feature-icon-style changes always retire
+and rebuild tab content, because it captures strings and measures text at build
+time. The main window itself is never recreated: its chrome repaints through
+bindings, re-fonts as a font root, and relabels in `UI:RebuildContent()`.
 
 ### Theme-independent constants (`OneWoW_GUI.Constants`)
 Use for colors that must **not** follow the active theme:

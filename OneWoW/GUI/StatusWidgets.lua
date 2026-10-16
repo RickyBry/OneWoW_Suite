@@ -111,19 +111,19 @@ function OneWoW_GUI:CreateItemAlertRow(parent, options)
                 btn.icon:SetVertexColor(1, 1, 1)
             else
                 btn.icon:SetAlpha(1)
-                btn.icon:SetVertexColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+                OneWoW_GUI:BindThemeColor(btn.icon, "vertex", "TEXT_MUTED")
             end
             btn:Show()
         end
 
         self.label:SetText(self._title .. ": (" .. hitCount .. ")")
-        self.label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        OneWoW_GUI:BindThemeColor(self.label, "text", "TEXT_MUTED")
         local labelW = math.ceil(self.label:GetStringWidth())
         self.label:SetWidth(labelW)
 
-        self.noneText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
-        self.sep:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
-        self.manyText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+        OneWoW_GUI:BindThemeColor(self.noneText, "text", "TEXT_MUTED")
+        OneWoW_GUI:BindThemeColor(self.sep, "text", "TEXT_MUTED")
+        OneWoW_GUI:BindThemeColor(self.manyText, "text", "TEXT_ACCENT")
 
         local showNone = hitCount == 0
         local showMany = hitCount == #ALERT_SOURCE_DEFS

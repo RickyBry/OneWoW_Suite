@@ -44,16 +44,6 @@ local function ApplyLanguage()
     ns.Locale:SetLanguage(lang)
 end
 
-local function ResetGUIOnSettingChange(self2)
-    local wasShown = self2.UI:GetMainWindow() and self2.UI:GetMainWindow():IsShown()
-    self2.UI:FullReset()
-    if wasShown then
-        C_Timer.After(0.1, function()
-            self2.UI:Show()
-        end)
-    end
-end
-
 local function RegisterSlashCommands()
     SLASH_ONEWOW1 = "/1w"
     SlashCmdList["ONEWOW"] = function()
@@ -88,12 +78,12 @@ function ns:OnAddonLoaded(loadedAddon)
     OneWoW_GUI:RegisterSettingsCallback("OnThemeChanged", self, function(self2)
         OneWoW_GUI:ApplyTheme(ns)
         ScheduleDefaultSave()
-        ResetGUIOnSettingChange(self2)
+        self2.UI:RefreshTheme()
     end)
     OneWoW_GUI:RegisterSettingsCallback("OnLanguageChanged", self, function(self2)
         ApplyLanguage()
         ScheduleDefaultSave()
-        ResetGUIOnSettingChange(self2)
+        self2.UI:RebuildContent()
     end)
     OneWoW_GUI:RegisterSettingsCallback("OnMinimapChanged", self, function(self2, hidden)
         ScheduleDefaultSave()
@@ -106,19 +96,18 @@ function ns:OnAddonLoaded(loadedAddon)
     OneWoW_GUI:RegisterSettingsCallback("OnIconThemeChanged", self, function(self2)
         ScheduleDefaultSave()
         self2.Minimap:UpdateIcon()
-        ResetGUIOnSettingChange(self2)
+        self2.UI:RebuildContent()
     end)
     OneWoW_GUI:RegisterSettingsCallback("OnFeatureIconStyleChanged", self, function(self2)
         ScheduleDefaultSave()
-        ResetGUIOnSettingChange(self2)
+        self2.UI:RebuildContent()
     end)
+    -- Fires for both a font swap and a size change. The main window is a font
+    -- root, so its chrome re-fonts in place; tab content is rebuilt because it
+    -- measures text at build time.
     OneWoW_GUI:RegisterSettingsCallback("OnFontChanged", self, function(self2)
         ScheduleDefaultSave()
-        ResetGUIOnSettingChange(self2)
-    end)
-    OneWoW_GUI:RegisterSettingsCallback("OnFontSizeChanged", self, function(self2)
-        ScheduleDefaultSave()
-        ResetGUIOnSettingChange(self2)
+        self2.UI:RebuildContent()
     end)
 
     local _ver = ns:GetAddonVersion(ADDON_NAME)

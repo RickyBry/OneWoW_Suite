@@ -26,8 +26,8 @@ function OneWoW_GUI:CreateFilterBar(parent, config)
     end
     bar:SetHeight(height)
     bar:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    bar:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-    bar:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+    OneWoW_GUI:BindThemeColor(bar, "bg", "BG_SECONDARY")
+    OneWoW_GUI:BindThemeColor(bar, "border", "BORDER_DEFAULT")
 
     return bar
 end
@@ -119,7 +119,7 @@ function OneWoW_GUI:CreateHeader(parent, options)
     OneWoW_GUI:SafeSetFont(header, OneWoW_GUI:GetFont(), 16)
     header:SetPoint("TOPLEFT", OneWoW_GUI:GetSpacing("MD"), yOffset)
     header:SetText(text)
-    header:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(header, "text", "ACCENT_PRIMARY")
     return header
 end
 
@@ -131,7 +131,7 @@ function OneWoW_GUI:CreateDivider(parent, options)
     divider:SetPoint("LEFT", OneWoW_GUI:GetSpacing("MD"), 0)
     divider:SetPoint("RIGHT", -OneWoW_GUI:GetSpacing("MD"), 0)
     divider:SetPoint("TOP", 0, yOffset)
-    divider:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(divider, "texture", "BORDER_SUBTLE")
     return divider
 end
 
@@ -144,14 +144,14 @@ function OneWoW_GUI:CreateSection(parent, options)
     OneWoW_GUI:SafeSetFont(header, OneWoW_GUI:GetFont(), 12)
     header:SetPoint("TOPLEFT", parent, "TOPLEFT", OneWoW_GUI:GetSpacing("MD"), yOffset)
     header:SetText(title)
-    header:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_SECONDARY"))
+    OneWoW_GUI:BindThemeColor(header, "text", "ACCENT_SECONDARY")
     yOffset = yOffset - header:GetStringHeight() - 6
 
     local divider = parent:CreateTexture(nil, "ARTWORK")
     divider:SetHeight(1)
     divider:SetPoint("TOPLEFT", parent, "TOPLEFT", OneWoW_GUI:GetSpacing("MD"), yOffset)
     divider:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -OneWoW_GUI:GetSpacing("MD"), yOffset)
-    divider:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(divider, "texture", "BORDER_SUBTLE")
     yOffset = yOffset - 10
 
     return yOffset
@@ -169,7 +169,7 @@ function OneWoW_GUI:CreateTitleBar(parent, options)
     titleBg:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -1, -1)
     titleBg:SetHeight(height)
     titleBg:SetBackdrop(Constants.BACKDROP_SIMPLE)
-    titleBg:SetBackdropColor(OneWoW_GUI:GetThemeColor("TITLEBAR_BG"))
+    OneWoW_GUI:BindThemeColor(titleBg, "bg", "TITLEBAR_BG")
     titleBg:SetFrameLevel(parent:GetFrameLevel() + 1)
 
     titleBg._titleText = titleBg:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -187,27 +187,27 @@ function OneWoW_GUI:CreateTitleBar(parent, options)
         brandIcon:SetTexture(self:GetBrandIcon(factionTheme))
         titleBg.brandIcon = brandIcon
 
-        self:RegisterSettingsCallback("OnIconThemeChanged", titleBg, function(owner)
-            if owner.brandIcon and owner:IsVisible() then
+        if not options.factionTheme then
+            self:RegisterSettingsCallback("OnIconThemeChanged", titleBg, function(owner)
                 owner.brandIcon:SetTexture(OneWoW_GUI:GetBrandIcon(
                     OneWoW_GUI:GetSetting("minimap.theme") or "horde"))
-            end
-        end)
+            end)
+        end
 
         local brandText = titleBg:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         OneWoW_GUI:SetFontBaseSize(brandText, 12)
         OneWoW_GUI:SafeSetFont(brandText, OneWoW_GUI:GetFont(), 12)
         brandText:SetPoint("LEFT", brandIcon, "RIGHT", 4, 0)
         brandText:SetText("OneWoW")
-        brandText:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(brandText, "text", "ACCENT_PRIMARY")
 
         titleBg._titleText:SetPoint("CENTER", titleBg, "CENTER", 0, 0)
         titleBg._titleText:SetText(title)
-        titleBg._titleText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(titleBg._titleText, "text", "TEXT_PRIMARY")
     else
         titleBg._titleText:SetPoint("LEFT", titleBg, "LEFT", OneWoW_GUI:GetSpacing("MD"), 0)
         titleBg._titleText:SetText(title)
-        titleBg._titleText:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(titleBg._titleText, "text", "ACCENT_PRIMARY")
     end
 
     if onClose then
@@ -231,8 +231,8 @@ function OneWoW_GUI:CreateSectionHeader(parent, options)
     section:SetPoint("TOPRIGHT", 0, yOffset)
     section:SetHeight(30)
     section:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    section:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-    section:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(section, "bg", "BG_SECONDARY")
+    OneWoW_GUI:BindThemeColor(section, "border", "BORDER_SUBTLE")
 
     local countFS
     if rightText and rightText ~= "" then
@@ -242,7 +242,7 @@ function OneWoW_GUI:CreateSectionHeader(parent, options)
         countFS:SetPoint("RIGHT", -12, 0)
         countFS:SetJustifyH("RIGHT")
         countFS:SetText(rightText)
-        countFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        OneWoW_GUI:BindThemeColor(countFS, "text", "TEXT_SECONDARY")
         section.rightText = countFS
     end
 
@@ -258,7 +258,7 @@ function OneWoW_GUI:CreateSectionHeader(parent, options)
     titleText:SetJustifyH("LEFT")
     titleText:SetWordWrap(false)
     titleText:SetText(title)
-    titleText:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(titleText, "text", "ACCENT_PRIMARY")
     section.titleText = titleText
 
     local sectionHeight = max(30, titleText:GetStringHeight() + 14)
@@ -588,7 +588,7 @@ function OneWoW_GUI:CreateHeroPanel(parent, options)
     accent:SetPoint("TOPLEFT", panel, "TOPLEFT", 0, 0)
     accent:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 0, 0)
     accent:SetWidth(4)
-    accent:SetColorTexture(OneWoW_GUI:GetThemeColor(options.accentColor or "ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(accent, "texture", options.accentColor or "ACCENT_PRIMARY")
     panel.accent = accent
 
     local iconSize = options.iconSize or 48
@@ -616,7 +616,7 @@ function OneWoW_GUI:CreateHeroPanel(parent, options)
     title:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -OneWoW_GUI:GetSpacing("LG"), -2)
     title:SetJustifyH("LEFT")
     title:SetText(options.title or "")
-    title:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(title, "text", "ACCENT_PRIMARY")
     panel.title = title
 
     local subtitle = self:CreateFS(panel, options.subtitleSize or 12)
@@ -624,7 +624,7 @@ function OneWoW_GUI:CreateHeroPanel(parent, options)
     subtitle:SetPoint("TOPRIGHT", title, "BOTTOMRIGHT", 0, -4)
     subtitle:SetJustifyH("LEFT")
     subtitle:SetText(options.subtitle or "")
-    subtitle:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(subtitle, "text", "TEXT_PRIMARY")
     panel.subtitle = subtitle
 
     local description = self:CreateFS(panel, options.descriptionSize or 11)
@@ -633,7 +633,7 @@ function OneWoW_GUI:CreateHeroPanel(parent, options)
     description:SetJustifyH("LEFT")
     description:SetWordWrap(true)
     description:SetText(options.description or "")
-    description:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    OneWoW_GUI:BindThemeColor(description, "text", "TEXT_SECONDARY")
     panel.description = description
 
     if options.calloutText and options.calloutText ~= "" then
@@ -648,7 +648,7 @@ function OneWoW_GUI:CreateHeroPanel(parent, options)
         callout.text = self:CreateFS(callout, 10)
         callout.text:SetPoint("CENTER", callout, "CENTER", 0, 0)
         callout.text:SetText(options.calloutText)
-        callout.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+        OneWoW_GUI:BindThemeColor(callout.text, "text", "TEXT_ACCENT")
         panel.callout = callout
     end
 
@@ -766,14 +766,14 @@ function OneWoW_GUI:CreateSummaryStrip(parent, options)
         box.value:SetPoint("TOPRIGHT", box, "TOPRIGHT", -OneWoW_GUI:GetSpacing("SM"), -7)
         box.value:SetJustifyH("LEFT")
         box.value:SetText(item.value or "")
-        box.value:SetTextColor(OneWoW_GUI:GetThemeColor(item.valueColor or "TEXT_ACCENT"))
+        OneWoW_GUI:BindThemeColor(box.value, "text", item.valueColor or "TEXT_ACCENT")
 
         box.label = self:CreateFS(box, item.labelSize or 10)
         box.label:SetPoint("TOPLEFT", box.value, "BOTTOMLEFT", 0, -4)
         box.label:SetPoint("TOPRIGHT", box.value, "BOTTOMRIGHT", 0, -4)
         box.label:SetJustifyH("LEFT")
         box.label:SetText(item.label or "")
-        box.label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        OneWoW_GUI:BindThemeColor(box.label, "text", "TEXT_SECONDARY")
 
         strip.itemBoxes[i] = box
     end
@@ -873,7 +873,7 @@ function OneWoW_GUI:CreateSelectableCard(parent, options)
     selectedAccent:SetPoint("TOPLEFT", card, "TOPLEFT", 0, 0)
     selectedAccent:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 0, 0)
     selectedAccent:SetWidth(4)
-    selectedAccent:SetColorTexture(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(selectedAccent, "texture", "ACCENT_PRIMARY")
     card.selectedAccent = selectedAccent
 
     local iconSize = options.iconSize or Constants.GUI.SELECTABLE_CARD_ICON_SIZE
@@ -986,51 +986,51 @@ function OneWoW_GUI:CreateSelectableCard(parent, options)
 
     local function ApplyVisual(myself, hover)
         if myself._muted then
-            myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-            myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+            OneWoW_GUI:BindThemeColor(myself, "bg", "BG_SECONDARY")
+            OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_SUBTLE")
             myself.selectedAccent:Hide()
-            myself.title:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
-            myself.summary:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(myself.title, "text", "TEXT_MUTED")
+            OneWoW_GUI:BindThemeColor(myself.summary, "text", "TEXT_MUTED")
             myself.icon:SetDesaturated(true)
             myself.icon:SetAlpha(0.4)
             if myself._iconPlate then
-                myself.iconFrame:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+                OneWoW_GUI:BindThemeColor(myself.iconFrame, "border", "BORDER_SUBTLE")
             end
             if myself.badge then
-                myself.badge:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
-                myself.badge.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+                OneWoW_GUI:BindThemeColor(myself.badge, "border", "BORDER_SUBTLE")
+                OneWoW_GUI:BindThemeColor(myself.badge.text, "text", "TEXT_MUTED")
             end
             return
         end
         if myself._checked then
-            myself:SetBackdropColor(OneWoW_GUI:GetThemeColor(hover and "BG_HOVER" or "BG_ACTIVE"))
-            myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(hover and "BORDER_FOCUS" or "BORDER_ACCENT"))
+            OneWoW_GUI:BindThemeColor(myself, "bg", hover and "BG_HOVER" or "BG_ACTIVE")
+            OneWoW_GUI:BindThemeColor(myself, "border", hover and "BORDER_FOCUS" or "BORDER_ACCENT")
             myself.selectedAccent:Show()
-            myself.title:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
-            myself.summary:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+            OneWoW_GUI:BindThemeColor(myself.title, "text", "TEXT_ACCENT")
+            OneWoW_GUI:BindThemeColor(myself.summary, "text", "TEXT_SECONDARY")
             myself.icon:SetDesaturated(false)
             myself.icon:SetAlpha(1)
             if myself._iconPlate then
-                myself.iconFrame:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_ACCENT"))
+                OneWoW_GUI:BindThemeColor(myself.iconFrame, "border", "BORDER_ACCENT")
             end
             if myself.badge then
-                myself.badge:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_ACCENT"))
-                myself.badge.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+                OneWoW_GUI:BindThemeColor(myself.badge, "border", "BORDER_ACCENT")
+                OneWoW_GUI:BindThemeColor(myself.badge.text, "text", "TEXT_ACCENT")
             end
         else
-            myself:SetBackdropColor(OneWoW_GUI:GetThemeColor(hover and "BG_HOVER" or "BG_SECONDARY"))
-            myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor(hover and "BORDER_FOCUS" or "BORDER_SUBTLE"))
+            OneWoW_GUI:BindThemeColor(myself, "bg", hover and "BG_HOVER" or "BG_SECONDARY")
+            OneWoW_GUI:BindThemeColor(myself, "border", hover and "BORDER_FOCUS" or "BORDER_SUBTLE")
             myself.selectedAccent:Hide()
-            myself.title:SetTextColor(OneWoW_GUI:GetThemeColor(hover and "TEXT_ACCENT" or "TEXT_PRIMARY"))
-            myself.summary:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(myself.title, "text", hover and "TEXT_ACCENT" or "TEXT_PRIMARY")
+            OneWoW_GUI:BindThemeColor(myself.summary, "text", "TEXT_MUTED")
             myself.icon:SetDesaturated(true)
             myself.icon:SetAlpha(0.68)
             if myself._iconPlate then
-                myself.iconFrame:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+                OneWoW_GUI:BindThemeColor(myself.iconFrame, "border", "BORDER_SUBTLE")
             end
             if myself.badge then
-                myself.badge:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
-                myself.badge.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+                OneWoW_GUI:BindThemeColor(myself.badge, "border", "BORDER_SUBTLE")
+                OneWoW_GUI:BindThemeColor(myself.badge.text, "text", "TEXT_SECONDARY")
             end
         end
     end
@@ -1251,15 +1251,15 @@ function OneWoW_GUI:CreateVerticalPaneResizer(options)
     dividerTex:SetWidth(2)
     dividerTex:SetPoint("TOP", divider, "TOP", 0, 0)
     dividerTex:SetPoint("BOTTOM", divider, "BOTTOM", 0, 0)
-    dividerTex:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+    OneWoW_GUI:BindThemeColor(dividerTex, "texture", "BORDER_DEFAULT")
 
     divider:SetScript("OnEnter", function()
-        dividerTex:SetColorTexture(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(dividerTex, "texture", "ACCENT_PRIMARY")
         SetCursor("UI_RESIZE_CURSOR")
     end)
     divider:SetScript("OnLeave", function(myself)
         if not myself._owPaneDragActive then
-            dividerTex:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+            OneWoW_GUI:BindThemeColor(dividerTex, "texture", "BORDER_DEFAULT")
             SetCursor(nil)
         end
     end)
@@ -1277,7 +1277,7 @@ function OneWoW_GUI:CreateVerticalPaneResizer(options)
     divider:SetScript("OnMouseUp", function(myself, button)
         if button == "LeftButton" and myself._owPaneDragActive then
             myself._owPaneDragActive = false
-            dividerTex:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+            OneWoW_GUI:BindThemeColor(dividerTex, "texture", "BORDER_DEFAULT")
             SetCursor(nil)
             myself:SetScript("OnUpdate", nil)
             if onWidthChanged then
@@ -1365,15 +1365,15 @@ function OneWoW_GUI:CreateHorizontalPaneResizer(options)
     dividerTex:SetHeight(2)
     dividerTex:SetPoint("LEFT", divider, "LEFT", 0, 0)
     dividerTex:SetPoint("RIGHT", divider, "RIGHT", 0, 0)
-    dividerTex:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+    OneWoW_GUI:BindThemeColor(dividerTex, "texture", "BORDER_DEFAULT")
 
     divider:SetScript("OnEnter", function()
-        dividerTex:SetColorTexture(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(dividerTex, "texture", "ACCENT_PRIMARY")
         SetCursor("UI_RESIZE_CURSOR")
     end)
     divider:SetScript("OnLeave", function(myself)
         if not myself._owPaneDragActive then
-            dividerTex:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+            OneWoW_GUI:BindThemeColor(dividerTex, "texture", "BORDER_DEFAULT")
             SetCursor(nil)
         end
     end)
@@ -1391,7 +1391,7 @@ function OneWoW_GUI:CreateHorizontalPaneResizer(options)
     divider:SetScript("OnMouseUp", function(myself, button)
         if button == "LeftButton" and myself._owPaneDragActive then
             myself._owPaneDragActive = false
-            dividerTex:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+            OneWoW_GUI:BindThemeColor(dividerTex, "texture", "BORDER_DEFAULT")
             SetCursor(nil)
             myself:SetScript("OnUpdate", nil)
             if onHeightChanged then

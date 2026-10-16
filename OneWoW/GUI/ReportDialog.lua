@@ -91,7 +91,7 @@ local function RenderRows(state, content, rows, width)
             tex:ClearAllPoints()
             tex:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -y)
             tex:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, -y)
-            tex:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+            OneWoW_GUI:BindThemeColor(tex, "texture", "BORDER_SUBTLE")
             tex:Show()
             y = y + 1 + DIVIDER_GAP
         else
@@ -99,7 +99,7 @@ local function RenderRows(state, content, rows, width)
             shown = shown + 1
             local fs = AcquireRow(state, content, shown)
             OneWoW_GUI:ApplyFont(fs, style.size)
-            fs:SetTextColor(OneWoW_GUI:GetThemeColor(row.color or style.color))
+            OneWoW_GUI:BindThemeColor(fs, "text", row.color or style.color)
             fs:SetWidth(textWidth - style.indent)
             fs:SetText(row.text or "")
             fs:ClearAllPoints()

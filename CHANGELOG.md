@@ -1,6 +1,8 @@
 # OneWoW Suite Changelog
 
 - Dropdown menus, the minimap button menu, profile dialogs, and item lists reuse what they built the first time, so opening them over a long session no longer adds memory or slows the game.
+- Changing the theme, font, font size, or language updates the OneWoW window in place instead of closing and rebuilding it, and switching back and forth no longer adds memory.
+- Open dialogs and panels docked to game windows switch to a new theme right away.
 
 ## Fixes
 - Quest dialogs no longer report an error when Catalog is turned off.

@@ -207,7 +207,7 @@ function OneWoW_GUI:CreateValueAddRow(parent, options)
     local label = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     label:SetPoint("LEFT", row, "LEFT", 0, 0)
     label:SetText(labelText)
-    label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    OneWoW_GUI:BindThemeColor(label, "text", "TEXT_SECONDARY")
 
     local box = OneWoW_GUI:CreateEditBox(row, {
         width = inputWidth,
@@ -215,8 +215,8 @@ function OneWoW_GUI:CreateValueAddRow(parent, options)
         maxLetters = maxLetters,
     })
     box:SetPoint("LEFT", label, "RIGHT", 8, 0)
-    box:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-    box:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(box, "bg", "BG_SECONDARY")
+    OneWoW_GUI:BindThemeColor(box, "text", "TEXT_PRIMARY")
     box:SetText("")
     if kind == "itemId" then
         box:SetNumeric(true)
@@ -236,14 +236,14 @@ function OneWoW_GUI:CreateValueAddRow(parent, options)
         chip = CreateFrame("Frame", nil, row, "BackdropTemplate")
         chip:SetSize(dropOpts.width or GUI.VALUE_ADD_CHIP_WIDTH, height)
         chip:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-        chip:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-        chip:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+        OneWoW_GUI:BindThemeColor(chip, "bg", "BG_SECONDARY")
+        OneWoW_GUI:BindThemeColor(chip, "border", "BORDER_SUBTLE")
         chip:EnableMouse(true)
 
         chipText = chip:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         chipText:SetPoint("CENTER")
         chipText:SetText(dropOpts.text or "")
-        chipText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        OneWoW_GUI:BindThemeColor(chipText, "text", "TEXT_MUTED")
 
         if chipAlign == "left" then
             chip:SetPoint("LEFT", addBtn, "RIGHT", 8, 0)
@@ -349,10 +349,10 @@ function OneWoW_GUI:CreateValueAddRow(parent, options)
         if target == chip then
             target:SetScript("OnEnter", function(dz)
                 if not handle._enabled then return end
-                dz:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_ACCENT"))
+                OneWoW_GUI:BindThemeColor(dz, "border", "BORDER_ACCENT")
             end)
             target:SetScript("OnLeave", function(dz)
-                dz:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+                OneWoW_GUI:BindThemeColor(dz, "border", "BORDER_SUBTLE")
             end)
         end
     end
@@ -367,7 +367,7 @@ function OneWoW_GUI:CreateValueAddRow(parent, options)
 
     function handle:Clear()
         box:SetText("")
-        box:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(box, "text", "TEXT_PRIMARY")
         if box.ClearFocus then
             box:ClearFocus()
         end
@@ -379,24 +379,24 @@ function OneWoW_GUI:CreateValueAddRow(parent, options)
             box:Enable()
             box:EnableMouse(true)
             addBtn:Enable()
-            label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+            OneWoW_GUI:BindThemeColor(label, "text", "TEXT_SECONDARY")
             if chip then
                 chip:EnableMouse(true)
             end
             if chipText then
-                chipText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+                OneWoW_GUI:BindThemeColor(chipText, "text", "TEXT_MUTED")
             end
         else
             box:ClearFocus()
             box:Disable()
             box:EnableMouse(false)
             addBtn:Disable()
-            label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(label, "text", "TEXT_MUTED")
             if chip then
                 chip:EnableMouse(false)
             end
             if chipText then
-                chipText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+                OneWoW_GUI:BindThemeColor(chipText, "text", "TEXT_MUTED")
             end
         end
     end
@@ -432,8 +432,8 @@ function OneWoW_GUI:CreateEntryList(parent, options)
 
     local listFrame = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     listFrame:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    listFrame:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-    listFrame:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(listFrame, "bg", "BG_TERTIARY")
+    OneWoW_GUI:BindThemeColor(listFrame, "border", "BORDER_SUBTLE")
 
     if yOffset ~= nil then
         listFrame:SetPoint("TOPLEFT", parent, "TOPLEFT", x, yOffset)
@@ -498,7 +498,7 @@ function OneWoW_GUI:CreateEntryList(parent, options)
     emptyFS:SetJustifyH("CENTER")
     emptyFS:SetWordWrap(true)
     emptyFS:SetText(emptyText)
-    emptyFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+    OneWoW_GUI:BindThemeColor(emptyFS, "text", "TEXT_MUTED")
     emptyFS:Hide()
 
     handle.scrollFrame = scrollFrame
@@ -551,7 +551,7 @@ function OneWoW_GUI:CreateEntryList(parent, options)
         end
         row._nameText:SetPoint("LEFT", row, "LEFT", left, 0)
         row._nameText:SetText(entry.label or tostring(entry.id))
-        row._nameText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(row._nameText, "text", "TEXT_PRIMARY")
         return handle._rowHeight
     end
 
@@ -596,7 +596,7 @@ function OneWoW_GUI:CreateEntryList(parent, options)
             row:ClearAllPoints()
             row:SetPoint("TOPLEFT", contentParent, "TOPLEFT", 10, rowOffset)
             row:SetPoint("TOPRIGHT", contentParent, "TOPRIGHT", -10, rowOffset)
-            row:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+            OneWoW_GUI:BindThemeColor(row, "border", "BORDER_SUBTLE")
             row._zebraIndex = i
             OneWoW_GUI:ApplyListRowFill(row, { zebraIndex = i })
 
@@ -639,12 +639,12 @@ function OneWoW_GUI:CreateEntryList(parent, options)
             end
         end
         if self._enabled then
-            emptyFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(emptyFS, "text", "TEXT_MUTED")
             if self._sortDropdown then
                 self._sortDropdown:Enable()
             end
         else
-            emptyFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(emptyFS, "text", "TEXT_MUTED")
             if self._sortDropdown then
                 self._sortDropdown:Disable()
             end

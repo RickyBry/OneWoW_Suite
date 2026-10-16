@@ -29,8 +29,8 @@ function OneWoW_GUI:CreateCard(parent, options)
 
     local card = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     card:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    card:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-    card:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(card, "bg", "BG_SECONDARY")
+    OneWoW_GUI:BindThemeColor(card, "border", "BORDER_SUBTLE")
     card.collapsed = options.collapsed == true
 
     local header = CreateFrame("Button", nil, card, "BackdropTemplate")
@@ -38,7 +38,7 @@ function OneWoW_GUI:CreateCard(parent, options)
     header:SetPoint("TOPRIGHT", card, "TOPRIGHT", -1, -1)
     header:SetHeight(headerHeight)
     header:SetBackdrop(Constants.BACKDROP_SIMPLE)
-    header:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
+    OneWoW_GUI:BindThemeColor(header, "bg", "BG_TERTIARY")
     card.header = header
 
     local arrow = header:CreateTexture(nil, "OVERLAY")
@@ -51,7 +51,7 @@ function OneWoW_GUI:CreateCard(parent, options)
     title:SetPoint("RIGHT", header, "RIGHT", -6, 0)
     title:SetJustifyH("LEFT")
     title:SetText(options.title or "")
-    title:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(title, "text", "ACCENT_PRIMARY")
     card.title = title
 
     local content = CreateFrame("Frame", nil, card)
@@ -93,10 +93,10 @@ function OneWoW_GUI:CreateCard(parent, options)
     end
 
     header:SetScript("OnEnter", function(myself)
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BG_HOVER")
     end)
     header:SetScript("OnLeave", function(myself)
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BG_TERTIARY")
     end)
     header:SetScript("OnClick", function()
         card.collapsed = not card.collapsed
@@ -403,10 +403,10 @@ function OneWoW_GUI:CreateIconGrid(parent, options)
         local hdr = OneWoW_GUI:CreateFS(grid, 10)
         hdr:SetJustifyH("LEFT")
         hdr:SetText(cat.name or "")
-        hdr:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        OneWoW_GUI:BindThemeColor(hdr, "text", "TEXT_SECONDARY")
         local hdrLine = grid:CreateTexture(nil, "ARTWORK")
         hdrLine:SetHeight(1)
-        hdrLine:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+        OneWoW_GUI:BindThemeColor(hdrLine, "texture", "BORDER_SUBTLE")
         local entry = { fs = hdr, line = hdrLine, cells = {} }
         tinsert(headers, entry)
 
@@ -414,8 +414,8 @@ function OneWoW_GUI:CreateIconGrid(parent, options)
             local cell = CreateFrame("Button", nil, grid, "BackdropTemplate")
             cell:SetSize(cellSize, cellSize)
             cell:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-            cell:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-            cell:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+            OneWoW_GUI:BindThemeColor(cell, "bg", "BG_TERTIARY")
+            OneWoW_GUI:BindThemeColor(cell, "border", "BORDER_SUBTLE")
 
             local tex = cell:CreateTexture(nil, "ARTWORK")
             tex:SetPoint("TOPLEFT", cell, "TOPLEFT", 3, -3)
@@ -433,11 +433,11 @@ function OneWoW_GUI:CreateIconGrid(parent, options)
 
             local function Restyle()
                 if grid._selected == iconName then
-                    cell:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_ACTIVE"))
-                    cell:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_ACCENT"))
+                    OneWoW_GUI:BindThemeColor(cell, "bg", "BG_ACTIVE")
+                    OneWoW_GUI:BindThemeColor(cell, "border", "BORDER_ACCENT")
                 else
-                    cell:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-                    cell:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+                    OneWoW_GUI:BindThemeColor(cell, "bg", "BG_TERTIARY")
+                    OneWoW_GUI:BindThemeColor(cell, "border", "BORDER_SUBTLE")
                 end
             end
             record.Restyle = Restyle
@@ -445,8 +445,8 @@ function OneWoW_GUI:CreateIconGrid(parent, options)
 
             cell:SetScript("OnEnter", function(myself)
                 if grid._selected ~= iconName then
-                    myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
-                    myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
+                    OneWoW_GUI:BindThemeColor(myself, "bg", "BG_HOVER")
+                    OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_FOCUS")
                 end
                 GameTooltip:SetOwner(myself, "ANCHOR_RIGHT")
                 GameTooltip:SetText(displayName, 1, 1, 1)
@@ -562,8 +562,8 @@ function OneWoW_GUI:CreatePositionGrid(parent, options)
     slot:SetSize(slotSize, slotSize)
     slot:SetPoint("TOPLEFT", widget, "TOPLEFT", 0, -(outerH + gap))
     slot:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    slot:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
-    slot:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+    OneWoW_GUI:BindThemeColor(slot, "bg", "BG_PRIMARY")
+    OneWoW_GUI:BindThemeColor(slot, "border", "BORDER_DEFAULT")
 
     local cellsByPos = {}
 
@@ -575,11 +575,11 @@ function OneWoW_GUI:CreatePositionGrid(parent, options)
 
         local function Restyle()
             if widget._value == pos then
-                btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_ACTIVE"))
-                btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_ACCENT"))
+                OneWoW_GUI:BindThemeColor(btn, "bg", "BG_ACTIVE")
+                OneWoW_GUI:BindThemeColor(btn, "border", "BORDER_ACCENT")
             else
-                btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-                btn:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+                OneWoW_GUI:BindThemeColor(btn, "bg", "BG_TERTIARY")
+                OneWoW_GUI:BindThemeColor(btn, "border", "BORDER_SUBTLE")
             end
         end
         Restyle()
@@ -587,8 +587,8 @@ function OneWoW_GUI:CreatePositionGrid(parent, options)
 
         btn:SetScript("OnEnter", function(myself)
             if widget._value ~= pos then
-                myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
-                myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
+                OneWoW_GUI:BindThemeColor(myself, "bg", "BG_HOVER")
+                OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_FOCUS")
             end
             GameTooltip:SetOwner(myself, "ANCHOR_RIGHT")
             GameTooltip:SetText(pos, 1, 1, 1)

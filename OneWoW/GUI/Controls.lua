@@ -102,7 +102,7 @@ function OneWoW_GUI:CreateToggleRow(parent, options)
         OneWoW_GUI:SafeSetFont(descFs, OneWoW_GUI:GetFont(), 10)
         descFs:SetJustifyH("LEFT")
         descFs:SetWordWrap(true)
-        descFs:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        OneWoW_GUI:BindThemeColor(descFs, "text", "TEXT_MUTED")
 
         if label ~= "" then
             descFs:SetPoint("TOPLEFT", labelFs, "BOTTOMLEFT", 0, -LABEL_DESC_GAP)
@@ -160,14 +160,14 @@ function OneWoW_GUI:CreateToggleRow(parent, options)
     local function rowRefresh(enabled, val)
         refresh(enabled, val)
         if enabled then
-            labelFs:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(labelFs, "text", "TEXT_PRIMARY")
             if descFs then
-                descFs:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+                OneWoW_GUI:BindThemeColor(descFs, "text", "TEXT_MUTED")
             end
         else
-            labelFs:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(labelFs, "text", "TEXT_MUTED")
             if descFs then
-                descFs:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+                OneWoW_GUI:BindThemeColor(descFs, "text", "TEXT_MUTED")
             end
         end
     end
@@ -203,7 +203,7 @@ function OneWoW_GUI:CreateCheckbox(parent, options)
         cb.label:SetJustifyH("LEFT")
     end
     cb.label:SetText(label)
-    cb.label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(cb.label, "text", "TEXT_PRIMARY")
     if labelMaxWidth and labelMaxWidth > 0 then
         cb.label:SetWidth(labelMaxWidth)
         cb.label:SetWordWrap(wrap and true or false)
@@ -256,8 +256,8 @@ function OneWoW_GUI:CreateDropdown(parent, options)
     local dropdown = CreateFrame("Button", nil, parent, "BackdropTemplate")
     dropdown:SetSize(width, height)
     dropdown:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    dropdown:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-    dropdown:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(dropdown, "bg", "BG_SECONDARY")
+    OneWoW_GUI:BindThemeColor(dropdown, "border", "BORDER_SUBTLE")
 
     local text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     OneWoW_GUI:SetFontBaseSize(text, 10)
@@ -268,7 +268,7 @@ function OneWoW_GUI:CreateDropdown(parent, options)
     text:SetJustifyV("MIDDLE")
     text:SetWordWrap(false)
     text:SetText(defaultText)
-    text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(text, "text", "TEXT_PRIMARY")
 
     local arrow = dropdown:CreateTexture(nil, "OVERLAY")
     arrow:SetSize(12, 12)
@@ -276,10 +276,10 @@ function OneWoW_GUI:CreateDropdown(parent, options)
     arrow:SetTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up")
 
     dropdown:SetScript("OnEnter", function(myself)
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
+        OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_FOCUS")
     end)
     dropdown:SetScript("OnLeave", function(myself)
-        myself:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+        OneWoW_GUI:BindThemeColor(myself, "border", "BORDER_SUBTLE")
     end)
 
     dropdown._text = text
@@ -451,10 +451,10 @@ local function EnsureFilterMenu()
     searchBox:SetAutoFocus(false)
     searchBox:SetMaxLetters(50)
     searchBox:SetScript("OnEditFocusGained", function(s)
-        s:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_FOCUS"))
+        OneWoW_GUI:BindThemeColor(s, "border", "BORDER_FOCUS")
     end)
     searchBox:SetScript("OnEditFocusLost", function(s)
-        s:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+        OneWoW_GUI:BindThemeColor(s, "border", "BORDER_SUBTLE")
     end)
     searchBox:SetScript("OnTextChanged", function(s)
         RenderFilterList(s:GetText():lower())
@@ -507,13 +507,13 @@ local function AddHeader(item)
     local header = Acquire("header", BuildHeader)
     OneWoW_GUI:SafeSetFont(header, OneWoW_GUI:GetFont(), 12)
     header:SetText(item.text)
-    header:SetTextColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(header, "text", "ACCENT_PRIMARY")
     tinsert(FM.elements, { frame = header, type = "header", height = 24 })
 end
 
 local function AddDivider()
     local divider = Acquire("divider", BuildDivider)
-    divider:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(divider, "texture", "BORDER_SUBTLE")
     tinsert(FM.elements, { frame = divider, type = "divider", height = 10 })
 end
 
@@ -524,15 +524,15 @@ local function AddCheckbox(item)
     cb:SetChecked(item.checked or false)
     OneWoW_GUI:SafeSetFont(label, OneWoW_GUI:GetFont(), 12)
     label:SetText(item.text)
-    label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(label, "text", "TEXT_PRIMARY")
 
     row:SetScript("OnEnter", function(r)
-        r:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
-        label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+        OneWoW_GUI:BindThemeColor(r, "bg", "BG_HOVER")
+        OneWoW_GUI:BindThemeColor(label, "text", "TEXT_ACCENT")
     end)
     row:SetScript("OnLeave", function(r)
         r:SetBackdropColor(0, 0, 0, 0)
-        label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(label, "text", "TEXT_PRIMARY")
     end)
 
     local onToggle = item.onToggle
@@ -563,9 +563,9 @@ local function AddItem(item, activeValue, dropdown, onSelect)
     local isActive = activeValue == item.value
 
     if isActive then
-        btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(btn, "bg", "ACCENT_PRIMARY")
     else
-        btn:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
+        OneWoW_GUI:BindThemeColor(btn, "bg", "BG_TERTIARY")
     end
 
     local leftPad = 8
@@ -587,7 +587,7 @@ local function AddItem(item, activeValue, dropdown, onSelect)
     if hasRight then
         OneWoW_GUI:SafeSetFont(rightFS, OneWoW_GUI:GetFont(), item.fontSize or 12)
         rightFS:SetText(item.rightText)
-        rightFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+        OneWoW_GUI:BindThemeColor(rightFS, "text", "TEXT_SECONDARY")
         rightFS:Show()
     else
         rightFS:SetText("")
@@ -604,14 +604,14 @@ local function AddItem(item, activeValue, dropdown, onSelect)
     end
     local label = item.text or item.value or ""
     txt:SetText(label)
-    txt:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(txt, "text", "TEXT_PRIMARY")
 
     btn:SetScript("OnEnter", function(b)
         if not isActive then
-            b:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
-            txt:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+            OneWoW_GUI:BindThemeColor(b, "bg", "BG_HOVER")
+            OneWoW_GUI:BindThemeColor(txt, "text", "TEXT_ACCENT")
             if hasRight then
-                rightFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+                OneWoW_GUI:BindThemeColor(rightFS, "text", "TEXT_ACCENT")
             end
         end
         local tip = item.tooltip
@@ -634,10 +634,10 @@ local function AddItem(item, activeValue, dropdown, onSelect)
     end)
     btn:SetScript("OnLeave", function(b)
         if not isActive then
-            b:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-            txt:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(b, "bg", "BG_TERTIARY")
+            OneWoW_GUI:BindThemeColor(txt, "text", "TEXT_PRIMARY")
             if hasRight then
-                rightFS:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+                OneWoW_GUI:BindThemeColor(rightFS, "text", "TEXT_SECONDARY")
             end
         end
         if item.tooltip then
@@ -728,20 +728,20 @@ function OneWoW_GUI:AttachFilterMenu(dropdown, options)
             menu:SetPoint("TOPLEFT", myself, "BOTTOMLEFT", 0, -2)
         end
 
-        menu:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_SECONDARY"))
-        menu:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+        OneWoW_GUI:BindThemeColor(menu, "bg", "BG_SECONDARY")
+        OneWoW_GUI:BindThemeColor(menu, "border", "BORDER_DEFAULT")
         FM.wasDown = IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton")
 
         local contentTopY = -2
         searchBox:SetText("")
         if searchable then
             searchBox:SetSize(width - 15, 28)
-            searchBox:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-            searchBox:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
-            searchBox:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(searchBox, "bg", "BG_TERTIARY")
+            OneWoW_GUI:BindThemeColor(searchBox, "border", "BORDER_SUBTLE")
+            OneWoW_GUI:BindThemeColor(searchBox, "text", "TEXT_PRIMARY")
             searchBox:Show()
             FM.separator:SetSize(width - 4, 1)
-            FM.separator:SetColorTexture(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+            OneWoW_GUI:BindThemeColor(FM.separator, "texture", "BORDER_DEFAULT")
             FM.separator:Show()
             contentTopY = -36
         else
@@ -853,7 +853,7 @@ function OneWoW_GUI:CreateSlider(parent, options)
     OneWoW_GUI:SafeSetFont(valLabel, OneWoW_GUI:GetFont(), 12)
     valLabel:SetPoint("LEFT", slider, "RIGHT", 6, 0)
     valLabel:SetText(formatVal(currentVal))
-    valLabel:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(valLabel, "text", "TEXT_PRIMARY")
 
     self:ConfigureOptionsSliderEnds(slider, formatVal(minVal), formatVal(maxVal))
     if slider.Text then slider.Text:SetText("") end
@@ -910,7 +910,7 @@ function OneWoW_GUI:CreateColorSwatch(parent, options)
     local swatch = CreateFrame("Button", nil, parent, "BackdropTemplate")
     swatch:SetSize(size, size)
     swatch:SetBackdrop(Constants.BACKDROP_SOFT)
-    swatch:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+    OneWoW_GUI:BindThemeColor(swatch, "border", "BORDER_DEFAULT")
 
     local function refresh()
         if getColor then
@@ -1024,15 +1024,15 @@ function OneWoW_GUI:CreateIntegrationRow(parent, options)
     local row = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     row:SetHeight(height)
     row:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    row:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-    row:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(row, "bg", "BG_TERTIARY")
+    OneWoW_GUI:BindThemeColor(row, "border", "BORDER_SUBTLE")
 
     local nameFs = OneWoW_GUI:CreateFS(row, 12)
     nameFs:SetPoint("LEFT", row, "LEFT", 10, 0)
     nameFs:SetJustifyH("LEFT")
     nameFs:SetWordWrap(false)
     nameFs:SetText(displayName)
-    nameFs:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(nameFs, "text", "TEXT_PRIMARY")
 
     local refresh
     if canToggle then
@@ -1053,10 +1053,10 @@ function OneWoW_GUI:CreateIntegrationRow(parent, options)
         nameFs:SetPoint("RIGHT", statusFs, "LEFT", -8, 0)
         if not detected then
             statusFs:SetText(notDetectedText)
-            statusFs:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(statusFs, "text", "TEXT_MUTED")
         else
             statusFs:SetText(detectedText .. " (" .. notCompatibleText .. ")")
-            statusFs:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_WARNING"))
+            OneWoW_GUI:BindThemeColor(statusFs, "text", "TEXT_WARNING")
         end
         refresh = function() end
     end

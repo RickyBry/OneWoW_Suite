@@ -118,18 +118,19 @@ function ns.Profiles.ApplySettings(snapshot, profileName)
         end
     end
 
-    if snapshot.core and snapshot.core.theme    then SyncSettingToChildAddons("theme", snapshot.core.theme) end
+    if snapshot.core and snapshot.core.theme then
+        OneWoW_GUI:ApplyTheme(ns)
+        SyncSettingToChildAddons("theme", snapshot.core.theme)
+    end
     if snapshot.core and snapshot.core.language then ns.Locale:SetLanguage(snapshot.core.language) end
 
     if profileName then
         ns.db.global.activeProfile = profileName
     end
 
-    UI:FullReset()
-    C_Timer.After(0.1, function()
-        UI:Show()
-        UI:SelectSubTab("settings", "profiles")
-    end)
+    UI:RebuildContent()
+    UI:Show("settings")
+    UI:SelectSubTab("settings", "profiles")
 end
 
 function ns.Profiles.AutoSaveDefault()

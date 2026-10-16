@@ -58,8 +58,8 @@ function OneWoW_GUI:CreateMetricPanel(parent, options)
     panel:SetHeight(totalHeight)
     panel._baseHeight = height
     panel:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    panel:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
-    panel:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(panel, "bg", "BG_TERTIARY")
+    OneWoW_GUI:BindThemeColor(panel, "border", "BORDER_SUBTLE")
     panel.extraTooltipLines = {}
 
     local rangeCol = CreateFrame("Frame", nil, panel)
@@ -74,7 +74,7 @@ function OneWoW_GUI:CreateMetricPanel(parent, options)
     rangeHigh:SetPoint("TOPRIGHT", rangeCol, "TOPRIGHT", 0, 0)
     rangeHigh:SetJustifyH("RIGHT")
     rangeHigh:SetText("")
-    rangeHigh:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    OneWoW_GUI:BindThemeColor(rangeHigh, "text", "TEXT_SECONDARY")
     rangeHigh:Hide()
     panel.rangeHigh = rangeHigh
 
@@ -84,7 +84,7 @@ function OneWoW_GUI:CreateMetricPanel(parent, options)
     rangeLow:SetPoint("TOPRIGHT", rangeHigh, "BOTTOMRIGHT", 0, -1)
     rangeLow:SetJustifyH("RIGHT")
     rangeLow:SetText("")
-    rangeLow:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    OneWoW_GUI:BindThemeColor(rangeLow, "text", "TEXT_SECONDARY")
     rangeLow:Hide()
     panel.rangeLow = rangeLow
     -- Back-compat alias used by older callers poking panel.range
@@ -97,7 +97,7 @@ function OneWoW_GUI:CreateMetricPanel(parent, options)
     label:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -8, -6)
     label:SetJustifyH("LEFT")
     label:SetText(labelText)
-    label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    OneWoW_GUI:BindThemeColor(label, "text", "TEXT_SECONDARY")
     panel.label = label
 
     local value = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -105,7 +105,7 @@ function OneWoW_GUI:CreateMetricPanel(parent, options)
     OneWoW_GUI:SafeSetFont(value, OneWoW_GUI:GetFont(), 14)
     value:SetJustifyH("LEFT")
     value:SetText("0")
-    value:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(value, "text", "TEXT_PRIMARY")
     panel.value = value
 
     local delta = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -113,7 +113,7 @@ function OneWoW_GUI:CreateMetricPanel(parent, options)
     OneWoW_GUI:SafeSetFont(delta, OneWoW_GUI:GetFont(), 10)
     delta:SetJustifyH("LEFT")
     delta:SetText("")
-    delta:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    OneWoW_GUI:BindThemeColor(delta, "text", "TEXT_SECONDARY")
     delta:Hide()
     panel.delta = delta
 
@@ -156,7 +156,7 @@ function OneWoW_GUI:CreateMetricPanel(parent, options)
 
     panel:EnableMouse(true)
     panel:SetScript("OnEnter", function(myself)
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BG_HOVER")
         GameTooltip:SetOwner(myself, "ANCHOR_RIGHT")
         GameTooltip:SetText(ttTitle ~= "" and ttTitle or labelText, 1, 1, 1)
         if ttDesc ~= "" then
@@ -171,7 +171,7 @@ function OneWoW_GUI:CreateMetricPanel(parent, options)
         GameTooltip:Show()
     end)
     panel:SetScript("OnLeave", function(myself)
-        myself:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_TERTIARY"))
+        OneWoW_GUI:BindThemeColor(myself, "bg", "BG_TERTIARY")
         GameTooltip:Hide()
     end)
 
@@ -181,9 +181,9 @@ function OneWoW_GUI:CreateMetricPanel(parent, options)
         opts = opts or {}
         self.value:SetText(text ~= nil and tostring(text) or "0")
         if opts.color then
-            self.value:SetTextColor(OneWoW_GUI:GetThemeColor(opts.color))
+            OneWoW_GUI:BindThemeColor(self.value, "text", opts.color)
         else
-            self.value:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(self.value, "text", "TEXT_PRIMARY")
         end
     end
 
@@ -307,17 +307,17 @@ function OneWoW_GUI:CreateMetricPanel(parent, options)
                 local h = max(1, floor((abs(v - mid) / span) * (SPARK_HEIGHT / 2)))
                 if v >= 0 then
                     bar:SetPoint("BOTTOMLEFT", self.spark, "BOTTOMLEFT", x, zeroY)
-                    bar:SetColorTexture(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+                    OneWoW_GUI:BindThemeColor(bar, "texture", "ACCENT_PRIMARY")
                 else
                     bar:SetPoint("TOPLEFT", self.spark, "BOTTOMLEFT", x, zeroY)
-                    bar:SetColorTexture(OneWoW_GUI:GetThemeColor("BTN_DANGER_BORDER"))
+                    OneWoW_GUI:BindThemeColor(bar, "texture", "BTN_DANGER_BORDER")
                 end
                 bar:SetSize(barW, h)
             else
                 local h = max(1, floor(((v - lo) / (hi - lo)) * SPARK_HEIGHT))
                 bar:SetPoint("BOTTOMLEFT", self.spark, "BOTTOMLEFT", x, 0)
                 bar:SetSize(barW, h)
-                bar:SetColorTexture(OneWoW_GUI:GetThemeColor("ACCENT_PRIMARY"))
+                OneWoW_GUI:BindThemeColor(bar, "texture", "ACCENT_PRIMARY")
             end
             bar:Show()
         end

@@ -47,7 +47,7 @@ local function GetMenuRow(index)
     row.alertIcon:SetPoint("LEFT", 4, 0)
     row.alertIcon:SetAtlas("Ping_Chat_Warning")
     row:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_HOVER"))
+        OneWoW_GUI:BindThemeColor(self, "bg", "BG_HOVER")
     end)
     row:SetScript("OnLeave", function(self)
         self:SetBackdropColor(0, 0, 0, 0)
@@ -91,8 +91,8 @@ local function ShowContextMenu(anchorFrame)
 
     local menu = EnsureContextMenu()
     menu:Hide()
-    menu:SetBackdropColor(OneWoW_GUI:GetThemeColor("BG_PRIMARY"))
-    menu:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_DEFAULT"))
+    OneWoW_GUI:BindThemeColor(menu, "bg", "BG_PRIMARY")
+    OneWoW_GUI:BindThemeColor(menu, "border", "BORDER_DEFAULT")
 
     local maxWidth = 140
     for index, item in ipairs(visibleItems) do
@@ -104,7 +104,7 @@ local function ShowContextMenu(anchorFrame)
         row.text:ClearAllPoints()
         row.text:SetPoint("LEFT", hasErrorAlert and 24 or 8, 0)
         row.text:SetText(item.label)
-        row.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        OneWoW_GUI:BindThemeColor(row.text, "text", "TEXT_PRIMARY")
         row:SetBackdropColor(0, 0, 0, 0)
         row.action = item.action
         row:Show()

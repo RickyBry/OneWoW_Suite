@@ -13,16 +13,16 @@ function OneWoW_GUI:CreateStatusDot(parent, options)
     dot:SetTexture(Constants.BACKDROP_SIMPLE.bgFile)
 
     if options.enabled == true then
-        dot:SetVertexColor(OneWoW_GUI:GetThemeColor("DOT_FEATURES_ENABLED"))
+        OneWoW_GUI:BindThemeColor(dot, "vertex", "DOT_FEATURES_ENABLED")
     elseif options.enabled == false then
-        dot:SetVertexColor(OneWoW_GUI:GetThemeColor("DOT_FEATURES_DISABLED"))
+        OneWoW_GUI:BindThemeColor(dot, "vertex", "DOT_FEATURES_DISABLED")
     end
 
     function dot:SetStatus(enabled)
         if enabled then
-            self:SetVertexColor(OneWoW_GUI:GetThemeColor("DOT_FEATURES_ENABLED"))
+            OneWoW_GUI:BindThemeColor(self, "vertex", "DOT_FEATURES_ENABLED")
         else
-            self:SetVertexColor(OneWoW_GUI:GetThemeColor("DOT_FEATURES_DISABLED"))
+            OneWoW_GUI:BindThemeColor(self, "vertex", "DOT_FEATURES_DISABLED")
         end
     end
 
@@ -64,7 +64,7 @@ function OneWoW_GUI:ApplyListRowFill(frame, state)
     else
         fillKey = self:GetZebraThemeKey(state.zebraIndex or frame._zebraIndex or 1)
     end
-    frame:SetBackdropColor(self:GetThemeColor(fillKey))
+    OneWoW_GUI:BindThemeColor(frame, "bg", fillKey)
 end
 
 function OneWoW_GUI:CreateListRowBasic(parent, options)
@@ -82,7 +82,7 @@ function OneWoW_GUI:CreateListRowBasic(parent, options)
     local row = CreateFrame("Button", nil, parent, "BackdropTemplate")
     row:SetHeight(height)
     row:SetBackdrop(Constants.BACKDROP_INNER_NO_INSETS)
-    row:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
+    OneWoW_GUI:BindThemeColor(row, "border", "BORDER_SUBTLE")
     row.isActive = false
 
     local useZebra = options.zebra ~= false
@@ -133,7 +133,7 @@ function OneWoW_GUI:CreateListRowBasic(parent, options)
 
     if showValueText then
         row.valueText = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        row.valueText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        OneWoW_GUI:BindThemeColor(row.valueText, "text", "TEXT_MUTED")
         row.valueText:SetJustifyH("RIGHT")
         row.valueText:SetText(valueText)
     end
@@ -168,28 +168,28 @@ function OneWoW_GUI:CreateListRowBasic(parent, options)
     end
     row.label:SetJustifyH("LEFT")
     row.label:SetText(labelText)
-    row.label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(row.label, "text", "TEXT_PRIMARY")
 
     function row:SetActive(active)
         self.isActive = active
         if active then
             OneWoW_GUI:ApplyListRowFill(self, { selected = true })
-            self:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_ACCENT"))
-            self.label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+            OneWoW_GUI:BindThemeColor(self, "border", "BORDER_ACCENT")
+            OneWoW_GUI:BindThemeColor(self.label, "text", "TEXT_ACCENT")
         else
             OneWoW_GUI:ApplyListRowFill(self, {
                 zebraIndex = self._zebraIndex,
                 fillKey = self._idleFillKey,
             })
-            self:SetBackdropBorderColor(OneWoW_GUI:GetThemeColor("BORDER_SUBTLE"))
-            self.label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(self, "border", "BORDER_SUBTLE")
+            OneWoW_GUI:BindThemeColor(self.label, "text", "TEXT_PRIMARY")
         end
     end
 
     row:SetScript("OnEnter", function(myself)
         if not myself.isActive then
             OneWoW_GUI:ApplyListRowFill(myself, { hover = true })
-            myself.label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_ACCENT"))
+            OneWoW_GUI:BindThemeColor(myself.label, "text", "TEXT_ACCENT")
         end
     end)
     row:SetScript("OnLeave", function(myself)
@@ -198,7 +198,7 @@ function OneWoW_GUI:CreateListRowBasic(parent, options)
                 zebraIndex = myself._zebraIndex,
                 fillKey = myself._idleFillKey,
             })
-            myself.label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+            OneWoW_GUI:BindThemeColor(myself.label, "text", "TEXT_PRIMARY")
         end
     end)
 

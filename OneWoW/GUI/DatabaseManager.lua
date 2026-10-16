@@ -55,7 +55,7 @@ function OneWoW_GUI:CreateDatabaseManagerRow(parent, options)
     local sizeText = OneWoW_GUI:CreateFS(container, 10)
     sizeText:SetJustifyH("RIGHT")
     sizeText:SetPoint("RIGHT", resetBtn, "LEFT", -12, 0)
-    sizeText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    OneWoW_GUI:BindThemeColor(sizeText, "text", "TEXT_SECONDARY")
 
     local nameText = OneWoW_GUI:CreateFS(container, 12)
     nameText:SetJustifyH("LEFT")
@@ -63,7 +63,7 @@ function OneWoW_GUI:CreateDatabaseManagerRow(parent, options)
     nameText:SetPoint("TOPLEFT", container, "TOPLEFT", 12, -10)
     nameText:SetPoint("RIGHT", sizeText, "LEFT", -12, 0)
     nameText:SetText(name)
-    nameText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+    OneWoW_GUI:BindThemeColor(nameText, "text", "TEXT_PRIMARY")
 
     local descText = OneWoW_GUI:CreateFS(container, 10)
     descText:SetJustifyH("LEFT")
@@ -71,16 +71,16 @@ function OneWoW_GUI:CreateDatabaseManagerRow(parent, options)
     descText:SetPoint("TOPLEFT", container, "TOPLEFT", 12, -28)
     descText:SetPoint("RIGHT", sizeText, "LEFT", -12, 0)
     descText:SetText(description)
-    descText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    OneWoW_GUI:BindThemeColor(descText, "text", "TEXT_SECONDARY")
 
     local function UpdateSize()
         local count = getEntryCount and getEntryCount()
         if count ~= nil then
             sizeText:SetText(string.format(L["DATABASE_MANAGER_ENTRIES"], count))
-            sizeText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+            OneWoW_GUI:BindThemeColor(sizeText, "text", "TEXT_SECONDARY")
         else
             sizeText:SetText(L["DATABASE_MANAGER_NOT_LOADED"])
-            sizeText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_WARNING"))
+            OneWoW_GUI:BindThemeColor(sizeText, "text", "TEXT_WARNING")
         end
     end
     UpdateSize()
@@ -107,7 +107,7 @@ function OneWoW_GUI:CreateDatabaseManagerRow(parent, options)
         end)
     else
         if resetBtn.text then
-            resetBtn.text:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+            OneWoW_GUI:BindThemeColor(resetBtn.text, "text", "TEXT_MUTED")
         end
         resetBtn:SetScript("OnEnter", function(myself)
             GameTooltip:SetOwner(myself, "ANCHOR_LEFT")

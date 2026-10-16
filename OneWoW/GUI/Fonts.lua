@@ -388,13 +388,10 @@ end
 -- ============================================================================
 -- Font-root registry
 -- ============================================================================
--- The main OneWoW window re-applies fonts by rebuilding itself on font change
--- (ResetGUIOnSettingChange -> UI:FullReset). Frames that live *outside* that
--- window — standalone dialogs, and panels docked to Blizzard frames (Auction
--- House, merchant, etc.) — are not caught by that rebuild, so their text keeps
--- the size it had at creation until the next /reload.
---
--- A font root is any such frame that opts in to automatic font handling. On a
+-- A font root is a frame that opts in to automatic font handling: the main
+-- OneWoW window, standalone dialogs, and panels docked to Blizzard frames
+-- (Auction House, merchant, etc.). Without it their text keeps the size it had
+-- at creation until the next /reload. On a
 -- font / font-size change the driver below re-applies fonts across the whole
 -- subtree (ApplyFontToFrame) and runs an optional re-flow callback so a stack
 -- that measures its text can re-space itself. CreateDialog registers every
