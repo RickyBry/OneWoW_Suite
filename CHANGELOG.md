@@ -3,8 +3,11 @@
 - Dropdown menus, the minimap button menu, profile dialogs, and item lists reuse what they built the first time, so opening them over a long session no longer adds memory or slows the game.
 - Changing the theme, font, font size, or language updates the OneWoW window in place instead of closing and rebuilding it, and switching back and forth no longer adds memory.
 - Open dialogs and panels docked to game windows switch to a new theme right away.
+- Bag overlays and searches update faster when you loot, sort, or move items, because item details are no longer looked up again on every bag change.
+- Browsing the Auction House, vendors, or Catalog for a long session no longer keeps growing memory for item tooltips and searches.
 
 ## Fixes
+- The AFK screen's session time shows how long you have been logged in, instead of how long your computer has been on.
 - Quest dialogs no longer report an error when Catalog is turned off.
 - Deleted preset overlays stay deleted after a reload.
 - The Overlays settings Preview stays in its own column instead of sliding under the settings after you click through a few overlays.

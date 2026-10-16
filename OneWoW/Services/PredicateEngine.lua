@@ -54,15 +54,22 @@ local GetCursorInfo = GetCursorInfo
 --                        property table (slot-overlay applied over base).
 -- identityPropsCache:    keyed by item-identity (hyperlink or itemID/pet stats),
 --                        stores the slot-INDEPENDENT subset of props. Shared
---                        across every slot holding the same item.
+--                        across every slot holding the same item. Survives bag
+--                        ticks; soft-capped (BoundedCache) because AH / vendor
+--                        surfaces feed it open-ended identities.
 -- tooltip caches: owned by TooltipScanner (bagDataCache, linkDataCache,
 -- bagTextCache, linkTextCache). PredicateEngine forwards through thin wrappers.
 -- compiledCache:         keyed by expression string, stores compiled
---                        function(props)->bool.
+--                        function(props)->bool. Soft-capped: search-box typing
+--                        compiles a new string per keystroke. Expressions in
+--                        steady use (saved searches, categories) stay warm.
+
+local IDENTITY_CACHE_CAP = 1000
+local COMPILED_CACHE_CAP = 256
 
 local propsCache = {}
-local identityPropsCache = {}
-local compiledCache = {}
+local identityPropsCache = ns.BoundedCache.New(IDENTITY_CACHE_CAP)
+local compiledCache = ns.BoundedCache.New(COMPILED_CACHE_CAP)
 --- Bank usability fallback keyed by GetItemIdentityKey (character-level, not per-slot).
 local characterUsableCache = {}
 --- Combine-item reagent lists keyed by itemID: false = not a combine item,
@@ -2478,8 +2485,8 @@ local function PopulateBaseProps(props, itemID, hyperlink)
     props.hasSocket = socketCount > 0
     props.sockets   = socketCount
 
-    -- ---- Equipped status ----
-    props.isEquipped = C_Item.IsEquippedItem(itemID) == true
+    -- isEquipped: per-slot overlay in BuildProps (equipping changes it without
+    -- touching this identity).
 
     -- ---- Battle pet cage override ----
     if itemID == BATTLE_PET_CAGE_ID then
@@ -2624,7 +2631,7 @@ end
 -- vs identityMiss) so /owbprof can show cache effectiveness.
 local function GetOrCreateIdentityProps(itemID, hyperlink)
     local key = GetItemIdentityKey(itemID, hyperlink)
-    local cached = identityPropsCache[key]
+    local cached = identityPropsCache:Get(key)
     local Profile = OneWoW_Bags_API and OneWoW_Bags_API.GetProfile()
     if cached then
         if Profile then
@@ -2641,7 +2648,7 @@ local function GetOrCreateIdentityProps(itemID, hyperlink)
 
     local base = {}
     PopulateBaseProps(base, itemID, hyperlink)
-    identityPropsCache[key] = base
+    identityPropsCache:Set(key, base)
 
     if Profile then
         Profile:Stop("PE:BuildProps.PopulateBaseProps")
@@ -2760,6 +2767,7 @@ function PE:BuildProps(itemID, bagID, slotID, itemInfo)
     props._bagID    = bagID
     props._slotID   = slotID
     props.hyperlink = hyperlink
+    props.isEquipped = C_Item.IsEquippedItem(itemID) == true
 
     -- Fresh per-slot equipmentSetList so we don't mutate the base's empty table.
     props.equipmentSetList = {}
@@ -3439,15 +3447,16 @@ end
 function PE:Compile(expr)
     if not expr or expr == "" then return nil end
 
-    if compiledCache[expr] then
-        return compiledCache[expr]
+    local cached = compiledCache:Get(expr)
+    if cached then
+        return cached
     end
 
     local singleKeyword = strmatch(expr, "^%s*#([%w_]+)%s*$")
     if singleKeyword then
         local fn = ResolveKeywordFn(strlower(singleKeyword))
         if fn then
-            compiledCache[expr] = fn
+            compiledCache:Set(expr, fn)
             return fn
         end
     end
@@ -3459,7 +3468,7 @@ function PE:Compile(expr)
             local compiled = function(props)
                 return not fn(props)
             end
-            compiledCache[expr] = compiled
+            compiledCache:Set(expr, compiled)
             return compiled
         end
     end
@@ -3476,7 +3485,7 @@ function PE:Compile(expr)
         return nil, "Parse error: " .. tostring(funcOrErr)
     end
 
-    compiledCache[expr] = funcOrErr
+    compiledCache:Set(expr, funcOrErr)
     return funcOrErr
 end
 
@@ -3677,7 +3686,7 @@ function PE:RegisterKeyword(nameOrNames, func)
     -- after login, so a user token of the same name may already be resolved and
     -- cached; dropping the cache here is what makes the new built-in shadow it.
     wipe(resolvedTokens)
-    wipe(compiledCache)
+    compiledCache:Wipe()
 end
 
 --- True when name is a built-in/registered keyword (not merely a user token).
@@ -3712,7 +3721,7 @@ end
 --- have embedded one. Called by the resolver's owner on any change to its data.
 function PE:InvalidateKeywordTokens()
     wipe(resolvedTokens)
-    wipe(compiledCache)
+    compiledCache:Wipe()
 end
 
 --- List every registered keyword in registration order.
@@ -3813,16 +3822,16 @@ function PE:RegisterProperty(nameOrNames, def)
     -- before it existed compiled to always-false, and that compile is cached
     -- per token as well as per expression.
     wipe(resolvedTokens)
-    wipe(compiledCache)
+    compiledCache:Wipe()
 end
 
 --- Invalidate all caches
 function PE:InvalidateCache()
     wipe(resolvedTokens)
-    wipe(compiledCache)
+    compiledCache:Wipe()
     wipe(propsCache)
     Scanner:InvalidateTooltipCaches()
-    wipe(identityPropsCache)
+    identityPropsCache:Wipe()
     wipe(characterUsableCache)
     wipe(combineSchematicCache)
     currentSeasonLabelCache = nil
@@ -3830,20 +3839,29 @@ function PE:InvalidateCache()
     knownProfs = nil
 end
 
---- Invalidate props and slot-tier tooltip caches (lighter, for frequent events
---- like BAG_UPDATE_DELAYED). Compiled expressions are still valid since the
---- grammar didn't change. Also wipes identity-tier props since some fields
---- (collection state, equipped status) can shift between bag updates.
+--- Slot tier only: per-slot props and slot-keyed tooltip caches. The bag-tick
+--- invalidation (Inventory's BAG_UPDATE_DELAYED batch): slot contents moved,
+--- item identities did not.
 ---
---- Deliberately preserved across bag updates (their inputs are item templates
---- + character context, not bag contents):
+--- Deliberately preserved (their inputs are item templates + character or
+--- collection state, not bag contents):
+---   - identityPropsCache (collection/housing events below, junk changes and
+---     InvalidatePropsCache / InvalidateCharacterContext wipe it)
 ---   - Scanner link-tier tooltip caches (hyperlink-keyed template tooltips)
 ---   - characterUsableCache (wiped by InvalidateCharacterContext /
 ---     InvalidateCache; surgically evicted by InvalidateItemIDs)
-function PE:InvalidatePropsCache()
+function PE:InvalidateSlotProps()
     wipe(propsCache)
     Scanner:InvalidateSlotTooltipCaches()
-    wipe(identityPropsCache)
+end
+
+--- Slot tier plus identity tier. For external predicate inputs that change
+--- item-level answers (collections, junk marks, recipes learned): the
+--- Overlays engine's InvalidateAndRequestRefresh and OneWoW_Bags.
+--- Compiled expressions stay valid since the grammar didn't change.
+function PE:InvalidatePropsCache()
+    self:InvalidateSlotProps()
+    identityPropsCache:Wipe()
 end
 
 --- Character-context invalidation (level up, spec/talent change, skill lines).
@@ -3882,15 +3900,14 @@ function PE:InvalidateItemIDs(idSet)
         end
     end
 
-    for key, entry in pairs(identityPropsCache) do
-        if entry.id and idSet[entry.id] then
-            identityPropsCache[key] = nil
-            local hyperlink = entry.hyperlink
-            if hyperlink then
-                Scanner:InvalidateHyperlink(hyperlink)
-            end
+    identityPropsCache:RemoveWhere(function(_, entry)
+        if not (entry.id and idSet[entry.id]) then return false end
+        local hyperlink = entry.hyperlink
+        if hyperlink then
+            Scanner:InvalidateHyperlink(hyperlink)
         end
-    end
+        return true
+    end)
 
     EvictCharacterUsableCache(idSet)
 
@@ -4232,3 +4249,21 @@ ns.RegisterEvent("SKILL_LINES_CHANGED", "PredicateEngine", function()
     PE:InvalidateKnownProfessions()
     OnCharacterContextChanged()
 end)
+
+-- Collection and housing state lives in the identity tier, which bag ticks no
+-- longer wipe. PE owns this so it holds whether or not Overlays is running.
+local function OnCollectionChanged()
+    PE:InvalidatePropsCache()
+end
+
+for _, event in ipairs({
+    "TRANSMOG_COLLECTION_UPDATED",
+    "NEW_MOUNT_ADDED",
+    "NEW_PET_ADDED",
+    "NEW_TOY_ADDED",
+    "HEIRLOOMS_UPDATED",
+    "HOUSING_STORAGE_UPDATED",
+    "HOUSING_STORAGE_ENTRY_UPDATED",
+}) do
+    ns.RegisterEvent(event, "PredicateEngine", OnCollectionChanged)
+end

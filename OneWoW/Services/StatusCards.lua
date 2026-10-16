@@ -279,7 +279,7 @@ local function CollectAttention()
     end
     OneWoW:BringUp("OneWoW_AltTracker")
     local api = OneWoW_AltTracker_API
-    if not api or not api.GetAttentionSummary then
+    if not api then
         return empty
     end
     return api.GetAttentionSummary()
@@ -569,7 +569,16 @@ local function CollectBonusEventLine()
     return titles[1]
 end
 
+-- Walking every mount ID is ~1,000+ API calls; the count only moves when a
+-- mount is learned.
+local collectedMountCount = nil
+
+ns.RegisterEvent("NEW_MOUNT_ADDED", "StatusCards", function()
+    collectedMountCount = nil
+end)
+
 local function CountCollectedMounts()
+    if collectedMountCount then return collectedMountCount end
     local n = 0
     local ids = C_MountJournal.GetMountIDs()
     for i = 1, #ids do
@@ -577,6 +586,7 @@ local function CountCollectedMounts()
             n = n + 1
         end
     end
+    collectedMountCount = n
     return n
 end
 
@@ -586,7 +596,7 @@ local function CollectIdleLine(opts)
     end
     local kind = opts.idleKind
     if kind == "session" then
-        return string.format(L["STATUSCARD_LABELED_VALUE"], TIME_PLAYED_MSG, CompactDuration(GetTime()))
+        return string.format(L["STATUSCARD_LABELED_VALUE"], L["SESSION"], CompactDuration(GetSessionTime()))
     elseif kind == "mounts" then
         return string.format(L["STATUSCARD_LABELED_VALUE"], MOUNTS, tostring(CountCollectedMounts()))
     elseif kind == "pets" then
@@ -818,7 +828,7 @@ local function CollectFarmingAlerts(place)
     end
     OneWoW:BringUp("OneWoW_Notes")
     local api = OneWoW_Notes_API
-    if not api or not api.FindFarmingNotesForPlace then
+    if not api then
         return {}
     end
     local names = {}
@@ -857,7 +867,7 @@ local function CollectTrackerAlerts(place)
     end
     OneWoW:BringUp("OneWoW_Trackers")
     local api = OneWoW_Trackers_API
-    if not api or not api.GetIncompleteHitsForMap then
+    if not api then
         return {}
     end
     local mapIDs = {}
@@ -882,18 +892,18 @@ local function LookupCurrentPlace(api)
     local instName, instanceType, _, diffName, _, _, _, instanceMapID = GetInstanceInfo()
     local uiMapID = C_Map.GetBestMapForUnit("player")
     local instData
-    if instanceMapID and instanceType and instanceType ~= "none" and api.GetInstancesByMapID then
+    if instanceMapID and instanceType and instanceType ~= "none" then
         local all = api.GetInstancesByMapID(instanceMapID)
         instData = all[#all]
     end
-    if not instData and uiMapID and api.GetZoneInstance then
+    if not instData and uiMapID then
         instData = api.GetZoneInstance(nil, uiMapID)
     end
-    if not instData and uiMapID and api.GetInstancesByMapID then
+    if not instData and uiMapID then
         local all = api.GetInstancesByMapID(uiMapID)
         instData = all[#all]
     end
-    if not instData and instanceMapID and api.GetInstancesByMapID then
+    if not instData and instanceMapID then
         local all = api.GetInstancesByMapID(instanceMapID)
         instData = all[#all]
     end
@@ -971,16 +981,16 @@ function StatusCards:CollectHere(opts)
     end
     local displayZone = zoneText
     local api = OneWoW_Notes_API
-    if api and api.GetCurrentZoneName then
+    if api then
         local currentName = api.GetCurrentZoneName()
         if currentName and currentName ~= "" then
             displayZone = currentName
         end
     end
-    local zoneMatches = (api and api.FindMatchingZoneNotes) and api.FindMatchingZoneNotes(zoneText, subZoneText) or {}
+    local zoneMatches = api and api.FindMatchingZoneNotes(zoneText, subZoneText) or {}
     local first = zoneMatches[1]
     local mapID = C_Map.GetBestMapForUnit("player")
-    local pins = (api and api.GetWayPinsForMap and mapID) and api.GetWayPinsForMap(mapID) or {}
+    local pins = (api and mapID) and api.GetWayPinsForMap(mapID) or {}
     return {
         place = place,
         displayZone = displayZone,
@@ -2204,7 +2214,7 @@ local function FillZoneNotes(panel, zoneData, pins)
                 fs:SetWordWrap(false)
                 btn.label = fs
                 btn:SetScript("OnClick", function(myself)
-                    if myself.pinID and OneWoW_Notes_API and OneWoW_Notes_API.TrackWayPin then
+                    if myself.pinID and OneWoW_Notes_API then
                         OneWoW_Notes_API.TrackWayPin(myself.pinID)
                     end
                 end)

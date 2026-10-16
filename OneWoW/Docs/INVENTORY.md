@@ -81,8 +81,8 @@ Re-registering an `ownerID` on a channel replaces the prior handler. Fan-out
 uses `Lifecycle.SafeCall` so one bad consumer cannot kill the rest. All channels
 share one event refcount (0→1 arm / 1→0 tear-down).
 
-On each `BAG_UPDATE_DELAYED`, Inventory calls `PE:InvalidatePropsCache()` once
-before fanning the delayed channel.
+On each `BAG_UPDATE_DELAYED`, Inventory calls `PE:InvalidateSlotProps()` once
+before fanning the delayed channel (slot tier only; item identities survive).
 
 ## Container types + scan helpers
 

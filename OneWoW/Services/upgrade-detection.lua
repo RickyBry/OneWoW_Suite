@@ -140,17 +140,23 @@ function UpgradeDetection:GetBestPawnScore(itemLink)
     return nil, nil
 end
 
+-- In Pawn modes OneWoW's Gear Comparison line replaces Pawn's tooltip values.
+-- Pawn has no setting for that: its per-scale Visible flag also drives the
+-- upgrade arrows this module reads. So the global is wrapped. Pawn calls it
+-- through the global, and the wrapper forwards every argument to whatever was
+-- installed before it, so wrappers from other addons chain either side. Pawn
+-- is third-party, insecure code; wrapping it spreads no taint.
 function UpgradeDetection:HookPawnTooltips()
     if not PawnAddValuesToTooltip then return end
     if self.pawnTooltipHooked then return end
 
     local originalFn = PawnAddValuesToTooltip
-    PawnAddValuesToTooltip = function(tooltip, itemValues, upgradeInfo, bestItemFor, secondBestItemFor, needsEnhancements, onlyFirstValue)
+    PawnAddValuesToTooltip = function(...)
         local mode = GetMode()
         if mode == "PAWN" or mode == "PAWN>ILVL" then
             return
         end
-        return originalFn(tooltip, itemValues, upgradeInfo, bestItemFor, secondBestItemFor, needsEnhancements, onlyFirstValue)
+        return originalFn(...)
     end
 
     self.pawnTooltipHooked = true

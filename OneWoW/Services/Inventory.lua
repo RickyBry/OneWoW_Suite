@@ -191,8 +191,9 @@ function OnEvent(event, ...)
     if event == "BAG_UPDATE_DELAYED" then
         local dirty = dirtyBags
         dirtyBags = {}
-        -- Single props wipe per delayed batch for PE consumers.
-        PE:InvalidatePropsCache()
+        -- Single slot-tier wipe per delayed batch for PE consumers; item
+        -- identities did not change.
+        PE:InvalidateSlotProps()
         FireChannel(delayedCallbacks, "delayed", dirty)
         return
     end

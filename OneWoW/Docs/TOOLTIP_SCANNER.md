@@ -19,7 +19,7 @@ published as `OneWoW.TooltipScanner` via the Facade.
 | Kind | API | Cached |
 | --- | --- | --- |
 | Bag slot | `GetBagItemData(bagID, slotID)` | Per `bagID:slotID` |
-| Hyperlink (identity) | `GetHyperlinkData(hyperlink)` | Per hyperlink |
+| Hyperlink (identity) | `GetHyperlinkData(hyperlink)` | Per hyperlink, soft cap 1,000 per generation (`ns.BoundedCache`) |
 | Item template | `GetItemByIDData(itemID)` | No |
 | Merchant row | `GetMerchantItemData(index)` | No (ephemeral) |
 | Unified | `ResolveItemData(context)` | Uses tiers above |
@@ -27,8 +27,12 @@ published as `OneWoW.TooltipScanner` via the Facade.
 `context` table: `{ itemID?, hyperlink?, bagID?, slotID?, tooltipData?, merchantIndex? }`.
 
 Precedence for `ResolveItemData`: live `tooltipData` → bag slot → merchant →
-hyperlink → `GetItemByID`. Bag-slot lookup auto-scans bags 0–5 and bank tabs
-6–17 when `itemID` is given without slot coordinates.
+hyperlink → `GetItemByID`. When `itemID` is given without slot coordinates,
+the slot comes from `FindBagSlotForItem`: an itemID → first slot map over bags
+0–5 and bank tabs 6–17, built on first use and marked stale by the
+`OneWoW.Inventory` delayed / bank channels. A hit is re-checked against the
+slot and rebuilds the map when contents moved. Pass `bagID` / `slotID` when you
+already know them.
 
 `GetPropsData(props)` — PredicateEngine shape: bag slot first, then
 `props.hyperlink`.
@@ -57,7 +61,7 @@ Empty strings are **not** cached so pre-streaming evaluations can retry.
 | `GetAllowedClassIDs(tooltipData)` | `UsageRequirement` + `ITEM_CLASSES_ALLOWED` → `{ [classID]=true }` for `#myclass` / `forclass=` (nil when no Classes line; ignores red/white) |
 | `ScanRedRequirementLines(tooltipData)` | Red unmet-requirement lines (bag, merchant, …). `ErrorLine`/`DisabledLine` only count when **red** — grey `DisabledLine`s are inactive off-spec stat variants, not failures |
 | `GetUsabilityFacts(tooltipData)` | Single-pass `{ learnSpellID?, directUse, unmetRequirements }` for `#usable` fallback. `unmetRequirements` is red-colored lines only. Combine items are **not** detectable from tooltip data (reagent lists on live tooltips are addon-injected); PE detects them via `GetItemSpell` → `GetRecipeSchematic` |
-| `HasItemInAccessibleBags(itemID)` | Copy in backpack / bags / reagent bag (0–5) |
+| `HasItemInAccessibleBags(itemID)` | Copy in backpack / bags / reagent bag (0–5), from the slot map |
 | `NeedsUsabilityFallback(bagID, itemID)` | Bank-only `IsUsableItem` false-negative gate |
 | `ScanMerchantBlockReason(index)` | Merchant snapshot + red-line scan |
 | `PopulateTooltipProps(props, opts?)` | Fill lazy PE tooltip fields (`hasUseAbility`, `isAlreadyKnown`, `isTradeableLoot` via `TradeTimeRemaining`, …); optional `opts.recipeAlreadyKnown` bridge |
@@ -85,7 +89,8 @@ Empty strings are **not** cached so pre-streaming evaluations can retry.
 | `InvalidateHyperlink(hyperlink)` | Surgical hyperlink eviction |
 
 **PredicateEngine** calls `InvalidateSlotTooltipCaches()` from
-`PE:InvalidatePropsCache()` (e.g. `BAG_UPDATE_DELAYED`), the full
+`PE:InvalidateSlotProps()` (every `BAG_UPDATE_DELAYED`) and
+`PE:InvalidatePropsCache()`, the full
 `InvalidateTooltipCaches()` from `PE:InvalidateCharacterContext()` /
 `PE:InvalidateCache()`, and surgical eviction from `PE:InvalidateItemIDs()`.
 

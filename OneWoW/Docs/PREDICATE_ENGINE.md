@@ -61,12 +61,12 @@ Other binding values (`BindOnEquip`, `BindOnUse`, `Soulbound`, account variants,
 
 | Cache | Key | Contents | Cleared by |
 |---|---|---|---|
-| `propsCache` | `"bagID:slotID"` (slot context) or item-identity key (no slot) | Result of `BuildProps`: per-slot props or identity-only props | `InvalidatePropsCache`, `InvalidateCache`, matching entries in `InvalidateItemIDs` |
-| `identityPropsCache` | item-identity key | Slot-independent base props shared by every slot holding the same item identity | `InvalidatePropsCache`, `InvalidateCache`, matching entries in `InvalidateItemIDs` |
+| `propsCache` | `"bagID:slotID"` (slot context) or item-identity key (no slot) | Result of `BuildProps`: per-slot props or identity-only props | `InvalidateSlotProps` (every bag tick), `InvalidatePropsCache`, `InvalidateCache`, matching entries in `InvalidateItemIDs` |
+| `identityPropsCache` | item-identity key | Slot-independent base props shared by every slot holding the same item identity. **Survives bag updates.** Soft cap of 1,000 entries per generation (`ns.BoundedCache`); entries used since the last rotation survive it | `InvalidatePropsCache` (collection / housing events, junk marks, recipes learned, Bags `props` scope), `InvalidateCharacterContext`, `InvalidateCache`, matching entries in `InvalidateItemIDs` |
 | `characterUsableCache` | item-identity key | `ResolveCharacterUsable` fallback verdicts (`#usable` for bank/warband-only stacks). **Survives bag updates** — inputs are item template + character context, not bag contents. Combine-item verdicts are never stored here (they depend on live inventory counts) | `InvalidateCharacterContext`, `InvalidateCache`, matching entries in `InvalidateItemIDs` |
 | `combineSchematicCache` | `itemID` | Combine-item reagent lists (`GetItemSpell` → `C_TradeSkillUI.GetRecipeSchematic`); `false` for non-combine items. Static game data — survives bag updates **and** character-context changes | `InvalidateCache`, matching entries in `InvalidateItemIDs` |
-| Tooltip data/text caches (slot + link tiers) | — | Owned by **`OneWoW.TooltipScanner`** — see [TOOLTIP_SCANNER.md](TOOLTIP_SCANNER.md) | Slot tier via `PE:InvalidatePropsCache`; both tiers via `PE:InvalidateCharacterContext` / `PE:InvalidateCache`; surgical via `PE:InvalidateItemIDs` |
-| `compiledCache` | Expression string | Compiled `function(props) -> bool` | `InvalidateCache`, `RegisterKeyword`, `RegisterProperty` |
+| Tooltip data/text caches (slot + link tiers) | — | Owned by **`OneWoW.TooltipScanner`** — see [TOOLTIP_SCANNER.md](TOOLTIP_SCANNER.md) | Slot tier via `PE:InvalidateSlotProps` / `PE:InvalidatePropsCache`; both tiers via `PE:InvalidateCharacterContext` / `PE:InvalidateCache`; surgical via `PE:InvalidateItemIDs` |
+| `compiledCache` | Expression string | Compiled `function(props) -> bool`. Soft cap of 256 per generation: search-box typing compiles a new string per keystroke, while expressions in steady use (saved searches, categories) stay warm | `InvalidateCache`, `RegisterKeyword`, `RegisterProperty`, `InvalidateKeywordTokens` |
 | `knownProfs` | (single set) | Lowercase profession-name set used by `#myprofs` | `InvalidateCache`, `InvalidateKnownProfessions` |
 
 The slot/identity key strategy for `propsCache`:
@@ -82,7 +82,8 @@ Use `PE:GetItemCacheKey` / `PE:GetItemIdentityKey` to compute these keys yoursel
 
 | Method | Effect |
 |---|---|
-| `PE:InvalidatePropsCache()` | Wipes props, identity-props, and **slot-tier** tooltip caches. Appropriate when item/slot state changed but the set of registered keywords/properties did not (e.g. `BAG_UPDATE_DELAYED`). Preserves `characterUsableCache` and the link-tier tooltip caches (their inputs don't change with bag contents). |
+| `PE:InvalidateSlotProps()` | Wipes props and **slot-tier** tooltip caches only. The bag-tick path: `OneWoW.Inventory` calls it once per `BAG_UPDATE_DELAYED` batch. Identity props, `characterUsableCache`, and link-tier tooltip caches survive (their inputs don't change with bag contents). `isEquipped` is part of the per-slot overlay for this reason. |
+| `PE:InvalidatePropsCache()` | `InvalidateSlotProps` plus identity props. For predicate inputs that change item-level answers: collection and housing events (PE registers `TRANSMOG_COLLECTION_UPDATED`, `NEW_MOUNT_ADDED`, `NEW_PET_ADDED`, `NEW_TOY_ADDED`, `HEIRLOOMS_UPDATED`, `HOUSING_STORAGE_UPDATED`, `HOUSING_STORAGE_ENTRY_UPDATED` itself), and callers of the Overlays engine's `InvalidateAndRequestRefresh` (junk marks, recipes learned) and OneWoW_Bags' `props` scope. |
 | `PE:InvalidateCharacterContext()` | Wipes `characterUsableCache` + both tooltip cache tiers, then `InvalidatePropsCache`. Fired by `PLAYER_LEVEL_UP`, `ACTIVE_TALENT_GROUP_CHANGED`, `PLAYER_SPECIALIZATION_CHANGED` (player), and `SKILL_LINES_CHANGED`. |
 | `PE:InvalidateCache()` | Wipes everything above plus compiled caches and `combineSchematicCache`, and clears `knownProfs`. Use when keyword set changed or for a full reset. |
 | `PE:InvalidateItemIDs(idSet) -> evictedSlotKeys` | Surgically evicts cached props, tooltip data, `characterUsableCache`, and `combineSchematicCache` entries for item IDs in `idSet` and returns the evicted `"bagID:slotID"` keys. Used by item-info streaming paths to avoid wiping unrelated cache entries. |
@@ -289,7 +290,7 @@ Resolution is **lazy** on first read of `props.isMidnightS1` or `props.isMidnigh
 ## Performance notes
 
 - Compiled predicate functions are cached. Recompile cost is only paid on the first evaluation of a new expression or after an invalidation.
-- `BuildProps` is cached per slot-or-identity key and reused across `CheckItem`, `GetMatchingKeywords`, and direct-read call sites. Call `InvalidatePropsCache` when slot contents change.
+- `BuildProps` is cached per slot-or-identity key and reused across `CheckItem`, `GetMatchingKeywords`, and direct-read call sites. Call `InvalidateSlotProps` when slot contents change and `InvalidatePropsCache` when item-level state (collections, junk) changes.
 - The lazy-resolution metatable means a predicate that never references stat / bind / tooltip fields never pays for `C_Item.GetItemStats`, `C_TooltipInfo.GetBagItem`, or tooltip text concatenation.
 - Registering a new keyword or property wipes `compiledCache` (future evaluations recompile). Props and tooltip caches are untouched.
 - `GetMatchingKeywords` and `GetAllKeywords` iterate every registered keyword. Use them for tooltip/diagnostic paths and help UIs, not for hot filter loops — use `CheckItem` with a targeted expression there.

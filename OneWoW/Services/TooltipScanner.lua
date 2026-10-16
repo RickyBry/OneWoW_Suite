@@ -143,10 +143,19 @@ local function AppendReason(reasons, text)
     return reasons
 end
 
+-- Bag-slot caches are bounded by slot count. Hyperlink caches grow with every
+-- link a surface asks about (AH browse, vendors, Catalog), so they are capped.
+local LINK_CACHE_CAP = 1000
 local bagDataCache = {}
-local linkDataCache = {}
+local linkDataCache = ns.BoundedCache.New(LINK_CACHE_CAP)
 local bagTextCache = {}
-local linkTextCache = {}
+local linkTextCache = ns.BoundedCache.New(LINK_CACHE_CAP)
+
+-- itemID -> first bag/slot holding it. Built on demand and marked stale by the
+-- Inventory funnel; a hit is re-checked against the slot before it is used.
+local slotMapBag, slotMapSlot = {}, {}
+local slotMapFresh = false
+local slotMapSubscribed = false
 
 local function BagSlotKey(bagID, slotID)
     return bagID .. ":" .. slotID
@@ -179,9 +188,9 @@ end
 --- and do not change when bag contents move.
 function TooltipScanner:InvalidateTooltipCaches()
     wipe(bagDataCache)
-    wipe(linkDataCache)
+    linkDataCache:Wipe()
     wipe(bagTextCache)
-    wipe(linkTextCache)
+    linkTextCache:Wipe()
 end
 
 --- Slot tier only (bag/slot-keyed data + text). Cheap-path invalidation for
@@ -198,8 +207,8 @@ end
 
 function TooltipScanner:InvalidateHyperlink(hyperlink)
     if not hyperlink then return end
-    linkDataCache[hyperlink] = nil
-    linkTextCache[hyperlink] = nil
+    linkDataCache:Remove(hyperlink)
+    linkTextCache:Remove(hyperlink)
 end
 
 ---@param bagID number
@@ -226,7 +235,7 @@ end
 ---@return table|nil tooltipData
 function TooltipScanner:GetHyperlinkData(hyperlink)
     if not hyperlink or hyperlink == "" then return nil end
-    local cached = linkDataCache[hyperlink]
+    local cached = linkDataCache:Get(hyperlink)
     if cached then
         ProfileStart("tooltipDataLinkCache.hit")
         ProfileStop("tooltipDataLinkCache.hit")
@@ -235,7 +244,7 @@ function TooltipScanner:GetHyperlinkData(hyperlink)
 
     ProfileStart("tooltipDataLinkCache.miss")
     local td = C_TooltipInfo.GetHyperlink(hyperlink)
-    if td then linkDataCache[hyperlink] = td end
+    if td then linkDataCache:Set(hyperlink, td) end
     ProfileStop("tooltipDataLinkCache.miss")
     return td
 end
@@ -256,24 +265,56 @@ function TooltipScanner:GetMerchantItemData(merchantIndex)
     return C_TooltipInfo.GetMerchantItem(merchantIndex)
 end
 
+local function MarkSlotMapStale()
+    slotMapFresh = false
+end
+
+local function RebuildSlotMap()
+    if not slotMapSubscribed then
+        slotMapSubscribed = true
+        local Inventory = ns.Inventory
+        Inventory.RegisterDelayedCallback("TooltipScanner", MarkSlotMapStale)
+        Inventory.RegisterBankOpenCallback("TooltipScanner", MarkSlotMapStale)
+        Inventory.RegisterBankClosedCallback("TooltipScanner", MarkSlotMapStale)
+        Inventory.RegisterBankSlotsCallback("TooltipScanner", MarkSlotMapStale)
+    end
+    wipe(slotMapBag)
+    wipe(slotMapSlot)
+    for bag = 0, 17 do
+        local slots = C_Container.GetContainerNumSlots(bag)
+        for slot = 1, slots do
+            local info = C_Container.GetContainerItemInfo(bag, slot)
+            local id = info and info.itemID
+            if id and not slotMapBag[id] then
+                slotMapBag[id] = bag
+                slotMapSlot[id] = slot
+            end
+        end
+    end
+    slotMapFresh = true
+end
+
+local function SlotHoldsItem(bag, slot, itemID)
+    local info = C_Container.GetContainerItemInfo(bag, slot)
+    return info ~= nil and info.itemID == itemID
+end
+
 --- First player-owned container slot holding itemID (bags 0–5, bank tabs 6–17).
+--- Callers that already know the slot should pass it instead of asking here.
 ---@param itemID number
 ---@return number|nil bagID
 ---@return number|nil slotID
 function TooltipScanner:FindBagSlotForItem(itemID)
     itemID = tonumber(itemID)
     if not itemID then return nil end
-    for bag = 0, 17 do
-        local slots = C_Container.GetContainerNumSlots(bag)
-        if slots > 0 then
-            for slot = 1, slots do
-                local info = C_Container.GetContainerItemInfo(bag, slot)
-                if info and info.itemID == itemID then
-                    return bag, slot
-                end
-            end
-        end
+    if not slotMapFresh then RebuildSlotMap() end
+    local bag, slot = slotMapBag[itemID], slotMapSlot[itemID]
+    if bag and not SlotHoldsItem(bag, slot, itemID) then
+        -- Contents moved before the delayed batch marked the map stale.
+        RebuildSlotMap()
+        bag, slot = slotMapBag[itemID], slotMapSlot[itemID]
     end
+    return bag, slot
 end
 
 --- Single-pass usability facts for character-usability resolution. One walk
@@ -397,13 +438,13 @@ end
 ---@return string
 function TooltipScanner:GetHyperlinkText(hyperlink)
     if not hyperlink or hyperlink == "" then return "" end
-    local cached = linkTextCache[hyperlink]
+    local cached = linkTextCache:Get(hyperlink)
     if cached then return cached end
 
     local text = ConcatTooltipLines(self:GetHyperlinkData(hyperlink))
     if text == "" then return "" end
 
-    linkTextCache[hyperlink] = text
+    linkTextCache:Set(hyperlink, text)
     return text
 end
 
@@ -486,20 +527,9 @@ end
 ---@param itemID number
 ---@return boolean
 function TooltipScanner:HasItemInAccessibleBags(itemID)
-    itemID = tonumber(itemID)
-    if not itemID then return false end
-    for bag = 0, PLAYER_INVENTORY_BAG_MAX do
-        local slots = C_Container.GetContainerNumSlots(bag)
-        if slots > 0 then
-            for slot = 1, slots do
-                local info = C_Container.GetContainerItemInfo(bag, slot)
-                if info and info.itemID == itemID then
-                    return true
-                end
-            end
-        end
-    end
-    return false
+    -- The slot map keeps the lowest bag per item, so a carried copy wins.
+    local bag = self:FindBagSlotForItem(itemID)
+    return bag ~= nil and bag <= PLAYER_INVENTORY_BAG_MAX
 end
 
 --- Spell/equip fallback applies only when IsUsableItem is inventory-gated
@@ -514,11 +544,7 @@ function TooltipScanner:NeedsUsabilityFallback(bagID, itemID)
     if bagID and bagID >= BANK_BAG_MIN then
         return true
     end
-    itemID = tonumber(itemID)
-    if not itemID then return false end
-    if self:HasItemInAccessibleBags(itemID) then
-        return false
-    end
+    -- The slot map keeps the lowest bag per item: a carried copy means no fallback.
     local findBag = self:FindBagSlotForItem(itemID)
     return findBag ~= nil and findBag >= BANK_BAG_MIN
 end
