@@ -2145,7 +2145,10 @@ ShowUserOverlayDetail = function(split, id, selectedRow)
                 buttons = {
                     { text = DELETE, color = { 0.6, 0.2, 0.2 }, onClick = function(d)
                         d:Hide()
-                        Reg():SetSetting("overlays", "userOverlays", id, nil)
+                        -- Shipped preset ids need a false tombstone; nil is
+                        -- refilled by the defaults merge on the next load.
+                        local shipped = OneWoW:GetSettingsDefaults("overlays").userOverlays[id] ~= nil
+                        Reg():SetSetting("overlays", "userOverlays", id, shipped and false or nil)
                         RefreshList("general")
                     end },
                     { text = CANCEL, onClick = function(d) d:Hide() end },

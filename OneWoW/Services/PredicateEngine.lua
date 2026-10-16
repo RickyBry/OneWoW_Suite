@@ -2770,7 +2770,7 @@ function PE:BuildProps(itemID, bagID, slotID, itemInfo)
 
         -- ---- Item durability ----
         local durability, maxDurability = C_Container.GetContainerItemDurability(bagID, slotID)
-        if durability then
+        if durability and maxDurability > 0 then
             props.durability = durability
             props.maxDurability = maxDurability
             props.durabilityPct = (durability/maxDurability)*100    -- Let the caller decide if they want to floor, ceil, or round

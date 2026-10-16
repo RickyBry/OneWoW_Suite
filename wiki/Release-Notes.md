@@ -4,6 +4,11 @@
 
 #### Fixes
 - Quest dialogs no longer report an error when Catalog is turned off.
+- Deleted preset overlays stay deleted after a reload.
+- Overlays on the default guild bank match the items in the tab you are viewing.
+- Mail and Auction House overlays appear on items the game had not loaded yet, instead of staying blank.
+- Bag items without durability no longer count as broken in overlays and searches.
+- Talking to vendors and NPCs inside instances no longer risks errors from hidden names.
 
 ---
 

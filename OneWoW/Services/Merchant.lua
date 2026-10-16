@@ -36,7 +36,8 @@ local C_Item = C_Item
 local MerchantFrame = MerchantFrame
 local ipairs, pairs, next, time, tonumber, type = ipairs, pairs, next, time, tonumber, type
 local floor = math.floor
-local pcall, tinsert = pcall, tinsert
+local tinsert = tinsert
+local Restriction = ns.Restriction
 local UnitGUID, UnitName = UnitGUID, UnitName
 local UnitCreatureType, UnitClassification, UnitLevel = UnitCreatureType, UnitClassification, UnitLevel
 local GetSubZoneText, GetZoneText = GetSubZoneText, GetZoneText
@@ -108,10 +109,15 @@ local function EnsureEvents()
 end
 
 local function ExtractNPCID(guid)
-    if not guid then return 0 end
-    local ok, result = pcall(string.match, guid, "-(%d+)-%x+$")
-    if ok and result then return tonumber(result) or 0 end
-    return 0
+    if not guid or Restriction.IsSecret(guid) then return 0 end
+    return tonumber(guid:match("-(%d+)-%x+$")) or 0
+end
+
+-- Unit identity can be secret while the GUID is not (separate restriction
+-- flags); secrets may not be compared or saved, so they read as unknown.
+local function Plain(value)
+    if value == nil or Restriction.IsSecret(value) then return nil end
+    return value
 end
 
 local function GetCurrentLocation()
@@ -226,17 +232,18 @@ end
 -- NPC SubName from the unit tooltip (line after UnitName). Locale-specific.
 local function CaptureNpcSubtitle()
     local data = C_TooltipInfo.GetUnit("npc")
-    if not data or not data.lines then
+    if not data or Restriction.IsSecret(data) or not data.lines then
         return nil
     end
     local afterName = false
     for _, line in ipairs(data.lines) do
         local text = line.leftText
-        if text and text ~= "" then
+        local secret = Restriction.IsSecret(text)
+        if secret or (text and text ~= "") then
             if not afterName then
                 afterName = true
             else
-                return text
+                return Plain(text)
             end
         end
     end
@@ -305,10 +312,10 @@ local function BuildScan()
 
     local scan = {
         npcID = npcID,
-        name = UnitName("npc") or "",
-        creatureType = UnitCreatureType("npc") or "",
-        classification = UnitClassification("npc") or "normal",
-        level = UnitLevel("npc") or 0,
+        name = Plain(UnitName("npc")) or "",
+        creatureType = Plain(UnitCreatureType("npc")) or "",
+        classification = Plain(UnitClassification("npc")) or "normal",
+        level = Plain(UnitLevel("npc")) or 0,
         displayID = displayID,
         subtitle = CaptureNpcSubtitle(),
         canRepair = CanMerchantRepair() and true or false,

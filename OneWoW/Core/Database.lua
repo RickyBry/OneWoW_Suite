@@ -131,6 +131,8 @@ local DEFAULTS = {
             -- every 1.0 overlay option remains visible in 2.0. Users can
             -- enable, reorder, tint, restyle, or delete them like any other
             -- overlay; the Add Overlay dialog can recreate deleted presets.
+            -- A deleted shipped preset is stored as `false` so this merge
+            -- does not bring it back; readers skip non-table entries.
             userOverlays = {
                 ov_junk = {
                     preset = "junk", enabled = false, order = 1,

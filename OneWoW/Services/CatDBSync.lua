@@ -355,6 +355,12 @@ function CatDBSync.LearnRecipe(recipeID, info)
     Queue("recipe", recipeID, info)
 end
 
+-- Unit identity can be secret while the GUID is not; secrets read as unknown.
+local function Plain(value)
+    if value == nil or ns.Restriction.IsSecret(value) then return nil end
+    return value
+end
+
 local function GetInteractUnit()
     for _, unit in ipairs(INTERACT_UNITS) do
         if UnitExists(unit) then
@@ -368,9 +374,9 @@ local function GetInteractUnit()
                     return {
                         unit = unit,
                         id = unitID,
-                        name = UnitName(unit),
-                        creatureType = UnitCreatureType(unit),
-                        classification = UnitClassification(unit),
+                        name = Plain(UnitName(unit)),
+                        creatureType = Plain(UnitCreatureType(unit)),
+                        classification = Plain(UnitClassification(unit)),
                     }
                 end
             end

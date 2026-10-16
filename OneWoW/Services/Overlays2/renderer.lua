@@ -130,6 +130,8 @@ end
 
 function Renderer:CleanButton(button, keepQualityBorder)
     if not button then return end
+    -- Any repaint or clean supersedes a pending Engine:ProcessButtonForItemID load.
+    button.onewow_pendingItemID = nil
 
     -- Empty-slot repaint storms call Clean on every guild button. Skip when
     -- there is nothing painted (avoids 600+ no-op cleans per wave).

@@ -397,6 +397,23 @@ function Engine:ProcessButton(button, link, location, context)
     BuildOverlaysForButton(button, link, location, context)
 end
 
+--- For surfaces that only know an itemID (mail, Auction House). An uncached
+--- item loads first, then paints unless the button was repainted or cleaned.
+function Engine:ProcessButtonForItemID(button, itemID, location, context)
+    local _, link = C_Item.GetItemInfo(itemID)
+    if link then
+        BuildOverlaysForButton(button, link, location, context)
+        return
+    end
+    Renderer:CleanButton(button)
+    button.onewow_pendingItemID = itemID
+    Item:CreateFromItemID(itemID):ContinueOnItemLoad(function()
+        if button.onewow_pendingItemID ~= itemID or not IsGlobalEnabled() then return end
+        local _, loaded = C_Item.GetItemInfo(itemID)
+        BuildOverlaysForButton(button, loaded, location, context)
+    end)
+end
+
 function Engine:CleanButton(button)
     Renderer:CleanButton(button)
 end

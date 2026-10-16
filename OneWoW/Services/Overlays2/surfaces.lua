@@ -250,18 +250,16 @@ local function RefreshGuildBank()
     -- invisible buttons is pure waste (hundreds of paints + item-load requests
     -- per open); the Bags integration path covers its own buttons.
     if GuildBankFrame:GetAlpha() == 0 then return end
-    for tab = 1, 7 do
-        if GuildBankFrame.Columns and GuildBankFrame.Columns[tab] then
-            for slot = 1, 14 do
-                local btn = GuildBankFrame.Columns[tab].Buttons and GuildBankFrame.Columns[tab].Buttons[slot]
-                if btn then
-                    local link = GetGuildBankItemLink(tab, slot)
-                    if link then
-                        ProcessButton(btn, link, nil)
-                    else
-                        CleanButton(btn)
-                    end
-                end
+    -- Columns are the 7 visual groups of the current tab; each button's ID
+    -- is its slot in that tab (Blizzard_GuildBankUI sets it).
+    local tab = GetCurrentGuildBankTab()
+    for _, column in ipairs(GuildBankFrame.Columns) do
+        for _, btn in ipairs(column.Buttons) do
+            local link = GetGuildBankItemLink(tab, btn:GetID())
+            if link then
+                ProcessButton(btn, link, nil)
+            else
+                CleanButton(btn)
             end
         end
     end
@@ -293,12 +291,7 @@ local function RefreshMailbox()
             if btn.hasItem == 1 then
                 local _, itemID = GetInboxItem(i, 1)
                 if itemID then
-                    local _, link = C_Item.GetItemInfo(itemID)
-                    if link then
-                        ProcessButton(btn, link, nil)
-                    else
-                        CleanButton(btn)
-                    end
+                    Engine:ProcessButtonForItemID(btn, itemID, nil)
                 else
                     CleanButton(btn)
                 end
@@ -566,12 +559,7 @@ local function InitializeSurfaces()
                 if rowData and rowData.itemKey then
                     local itemID = rowData.itemKey.itemID
                     if itemID then
-                        local _, link = C_Item.GetItemInfo(itemID)
-                        if link then
-                            ProcessButton(v, link, nil, "auctionhouse")
-                        else
-                            CleanButton(v)
-                        end
+                        Engine:ProcessButtonForItemID(v, itemID, nil, "auctionhouse")
                     end
                 else
                     CleanButton(v)
