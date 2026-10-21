@@ -58,6 +58,9 @@
 ### AltTracker
 - Summary shows each character's guild and rank, so you can see who shares a guild without opening the row.
 
+#### Fixes
+- Taking mail is instant again while Storage is enabled, instead of about a second per letter.
+
 ---
 
 *No user-facing changes this release for Trackers, QoL, Shopping List, Bags, or DevTool.*

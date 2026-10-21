@@ -5,7 +5,6 @@ local Module = ns.Mail
 
 local private = {
     hooks = {},
-    rescanContext = {},
 }
 
 local SECONDS_PER_DAY = 86400
@@ -72,54 +71,38 @@ function Module:Initialize()
     if self.initialized then return end
     self.initialized = true
 
+    -- Pre-hook, not hooksecurefunc: the take consumes this inbox slot, and
+    -- Accounting only skips a second gold row if ClaimAmount ran first.
     private.hooks.TakeInboxItem = TakeInboxItem
-    TakeInboxItem = function(...)
-        private.ScanCollectedMail("TakeInboxItem", 1, ...)
+    TakeInboxItem = function(index, subIndex)
+        private.ScanCollectedMail("TakeInboxItem", index, subIndex)
     end
 
     private.hooks.TakeInboxMoney = TakeInboxMoney
-    TakeInboxMoney = function(...)
-        private.ScanCollectedMail("TakeInboxMoney", 1, ...)
+    TakeInboxMoney = function(index, subIndex)
+        private.ScanCollectedMail("TakeInboxMoney", index, subIndex)
     end
 
     private.hooks.AutoLootMailItem = AutoLootMailItem
-    AutoLootMailItem = function(...)
-        private.ScanCollectedMail("AutoLootMailItem", 1, ...)
+    AutoLootMailItem = function(index, subIndex)
+        private.ScanCollectedMail("AutoLootMailItem", index, subIndex)
     end
 end
 
-function private.ScanCollectedMail(oFunc, attempt, index, subIndex)
+function private.ScanCollectedMail(oFunc, index, subIndex)
     if not index then
         return
     end
 
+    -- Record while this index still belongs to the mail being taken. Never
+    -- hold the take for a retry: Accounting is a separate optional addon, and
+    -- waiting on it stalled every open by about a second per message.
     local subject = select(4, GetInboxHeaderInfo(index))
-    if not subject then
-        return
+    if subject then
+        private.RecordMail(index)
     end
 
-    local success = private.RecordMail(index)
-    if not success and attempt <= 5 then
-        wipe(private.rescanContext)
-        private.rescanContext.oFunc = oFunc
-        private.rescanContext.attempt = attempt + 1
-        private.rescanContext.index = index
-        private.rescanContext.subIndex = subIndex
-        C_Timer.After(0.2, private.RescanHandler)
-    else
-        private.hooks[oFunc](index, subIndex)
-    end
-end
-
-function private.RescanHandler()
-    if private.rescanContext.oFunc then
-        private.ScanCollectedMail(
-            private.rescanContext.oFunc,
-            private.rescanContext.attempt,
-            private.rescanContext.index,
-            private.rescanContext.subIndex
-        )
-    end
+    private.hooks[oFunc](index, subIndex)
 end
 
 function private.RecordMail(index)
