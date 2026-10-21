@@ -81,7 +81,7 @@ These ship with QoL core code (not separate external modules):
 ## Customization
 
 ### Modular system
-Each external module toggles independently. See [MODULES.md](MODULES.md) for all 36 modules, folder paths, and module ids.
+Each external module toggles independently. See [MODULES.md](MODULES.md) for all 37 modules, folder paths, and module ids.
 
 ### Theme support
 All QoL UI integrates with suite-wide themes via **OneWoW** — switch instantly with no reload.

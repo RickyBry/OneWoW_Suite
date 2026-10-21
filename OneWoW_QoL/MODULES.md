@@ -5,7 +5,7 @@ Catalog of toggleable features under `Modules/external/`. Each module is indepen
 Module authors: [DEVELOPERS.md](DEVELOPERS.md). Suite docs: [OneWoW/Docs/README.md](../OneWoW/Docs/README.md).
 Community credit: [MODULE_CREDITS.md](../MODULE_CREDITS.md) (in-game: each module's Details dialog).
 
-**36 modules** across 5 categories (matches `module.lua` `category` values in the Features UI).
+**37 modules** across 5 categories (matches `module.lua` `category` values in the Features UI).
 
 ---
 
@@ -184,6 +184,12 @@ Displays a movable bar with clickable buttons for special quest items from your 
 
 - **Module id:** `questitembar` · **Folder:** `Modules/external/questitembar/` — [details](Modules/external/questitembar/README.md)
 - **Author:** Clew
+
+### Reputation Tracker
+
+Replaces the faction gain chat line with this session's total and how much is left to the next standing, friendship rank, or renown. Optional: switch the reputation bar to that faction, and list your other characters on reputation tooltips when AltTracker has saved them. Off until you turn it on.
+
+- **Module id:** `reputation` · **Folder:** `Modules/external/reputation/`
 
 ## Social
 

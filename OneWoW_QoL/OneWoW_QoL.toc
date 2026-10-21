@@ -671,3 +671,17 @@ Modules\external\iconbrowser\browser.lua
 Modules\external\iconbrowser\inject.lua
 Modules\external\iconbrowser\api.lua
 Modules\external\iconbrowser\iconbrowser.lua
+
+Modules\external\reputation\module.lua
+Modules\external\reputation\Locales\enUS.lua
+Modules\external\reputation\Locales\koKR.lua
+Modules\external\reputation\Locales\frFR.lua
+Modules\external\reputation\Locales\deDE.lua
+Modules\external\reputation\Locales\zhCN.lua
+Modules\external\reputation\Locales\esES.lua
+Modules\external\reputation\Locales\zhTW.lua
+Modules\external\reputation\Locales\esMX.lua
+Modules\external\reputation\Locales\ruRU.lua
+Modules\external\reputation\Locales\ptBR.lua
+Modules\external\reputation\Locales\itIT.lua
+Modules\external\reputation\reputation.lua

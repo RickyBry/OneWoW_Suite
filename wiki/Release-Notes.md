@@ -64,7 +64,15 @@
 
 ---
 
-*No user-facing changes this release for Trackers, QoL, Shopping List, Bags, or DevTool.*
+### QoL
+- Reputation Tracker is off until you turn it on. Faction gain chat then shows this session's total and how much is left to the next standing, friendship rank, or renown.
+  - Inactive factions can be included. Guild gains can be skipped.
+  - Optional: switch the reputation bar to the faction you just gained.
+  - Reputation tooltips list standing for your other characters when AltTracker has saved them.
+
+---
+
+*No user-facing changes this release for Trackers, Shopping List, Bags, or DevTool.*
 
 ---
 
