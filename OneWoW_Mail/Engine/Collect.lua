@@ -473,6 +473,8 @@ function Collect:ReturnSelected(selected, onDone)
 end
 
 --- Delete selected empty non-COD mails.
+--- Mail that still has an item, gold, or a C.O.D. is skipped. One Activity
+--- error names every reason from that click.
 ---@param selected table
 ---@param onDone fun()|nil
 function Collect:DeleteSelected(selected, onDone)
@@ -484,9 +486,30 @@ function Collect:DeleteSelected(selected, onDone)
     end
     sort(indices, function(a, b) return a > b end)
 
+    local blockedItem, blockedGold, blockedCOD = false, false, false
+
+    local function reportBlocked()
+        local L = ns.L
+        local reasons = {}
+        if blockedItem then
+            tinsert(reasons, L["ERR_DELETE_REASON_ITEM"])
+        end
+        if blockedGold then
+            tinsert(reasons, L["ERR_DELETE_REASON_GOLD"])
+        end
+        if blockedCOD then
+            tinsert(reasons, L["ERR_DELETE_REASON_COD"])
+        end
+        if #reasons > 0 then
+            ns.RunLog:Add("error", nil, nil, string.format(
+                L["ERR_DELETE_BLOCKED"], table.concat(reasons, " | ")))
+        end
+    end
+
     local i = 1
     local function next()
         if i > #indices then
+            reportBlocked()
             if onDone then onDone() end
             if ns.Shell and ns.Shell.RefreshInbox then ns.Shell:RefreshInbox() end
             return
@@ -497,12 +520,23 @@ function Collect:DeleteSelected(selected, onDone)
             selected[index] = nil
         end
         local _, _, _, _, money, CODAmount, _, hasItem = GetInboxHeaderInfo(index)
-        if (CODAmount or 0) == 0 and (money or 0) == 0 and not hasItem then
+        money = money or 0
+        CODAmount = CODAmount or 0
+        if CODAmount == 0 and money == 0 and not hasItem then
             DeleteInboxItem(index)
             WaitPending(function()
                 C_Timer.After(ns.Constants.COLLECT_SETTLE, next)
             end)
         else
+            if hasItem then
+                blockedItem = true
+            end
+            if money > 0 then
+                blockedGold = true
+            end
+            if CODAmount > 0 then
+                blockedCOD = true
+            end
             next()
         end
     end

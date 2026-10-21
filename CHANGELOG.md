@@ -48,12 +48,17 @@
 
 ---
 
+# Mail
+- Delete tells you why a checked letter stayed: collect the item, collect the gold, or it is C.O.D. The reason shows in chat and on the Activity tab.
+
+---
+
 # AltTracker
 - Summary shows each character's guild and rank, so you can see who shares a guild without opening the row.
 
 ---
 
-*No user-facing changes this release for Trackers, QoL, Shopping List, Mail, Bags, or DevTool.*
+*No user-facing changes this release for Trackers, QoL, Shopping List, Bags, or DevTool.*
 
 ---
 

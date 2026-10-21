@@ -164,6 +164,10 @@ ns.L = OneWoW.Locale:Register(ADDON_NAME, "enUS", {
     ["ERR_ATTACH_FAILED"] = "Could not attach %s - send stopped.",
     ["ERR_SEND_FAILED"] = "Mail failed to send - send stopped.",
     ["ERR_SEND_TIMEOUT"] = "No response from the server - send stopped.",
+    ["ERR_DELETE_BLOCKED"] = "Cannot delete - %s.",
+    ["ERR_DELETE_REASON_ITEM"] = "collect the item first",
+    ["ERR_DELETE_REASON_GOLD"] = "collect the gold first",
+    ["ERR_DELETE_REASON_COD"] = "C.O.D. mail",
     ["SUBJECT_NONE"] = "(No subject)",
 
     ["ACTIVITY_PENDING_HEADER"] = "Pending review",

@@ -10,7 +10,7 @@
 
 ### Mailbox shell
 
-* **Inbox** — filtered collect, selection, Shift-click collect / Ctrl-click return; expandable details
+* **Inbox** — filtered collect, selection, Shift-click collect / Ctrl-click return. Delete says why a checked letter stayed (item, gold, or C.O.D.). Expandable details
 * Richer Auction House invoice breakdown when recognized
 * **Compose** — address suggestions for alts across realms
 * **Activity** — session log; pending auto-run shipment reviews (Process / Discard)
