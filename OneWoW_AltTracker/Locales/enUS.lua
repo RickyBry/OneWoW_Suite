@@ -563,6 +563,8 @@ OneWoW.Locale:Register(ADDON_NAME, "enUS", {
     ["TT_COL_RESTED_XP"] = "Rested XP",
     ["TT_COL_RESTED_XP_DESC"] = "Rested experience percentage",
     ["TT_COL_SPEC_DESC"] = "Character specialization",
+    ["TT_COL_GUILD_DESC"] = "Guild this character belongs to",
+    ["TT_COL_RANK_DESC"] = "This character's rank in that guild",
     ["TT_COL_STATUS_DESC"] = "Overall gear status (Ready, Needs Attention, etc.)",
     ["TT_COL_TIER_SET"] = "Tier Set",
     ["TT_COL_TIER_SET_DESC"] = "Tier set pieces equipped",

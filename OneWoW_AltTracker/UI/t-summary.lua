@@ -53,6 +53,24 @@ local function FormatGoldAmount(copper)
     return tostring(copper or 0)
 end
 
+-- "\255" sorts after every guild name when the Guild column is sorted A to Z.
+-- Rank index 0 is the guild leader. A missing index still sorts after real ranks.
+local UNGUILDED_NAME_SORT = "\255"
+local UNGUILDED_RANK_SORT = 999
+local MISSING_RANK_SORT = 100
+
+local function GuildFields(charData)
+    local guild = charData.guild
+    if not guild or not guild.name or guild.name == "" then
+        return nil, nil, nil
+    end
+    local rank = guild.rank
+    if rank == "" then
+        rank = nil
+    end
+    return guild.name, rank, guild.rankIndex
+end
+
 function ns.UI.CreateSummaryTab(parent)
     local overview = OneWoW_GUI:CreateOverviewPanel(parent, {
         height = 110,
@@ -85,6 +103,8 @@ function ns.UI.CreateSummaryTab(parent)
         {key = "level",     label = L["COL_LEVEL"],      width = 40,  fixed = true,  align = "center",                   ttTitle = LEVEL,      ttDesc = L["TT_COL_LEVEL_DESC"]},
         {key = "class",     label = CLASS,      width = 60,  fixed = false, align = "left",                     ttTitle = CLASS,      ttDesc = L["TT_COL_CLASS_DESC"]},
         {key = "spec",      label = L["COL_SPEC"],       width = 70,  fixed = false, align = "left",                     ttTitle = SPECIALIZATION,       ttDesc = L["TT_COL_SPEC_DESC"]},
+        {key = "guild",     label = GUILD,              width = 110, fixed = false, flexWeight = 2, align = "left",    ttTitle = GUILD,                ttDesc = L["TT_COL_GUILD_DESC"]},
+        {key = "rank",      label = RANK,               width = 90,  fixed = false, align = "left",                     ttTitle = RANK,                 ttDesc = L["TT_COL_RANK_DESC"]},
         {key = "rested",    label = L["COL_RESTED_XP"],  width = 50,  fixed = true,  align = "center",                   ttTitle = L["TT_COL_RESTED_XP"],  ttDesc = L["TT_COL_RESTED_XP_DESC"]},
         {key = "itemLevel", label = L["COL_ITEM_LEVEL"], width = 50,  fixed = true,  align = "center",                   ttTitle = L["TT_COL_ITEM_LEVEL"], ttDesc = L["TT_COL_ITEM_LEVEL_DESC"]},
         {key = "bags",      label = L["COL_BAGS"],       width = 40,  fixed = true,  align = "center",                   ttTitle = L["TT_COL_BAGS"],       ttDesc = L["TT_COL_BAGS_DESC"]},
@@ -207,6 +227,18 @@ function ns.UI.RefreshSummaryTab(summaryTab)
         elseif col == "spec" then
             local spec = charData.stats and charData.stats.specName
             return type(spec) == "string" and spec or (type(spec) == "table" and (spec.name or "") or "")
+        elseif col == "guild" then
+            local name = GuildFields(charData)
+            return name or UNGUILDED_NAME_SORT
+        elseif col == "rank" then
+            local name, _, rankIndex = GuildFields(charData)
+            if not name then
+                return UNGUILDED_RANK_SORT
+            end
+            if rankIndex == nil then
+                return MISSING_RANK_SORT
+            end
+            return rankIndex
         elseif col == "rested" then
             local Fmt = ns.AltTrackerFormatters
             if Fmt and charData.xp and charData.xp.maxXP and charData.xp.maxXP > 0 then
@@ -491,6 +523,30 @@ function ns.UI.RefreshSummaryTab(summaryTab)
         end)
 
         table.insert(charRow.cells, specText)
+
+        local guildName, guildRank = GuildFields(charData)
+
+        local guildText = OneWoW_GUI:CreateFS(charRow, 12)
+        guildText:SetText(guildName or "-")
+        guildText:SetJustifyH("LEFT")
+        guildText:SetWordWrap(false)
+        if guildName then
+            guildText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        else
+            guildText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        end
+        table.insert(charRow.cells, guildText)
+
+        local rankText = OneWoW_GUI:CreateFS(charRow, 12)
+        rankText:SetText(guildRank or "-")
+        rankText:SetJustifyH("LEFT")
+        rankText:SetWordWrap(false)
+        if guildRank then
+            rankText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        else
+            rankText:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_MUTED"))
+        end
+        table.insert(charRow.cells, rankText)
 
         local restedText = OneWoW_GUI:CreateFS(charRow, 12)
         local restedPercent = 0

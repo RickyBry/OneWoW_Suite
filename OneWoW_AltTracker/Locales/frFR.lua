@@ -591,6 +591,8 @@ OneWoW.Locale:Register(ADDON_NAME, "frFR", {
     ["TT_COL_RESTED_XP"] = "PX reposés",
     ["TT_COL_RESTED_XP_DESC"] = "Pourcentage d'expérience reposée",
     ["TT_COL_SPEC_DESC"] = "Spécialisation du personnage",
+    ["TT_COL_GUILD_DESC"] = "Guilde de ce personnage",
+    ["TT_COL_RANK_DESC"] = "Grade de ce personnage dans cette guilde",
     ["TT_COL_STATUS_DESC"] = "Statut global de l'équipement (Prêt, Nécessite attention, etc.)",
     ["TT_COL_TIER_SET"] = "Ensemble de palier",
     ["TT_COL_TIER_SET_DESC"] = "Pièces d'ensemble de palier équipées",

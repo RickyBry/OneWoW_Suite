@@ -591,6 +591,8 @@ OneWoW.Locale:Register(ADDON_NAME, "esMX", {
     ["TT_COL_RESTED_XP"] = "PX descansada",
     ["TT_COL_RESTED_XP_DESC"] = "Porcentaje de experiencia descansada",
     ["TT_COL_SPEC_DESC"] = "Especialización del personaje",
+    ["TT_COL_GUILD_DESC"] = "Hermandad a la que pertenece este personaje",
+    ["TT_COL_RANK_DESC"] = "Rango de este personaje en esa hermandad",
     ["TT_COL_STATUS_DESC"] = "Estado general del equipo (Listo, Requiere atención, etc.)",
     ["TT_COL_TIER_SET"] = "Conjunto de nivel",
     ["TT_COL_TIER_SET_DESC"] = "Piezas de conjunto de nivel equipadas",

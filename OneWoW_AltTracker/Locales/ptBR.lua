@@ -591,6 +591,8 @@ OneWoW.Locale:Register(ADDON_NAME, "ptBR", {
     ["TT_COL_RESTED_XP"] = "XP descansada",
     ["TT_COL_RESTED_XP_DESC"] = "Porcentagem de experiência descansada",
     ["TT_COL_SPEC_DESC"] = "Especialização do personagem",
+    ["TT_COL_GUILD_DESC"] = "Guilda à qual este personagem pertence",
+    ["TT_COL_RANK_DESC"] = "Posto deste personagem nessa guilda",
     ["TT_COL_STATUS_DESC"] = "Status geral do equipamento (Pronto, Requer atenção, etc.)",
     ["TT_COL_TIER_SET"] = "Conjunto de classe",
     ["TT_COL_TIER_SET_DESC"] = "Peças do conjunto de classe equipadas",

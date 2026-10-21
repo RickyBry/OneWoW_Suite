@@ -591,6 +591,8 @@ OneWoW.Locale:Register(ADDON_NAME, "deDE", {
     ["TT_COL_RESTED_XP"] = "Ausgeruhte EP",
     ["TT_COL_RESTED_XP_DESC"] = "Prozentsatz der ausgeruhten Erfahrung",
     ["TT_COL_SPEC_DESC"] = "Charakterspezialisierung",
+    ["TT_COL_GUILD_DESC"] = "Gilde, der dieser Charakter angehört",
+    ["TT_COL_RANK_DESC"] = "Rang dieses Charakters in dieser Gilde",
     ["TT_COL_STATUS_DESC"] = "Gesamtstatus der Ausrüstung (Bereit, Benötigt Aufmerksamkeit usw.)",
     ["TT_COL_TIER_SET"] = "Klassenset",
     ["TT_COL_TIER_SET_DESC"] = "Angelegte Klassensetteile",

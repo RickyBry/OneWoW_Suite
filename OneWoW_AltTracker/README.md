@@ -12,6 +12,7 @@ Get a quick overview of your entire account at a glance:
 - Number of characters and which factions/servers they're on
 - Mount, pet, and achievement collection totals
 - Character classes and specializations
+- Guild and rank for each character
 - How many characters are rested
 - Total playtime on account
 

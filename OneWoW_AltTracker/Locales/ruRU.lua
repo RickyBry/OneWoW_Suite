@@ -591,6 +591,8 @@ OneWoW.Locale:Register(ADDON_NAME, "ruRU", {
     ["TT_COL_RESTED_XP"] = "Отдохнувший опыт",
     ["TT_COL_RESTED_XP_DESC"] = "Процент отдохнувшего опыта",
     ["TT_COL_SPEC_DESC"] = "Специализация персонажа",
+    ["TT_COL_GUILD_DESC"] = "Гильдия, в которой состоит этот персонаж",
+    ["TT_COL_RANK_DESC"] = "Звание этого персонажа в этой гильдии",
     ["TT_COL_STATUS_DESC"] = "Общий статус экипировки (Готов, Требует внимания и т. д.)",
     ["TT_COL_TIER_SET"] = "Комплект брони",
     ["TT_COL_TIER_SET_DESC"] = "Надетые части комплекта брони",

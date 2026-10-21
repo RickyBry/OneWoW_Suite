@@ -591,6 +591,8 @@ OneWoW.Locale:Register(ADDON_NAME, "itIT", {
     ["TT_COL_RESTED_XP"] = "PE riposata",
     ["TT_COL_RESTED_XP_DESC"] = "Percentuale di esperienza riposata",
     ["TT_COL_SPEC_DESC"] = "Specializzazione del personaggio",
+    ["TT_COL_GUILD_DESC"] = "Gilda a cui appartiene questo personaggio",
+    ["TT_COL_RANK_DESC"] = "Grado di questo personaggio in quella gilda",
     ["TT_COL_STATUS_DESC"] = "Stato generale dell'equipaggiamento (Pronto, Richiede attenzione, ecc.)",
     ["TT_COL_TIER_SET"] = "Set di tier",
     ["TT_COL_TIER_SET_DESC"] = "Pezzi del set di tier equipaggiati",

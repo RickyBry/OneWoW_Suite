@@ -50,7 +50,12 @@
 
 ---
 
-*No user-facing changes this release for AltTracker, Trackers, QoL, Shopping List, Mail, Bags, or DevTool.*
+### AltTracker
+- Summary shows each character's guild and rank, so you can see who shares a guild without opening the row.
+
+---
+
+*No user-facing changes this release for Trackers, QoL, Shopping List, Mail, Bags, or DevTool.*
 
 ---
 

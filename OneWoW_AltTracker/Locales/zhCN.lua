@@ -591,6 +591,8 @@ OneWoW.Locale:Register(ADDON_NAME, "zhCN", {
     ["TT_COL_RESTED_XP"] = "休息经验",
     ["TT_COL_RESTED_XP_DESC"] = "休息经验百分比",
     ["TT_COL_SPEC_DESC"] = "角色专精",
+    ["TT_COL_GUILD_DESC"] = "此角色所属的公会",
+    ["TT_COL_RANK_DESC"] = "此角色在该公会中的级别",
     ["TT_COL_STATUS_DESC"] = "装备整体状态（就绪、需要注意等）",
     ["TT_COL_TIER_SET"] = "套装",
     ["TT_COL_TIER_SET_DESC"] = "已装备的套装部件",

@@ -590,6 +590,8 @@ OneWoW.Locale:Register(ADDON_NAME, "koKR", {
     ["TT_COL_RESTED_XP"] = "휴식 경험치",
     ["TT_COL_RESTED_XP_DESC"] = "휴식 경험치 비율",
     ["TT_COL_SPEC_DESC"] = "캐릭터 전문화",
+    ["TT_COL_GUILD_DESC"] = "이 캐릭터가 속한 길드",
+    ["TT_COL_RANK_DESC"] = "해당 길드에서 이 캐릭터의 등급",
     ["TT_COL_STATUS_DESC"] = "전체 장비 상태(준비, 주의 필요 등)",
     ["TT_COL_TIER_SET"] = "티어 세트",
     ["TT_COL_TIER_SET_DESC"] = "장착된 티어 세트 조각",
