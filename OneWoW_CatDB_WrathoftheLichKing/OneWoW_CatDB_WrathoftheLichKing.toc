@@ -1,5 +1,5 @@
 ## Interface: 120105
-## Version: R6.2610.1510
+## Version: R6.2610.2104
 ## Title: OneWoW - Data: |cFFFFFFFFWrathoftheLichKing|r
 ## Notes: OneWoW Catalog data for WrathoftheLichKing.
 ## Author: OneWoW Dev Team

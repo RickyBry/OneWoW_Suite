@@ -1,5 +1,5 @@
 ## Interface: 120105
-## Version: R6.2610.1510
+## Version: R6.2610.2104
 ## Title: |cFFFFD100OneWoW|r - |cFF00FF00Bags|r
 ## Notes: Unified bag interface for World of Warcraft. Part of the OneWoW Suite.
 ## Author: OneWoW Dev Team
