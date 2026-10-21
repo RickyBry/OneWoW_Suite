@@ -62,12 +62,17 @@ OneWoW.Locale:Register(ADDON_NAME, "ptBR", {
     ["WARBOUND_SECTION"] = "Depósito Automático do Bando de Guerra",
     ["WARBOUND_ENABLE"] = "Depositar Automaticamente Todos os Itens do Bando de Guerra",
     ["WARBOUND_ENABLE_DESC"] = "Ao abrir qualquer banco, deposita automaticamente todos os itens vinculados ao Bando de Guerra (vinculados à conta) das suas bolsas no Banco do Bando de Guerra. Itens que já estão na sua lista de depósito acima são excluídos.",
+    ["WARBOUND_SWEEP_CHAT"] = "|cFF00FF00Depositado automaticamente|r |cFFFFFFFF%d item(ns) do Bando de Guerra|r no |cFF4A90E2Banco do Bando de Guerra|r",
+
+    ["REAGENT_ENABLE"] = "Depositar automaticamente todos os reagentes",
+    ["REAGENT_ENABLE_DESC"] = "Ao abrir o Banco do Bando de Guerra, deposita automaticamente os reagentes de profissão das suas bolsas no Banco do Bando de Guerra. Itens da lista de manter, que correspondem às palavras-chave ou que já estão na lista de depósito permanecem nas suas bolsas.",
+    ["REAGENT_SWEEP_CHAT"] = "|cFF00FF00Depositado automaticamente|r |cFFFFFFFF%d reagente(s)|r no |cFF4A90E2Banco do Bando de Guerra|r",
 
     ["WARBOUND_EXCLUDE_KEYWORD_LABEL"] = "Manter por Palavra-Chave",
     ["WARBOUND_EXCLUDE_KEYWORD_DESC"] = "Itens que correspondem a esta expressão de palavra-chave são mantidos nas suas bolsas e nunca depositados automaticamente. Use palavras-chave como #potion, #flask, #elixir, #consumable, separadas por | para \"ou\". Exemplo: #potion | #flask",
     ["WARBOUND_EXCLUDE_KEYWORD_PLACEHOLDER"] = "ex.: #potion | #flask",
     ["WARBOUND_EXCLUDE_ITEMS_LABEL"] = "Manter Itens Específicos",
-    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "Estes itens são sempre mantidos nas suas bolsas, mesmo quando vinculados ao Bando de Guerra. Arraste um item aqui ou insira o ID do item.",
+    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "Estes itens são sempre mantidos nas suas bolsas, inclusive itens vinculados ao Bando de Guerra e reagentes. Arraste um item aqui ou insira o ID do item.",
 
     ["TOOLTIP_SECTION"] = "Sobreposição de Dica",
     ["TOOLTIP_ENABLE"] = "Mostrar Status de Depósito nas Dicas",

@@ -61,12 +61,17 @@ OneWoW.Locale:Register(ADDON_NAME, "deDE", {
     ["WARBOUND_SECTION"] = "Kriegsmeuten-Auto-Einzahlung",
     ["WARBOUND_ENABLE"] = "Alle kriegsmeutengebundenen Gegenstände automatisch einzahlen",
     ["WARBOUND_ENABLE_DESC"] = "Beim Öffnen einer Bank werden automatisch alle kriegsmeutengebundenen (accountgebundenen) Gegenstände aus Ihren Taschen in die Kriegsmeutenbank eingezahlt. Gegenstände, die bereits in Ihrer obigen Einzahlungsliste stehen, werden ausgeschlossen.",
+    ["WARBOUND_SWEEP_CHAT"] = "|cFF00FF00Automatisch eingezahlt|r |cFFFFFFFF%d kriegsmeutengebundene(r) Gegenstand/Gegenstände|r in die |cFF4A90E2Kriegsmeutenbank|r",
+
+    ["REAGENT_ENABLE"] = "Alle Reagenzien automatisch einzahlen",
+    ["REAGENT_ENABLE_DESC"] = "Beim Öffnen der Kriegsmeutenbank werden automatisch alle Handwerksreagenzien aus Ihren Taschen in die Kriegsmeutenbank eingezahlt. Gegenstände auf Ihrer Behalten-Liste, die Ihren Schlüsselwörtern entsprechen oder bereits auf Ihrer Einzahlungsliste stehen, bleiben in Ihren Taschen.",
+    ["REAGENT_SWEEP_CHAT"] = "|cFF00FF00Automatisch eingezahlt|r |cFFFFFFFF%d Reagenzien|r in die |cFF4A90E2Kriegsmeutenbank|r",
 
     ["WARBOUND_EXCLUDE_KEYWORD_LABEL"] = "Nach Schlüsselwort behalten",
     ["WARBOUND_EXCLUDE_KEYWORD_DESC"] = "Gegenstände, die diesem Schlüsselwort-Ausdruck entsprechen, werden in Ihren Taschen behalten und niemals automatisch eingezahlt. Verwenden Sie Schlüsselwörter wie #potion, #flask, #elixir, #consumable, getrennt durch | für \"oder\". Beispiel: #potion | #flask",
     ["WARBOUND_EXCLUDE_KEYWORD_PLACEHOLDER"] = "z. B. #potion | #flask",
     ["WARBOUND_EXCLUDE_ITEMS_LABEL"] = "Bestimmte Gegenstände behalten",
-    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "Diese Gegenstände werden immer in Ihren Taschen behalten, auch wenn sie kriegsmeutengebunden sind. Ziehen Sie einen Gegenstand hierher oder geben Sie seine Gegenstands-ID ein.",
+    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "Diese Gegenstände werden immer in Ihren Taschen behalten, auch kriegsmeutengebundene Gegenstände und Reagenzien. Ziehen Sie einen Gegenstand hierher oder geben Sie seine Gegenstands-ID ein.",
 
     ["TOOLTIP_SECTION"] = "Tooltip-Overlay",
     ["TOOLTIP_ENABLE"] = "Einzahlungsstatus in Tooltips anzeigen",

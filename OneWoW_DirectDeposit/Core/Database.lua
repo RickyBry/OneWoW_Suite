@@ -23,6 +23,7 @@ local defaults = {
             itemList = {},
             tooltipEnabled = true,
             warboundAutoDeposit = false,
+            reagentAutoDeposit = false,
             warboundExcludeExpr = "",
             warboundExcludeList = {},
         },

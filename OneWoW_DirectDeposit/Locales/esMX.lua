@@ -62,12 +62,17 @@ OneWoW.Locale:Register(ADDON_NAME, "esMX", {
     ["WARBOUND_SECTION"] = "Depósito Automático de la banda guerrera",
     ["WARBOUND_ENABLE"] = "Depositar Automáticamente Todos los Objetos de la banda guerrera",
     ["WARBOUND_ENABLE_DESC"] = "Al abrir cualquier banco, deposita automáticamente todos los objetos vinculados a la banda guerrera (vinculados a la cuenta) de tus bolsas en el Banco de la banda guerrera. Los objetos que ya estén en tu lista de depósito de arriba quedan excluidos.",
+    ["WARBOUND_SWEEP_CHAT"] = "|cFF00FF00Depositado automáticamente|r |cFFFFFFFF%d objeto(s) de la banda guerrera|r en el |cFF4A90E2Banco de la banda guerrera|r",
+
+    ["REAGENT_ENABLE"] = "Depositar automáticamente todos los componentes",
+    ["REAGENT_ENABLE_DESC"] = "Al abrir el Banco de la banda guerrera, deposita automáticamente los componentes de fabricación de tus bolsas en el Banco de la banda guerrera. Los objetos de tu lista de conservación, los que coinciden con tus palabras clave o los que ya están en tu lista de depósito permanecen en tus bolsas.",
+    ["REAGENT_SWEEP_CHAT"] = "|cFF00FF00Depositado automáticamente|r |cFFFFFFFF%d componente(s)|r en el |cFF4A90E2Banco de la banda guerrera|r",
 
     ["WARBOUND_EXCLUDE_KEYWORD_LABEL"] = "Conservar por Palabra Clave",
     ["WARBOUND_EXCLUDE_KEYWORD_DESC"] = "Los objetos que coincidan con esta expresión de palabra clave se conservan en tus bolsas y nunca se depositan automáticamente. Usa palabras clave como #potion, #flask, #elixir, #consumable, separadas por | para \"o\". Ejemplo: #potion | #flask",
     ["WARBOUND_EXCLUDE_KEYWORD_PLACEHOLDER"] = "p. ej. #potion | #flask",
     ["WARBOUND_EXCLUDE_ITEMS_LABEL"] = "Conservar Objetos Específicos",
-    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "Estos objetos siempre se conservan en tus bolsas, incluso si están vinculados a la banda guerrera. Arrastra un objeto aquí o introduce su ID de objeto.",
+    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "Estos objetos siempre se conservan en tus bolsas, incluidos los objetos vinculados a la banda guerrera y los componentes. Arrastra un objeto aquí o introduce su ID de objeto.",
 
     ["TOOLTIP_SECTION"] = "Superposición de Información",
     ["TOOLTIP_ENABLE"] = "Mostrar Estado de Depósito en la Información",

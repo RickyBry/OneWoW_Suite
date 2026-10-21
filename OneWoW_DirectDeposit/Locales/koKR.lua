@@ -61,12 +61,17 @@ OneWoW.Locale:Register(ADDON_NAME, "koKR", {
     ["WARBOUND_SECTION"] = "전투부대 자동 입금",
     ["WARBOUND_ENABLE"] = "모든 전투부대 귀속 아이템 자동 입금",
     ["WARBOUND_ENABLE_DESC"] = "은행을 열 때 가방에 있는 모든 전투부대 귀속(계정 귀속) 아이템을 전투부대 은행에 자동으로 입금합니다. 위의 입금 목록에 이미 있는 아이템은 제외됩니다.",
+    ["WARBOUND_SWEEP_CHAT"] = "|cFF00FF00자동 입금|r |cFFFFFFFF전투부대 귀속 아이템 %d개|r |cFF4A90E2전투부대 은행|r",
+
+    ["REAGENT_ENABLE"] = "모든 재료 자동 입금",
+    ["REAGENT_ENABLE_DESC"] = "전투부대 은행을 열면 가방의 제작 재료를 전투부대 은행에 자동으로 입금합니다. 보관 목록의 아이템, 보관 키워드와 일치하는 아이템, 이미 입금 목록에 있는 아이템은 가방에 남습니다.",
+    ["REAGENT_SWEEP_CHAT"] = "|cFF00FF00자동 입금|r |cFFFFFFFF재료 %d개|r |cFF4A90E2전투부대 은행|r",
 
     ["WARBOUND_EXCLUDE_KEYWORD_LABEL"] = "키워드로 보관",
     ["WARBOUND_EXCLUDE_KEYWORD_DESC"] = "이 키워드 식과 일치하는 아이템은 가방에 보관되며 자동으로 입금되지 않습니다. #potion, #flask, #elixir, #consumable 같은 키워드를 \"또는\"을 뜻하는 |로 구분해 사용하세요. 예: #potion | #flask",
     ["WARBOUND_EXCLUDE_KEYWORD_PLACEHOLDER"] = "예: #potion | #flask",
     ["WARBOUND_EXCLUDE_ITEMS_LABEL"] = "특정 아이템 보관",
-    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "이 아이템은 전투부대 귀속이더라도 항상 가방에 보관됩니다. 아이템을 여기로 끌어오거나 아이템 ID를 입력하세요.",
+    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "이 아이템은 전투부대 귀속 아이템과 재료를 포함해 항상 가방에 보관됩니다. 아이템을 여기로 끌어오거나 아이템 ID를 입력하세요.",
 
     ["TOOLTIP_SECTION"] = "툴팁 오버레이",
     ["TOOLTIP_ENABLE"] = "툴팁에 입금 상태 표시",

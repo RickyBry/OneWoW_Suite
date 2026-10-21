@@ -61,12 +61,17 @@ OneWoW.Locale:Register(ADDON_NAME, "frFR", {
     ["WARBOUND_SECTION"] = "Dépôt Automatique de bataillon",
     ["WARBOUND_ENABLE"] = "Déposer Automatiquement Tous les Objets de bataillon",
     ["WARBOUND_ENABLE_DESC"] = "À l'ouverture de n'importe quelle banque, dépose automatiquement tous les objets liés au bataillon (liés au compte) de vos sacs dans la Banque de bataillon. Les objets déjà présents dans votre liste de dépôt ci-dessus sont exclus.",
+    ["WARBOUND_SWEEP_CHAT"] = "|cFF00FF00Dépôt automatique|r de |cFFFFFFFF%d objet(s) lié(s) au bataillon|r dans la |cFF4A90E2Banque de bataillon|r",
+
+    ["REAGENT_ENABLE"] = "Déposer automatiquement tous les composants",
+    ["REAGENT_ENABLE_DESC"] = "À l'ouverture de la Banque de bataillon, dépose automatiquement les composants d'artisanat de vos sacs dans la Banque de bataillon. Les objets de votre liste à conserver, ceux qui correspondent à vos mots-clés, ou ceux déjà dans votre liste de dépôt restent dans vos sacs.",
+    ["REAGENT_SWEEP_CHAT"] = "|cFF00FF00Dépôt automatique|r de |cFFFFFFFF%d composant(s)|r dans la |cFF4A90E2Banque de bataillon|r",
 
     ["WARBOUND_EXCLUDE_KEYWORD_LABEL"] = "Conserver par Mot-Clé",
     ["WARBOUND_EXCLUDE_KEYWORD_DESC"] = "Les objets correspondant à cette expression de mot-clé sont conservés dans vos sacs et ne sont jamais déposés automatiquement. Utilisez des mots-clés comme #potion, #flask, #elixir, #consumable, séparés par | pour \"ou\". Exemple : #potion | #flask",
     ["WARBOUND_EXCLUDE_KEYWORD_PLACEHOLDER"] = "p. ex. #potion | #flask",
     ["WARBOUND_EXCLUDE_ITEMS_LABEL"] = "Conserver des Objets Spécifiques",
-    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "Ces objets sont toujours conservés dans vos sacs, même s'ils sont liés au bataillon. Glissez un objet ici ou saisissez son ID d'objet.",
+    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "Ces objets sont toujours conservés dans vos sacs, y compris les objets liés au bataillon et les composants. Glissez un objet ici ou saisissez son ID d'objet.",
 
     ["TOOLTIP_SECTION"] = "Superposition d'Infobulle",
     ["TOOLTIP_ENABLE"] = "Afficher l'État de Dépôt dans les Infobulles",

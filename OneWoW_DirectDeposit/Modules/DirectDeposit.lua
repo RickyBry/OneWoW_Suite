@@ -118,7 +118,7 @@ function DirectDeposit:OnBankOpened()
     end
     self.bankSessionHandled = true
 
-    self:SweepWarboundItems()
+    self:SweepAutoDeposits()
 
     if not self:IsEnabled() then
         return
@@ -214,9 +214,23 @@ function DirectDeposit:RemoveWarboundExclude(itemID)
     return false
 end
 
-function DirectDeposit:SweepWarboundItems()
+--- True when the item is a crafting reagent (the reagent-bag / bank reagent flag).
+--- Item class Reagent also covers keystones and context tokens, which stay in bags.
+---@param itemID number
+---@return boolean
+function DirectDeposit:IsCraftingReagent(itemID)
+    local isCraftingReagent = select(17, C_Item.GetItemInfo(itemID))
+    return isCraftingReagent == true
+end
+
+--- Deposits warbound items and/or crafting reagents from bags into the Warband Bank.
+--- One pass per slot. The per-item deposit list, keep list, and keep keywords apply
+--- to both. A slot that matches both toggles is deposited once, as warbound.
+function DirectDeposit:SweepAutoDeposits()
     local dd = GetDB().global.directDeposit
-    if not dd.warboundAutoDeposit then
+    local depositWarbound = dd.warboundAutoDeposit
+    local depositReagents = dd.reagentAutoDeposit
+    if not depositWarbound and not depositReagents then
         return
     end
 
@@ -242,14 +256,21 @@ function DirectDeposit:SweepWarboundItems()
                     and not self:MatchesWarboundExclude(excludeCompiled, itemInfo, bagID, slotID)
                 then
                     local itemLocation = ItemLocation:CreateFromBagAndSlot(bagID, slotID)
-                    if itemLocation and itemLocation:IsValid() then
-                        if C_Bank.IsItemAllowedInBankType(Enum.BankType.Account, itemLocation)
-                            and self:IsWarboundItem(itemLocation, itemInfo, bagID, slotID)
-                        then
-                            table.insert(itemsToDeposit, {
-                                bagID    = bagID,
-                                slotID   = slotID,
-                                itemID   = itemInfo.itemID,
+                    if itemLocation and itemLocation:IsValid()
+                        and C_Bank.IsItemAllowedInBankType(Enum.BankType.Account, itemLocation)
+                    then
+                        local kind = nil
+                        if depositWarbound and self:IsWarboundItem(itemLocation, itemInfo, bagID, slotID) then
+                            kind = "warbound"
+                        elseif depositReagents and self:IsCraftingReagent(itemInfo.itemID) then
+                            kind = "reagent"
+                        end
+                        if kind then
+                            tinsert(itemsToDeposit, {
+                                bagID  = bagID,
+                                slotID = slotID,
+                                itemID = itemInfo.itemID,
+                                kind   = kind,
                             })
                         end
                     end
@@ -260,18 +281,28 @@ function DirectDeposit:SweepWarboundItems()
 
     if #itemsToDeposit == 0 then return end
 
-    local deposited = 0
+    local depositedWarbound = 0
+    local depositedReagents = 0
     local delay = 0.3
 
     for _, slot in ipairs(itemsToDeposit) do
+        local bag = slot.bagID
+        local slotIndex = slot.slotID
+        local itemID = slot.itemID
+        local kind = slot.kind
         C_Timer.After(delay, function()
             if not C_Bank.CanUseBank(Enum.BankType.Account) then return end
-            local currentInfo = C_Container.GetContainerItemInfo(slot.bagID, slot.slotID)
-            if currentInfo and currentInfo.itemID == slot.itemID then
-                local loc = ItemLocation:CreateFromBagAndSlot(slot.bagID, slot.slotID)
+            local currentInfo = C_Container.GetContainerItemInfo(bag, slotIndex)
+            if currentInfo and currentInfo.itemID == itemID then
+                local loc = ItemLocation:CreateFromBagAndSlot(bag, slotIndex)
                 if loc and loc:IsValid() and C_Bank.IsItemAllowedInBankType(Enum.BankType.Account, loc) then
-                    C_Container.UseContainerItem(slot.bagID, slot.slotID, nil, Enum.BankType.Account)
-                    deposited = deposited + (currentInfo.stackCount or 1)
+                    C_Container.UseContainerItem(bag, slotIndex, nil, Enum.BankType.Account)
+                    local count = currentInfo.stackCount or 1
+                    if kind == "reagent" then
+                        depositedReagents = depositedReagents + count
+                    else
+                        depositedWarbound = depositedWarbound + count
+                    end
                 end
             end
         end)
@@ -279,9 +310,12 @@ function DirectDeposit:SweepWarboundItems()
     end
 
     C_Timer.After(delay + 0.3, function()
-        if deposited > 0 then
-            local checkmark = "|TInterface\\Buttons\\UI-CheckBox-Check:16|t"
-            print(L["ADDON_CHAT_PREFIX"] .. " " .. checkmark .. " |cFF00FF00Auto-deposited|r |cFFFFFFFF" .. deposited .. " warbound item(s)|r to |cFF4A90E2Warband Bank|r")
+        local checkmark = "|TInterface\\Buttons\\UI-CheckBox-Check:16|t"
+        if depositedWarbound > 0 then
+            print(L["ADDON_CHAT_PREFIX"] .. " " .. checkmark .. " " .. format(L["WARBOUND_SWEEP_CHAT"], depositedWarbound))
+        end
+        if depositedReagents > 0 then
+            print(L["ADDON_CHAT_PREFIX"] .. " " .. checkmark .. " " .. format(L["REAGENT_SWEEP_CHAT"], depositedReagents))
         end
     end)
 end

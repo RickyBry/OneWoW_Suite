@@ -62,12 +62,17 @@ OneWoW.Locale:Register(ADDON_NAME, "zhTW", {
     ["WARBOUND_SECTION"] = "戰隊自動存入",
     ["WARBOUND_ENABLE"] = "自動存入所有戰隊綁定物品",
     ["WARBOUND_ENABLE_DESC"] = "在開啟任意銀行時，自動將你背包中所有戰隊綁定（帳號綁定）物品存入戰隊銀行。已在上方存入清單中的物品將被排除。",
+    ["WARBOUND_SWEEP_CHAT"] = "|cFF00FF00已自動存入|r |cFFFFFFFF%d個戰隊綁定物品|r到|cFF4A90E2戰隊銀行|r",
+
+    ["REAGENT_ENABLE"] = "自動存入所有材料",
+    ["REAGENT_ENABLE_DESC"] = "開啟戰隊銀行時，自動將背包中的製造材料存入戰隊銀行。保留清單中的物品、符合保留關鍵字的物品，以及已在存入清單中的物品會留在背包裡。",
+    ["REAGENT_SWEEP_CHAT"] = "|cFF00FF00已自動存入|r |cFFFFFFFF%d個材料|r到|cFF4A90E2戰隊銀行|r",
 
     ["WARBOUND_EXCLUDE_KEYWORD_LABEL"] = "依關鍵字保留",
     ["WARBOUND_EXCLUDE_KEYWORD_DESC"] = "與此關鍵字運算式相符的物品將保留在你的背包中，永不自動存入。使用諸如 #potion、#flask、#elixir、#consumable 之類的關鍵字，以 | 分隔表示「或」。範例：#potion | #flask",
     ["WARBOUND_EXCLUDE_KEYWORD_PLACEHOLDER"] = "例如 #potion | #flask",
     ["WARBOUND_EXCLUDE_ITEMS_LABEL"] = "保留特定物品",
-    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "這些物品將始終保留在你的背包中，即使是戰隊綁定物品。將物品拖曳至此處或輸入其物品 ID。",
+    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "這些物品將始終保留在你的背包中，包括戰隊綁定物品和材料。將物品拖曳至此處或輸入其物品 ID。",
 
     ["TOOLTIP_SECTION"] = "提示資訊疊加",
     ["TOOLTIP_ENABLE"] = "在提示資訊中顯示存入狀態",

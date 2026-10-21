@@ -62,12 +62,17 @@ OneWoW.Locale:Register(ADDON_NAME, "itIT", {
     ["WARBOUND_SECTION"] = "Deposito Automatico Brigata",
     ["WARBOUND_ENABLE"] = "Deposita Automaticamente Tutti gli Oggetti della Brigata",
     ["WARBOUND_ENABLE_DESC"] = "All'apertura di qualsiasi banca, deposita automaticamente tutti gli oggetti legati alla brigata (legati all'account) dalle tue borse nella Banca della Brigata. Gli oggetti già presenti nella lista di deposito qui sopra vengono esclusi.",
+    ["WARBOUND_SWEEP_CHAT"] = "|cFF00FF00Depositato automaticamente|r |cFFFFFFFF%d oggetto/i della Brigata|r nella |cFF4A90E2Banca della Brigata|r",
+
+    ["REAGENT_ENABLE"] = "Deposita automaticamente tutti i reagenti",
+    ["REAGENT_ENABLE_DESC"] = "All'apertura della Banca della Brigata, deposita automaticamente i reagenti da professione dalle tue borse nella Banca della Brigata. Gli oggetti nella lista da conservare, quelli che corrispondono alle parole chiave o quelli già nella lista di deposito restano nelle tue borse.",
+    ["REAGENT_SWEEP_CHAT"] = "|cFF00FF00Depositato automaticamente|r |cFFFFFFFF%d reagenti|r nella |cFF4A90E2Banca della Brigata|r",
 
     ["WARBOUND_EXCLUDE_KEYWORD_LABEL"] = "Mantieni per Parola Chiave",
     ["WARBOUND_EXCLUDE_KEYWORD_DESC"] = "Gli oggetti che corrispondono a questa espressione di parole chiave vengono mantenuti nelle tue borse e mai depositati automaticamente. Usa parole chiave come #potion, #flask, #elixir, #consumable, separate da | per \"o\". Esempio: #potion | #flask",
     ["WARBOUND_EXCLUDE_KEYWORD_PLACEHOLDER"] = "es. #potion | #flask",
     ["WARBOUND_EXCLUDE_ITEMS_LABEL"] = "Mantieni Oggetti Specifici",
-    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "Questi oggetti vengono sempre mantenuti nelle tue borse, anche se legati alla brigata. Trascina qui un oggetto o inserisci il suo ID oggetto.",
+    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "Questi oggetti vengono sempre mantenuti nelle tue borse, inclusi gli oggetti legati alla brigata e i reagenti. Trascina qui un oggetto o inserisci il suo ID oggetto.",
 
     ["TOOLTIP_SECTION"] = "Sovrapposizione Descrizione",
     ["TOOLTIP_ENABLE"] = "Mostra Stato del Deposito nelle Descrizioni",

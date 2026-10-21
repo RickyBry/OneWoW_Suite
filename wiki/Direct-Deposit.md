@@ -27,10 +27,14 @@
 
 Optional: when a bank opens, deposit every warbound item from bags into the Warband Bank. Items already on your per-item list keep their own routing.
 
-Keep exceptions:
+### Reagent sweep
+
+Optional: when the Warband Bank opens, deposit every crafting reagent from your bags into the Warband Bank. Gear, consumables, quest items, and keystones stay in your bags.
+
+Keep exceptions apply to both sweeps:
 
 * **Keep by Keyword** — expression like `#potion | #flask` (same language as [Bags search](Bags-Search-Syntax))
-* **Keep Specific Items** — always leave those item IDs in bags. Sort that list by name or item ID.
+* **Keep Specific Items** — always leave those item IDs in bags, including warbound items and reagents. Sort that list by name or item ID.
 
 ---
 

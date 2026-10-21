@@ -415,6 +415,25 @@ function GUI:CreateItemsPanel(parent)
     yOffset = yOffset - 52
     yOffset = yOffset - 14
 
+    local reagentCheck = OneWoW_GUI:CreateCheckbox(scrollContent, { label = L["REAGENT_ENABLE"] })
+    reagentCheck:SetPoint("TOPLEFT", scrollContent, "TOPLEFT", 20, yOffset)
+    reagentCheck:SetChecked(GetDB().global.directDeposit.reagentAutoDeposit)
+    reagentCheck:SetScript("OnClick", function(myself)
+        GetDB().global.directDeposit.reagentAutoDeposit = myself:GetChecked()
+    end)
+    panel.reagentCheck = reagentCheck
+    yOffset = yOffset - 30
+
+    local reagentDesc = OneWoW_GUI:CreateFS(scrollContent, 11)
+    reagentDesc:SetPoint("TOPLEFT",  scrollContent, "TOPLEFT",  40, yOffset)
+    reagentDesc:SetPoint("TOPRIGHT", scrollContent, "TOPRIGHT", -20, yOffset)
+    reagentDesc:SetText(L["REAGENT_ENABLE_DESC"])
+    reagentDesc:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_SECONDARY"))
+    reagentDesc:SetJustifyH("LEFT")
+    reagentDesc:SetWordWrap(true)
+    yOffset = yOffset - 68
+    yOffset = yOffset - 14
+
     local excludeKwLabel = OneWoW_GUI:CreateFS(scrollContent, 12)
     excludeKwLabel:SetPoint("TOPLEFT", scrollContent, "TOPLEFT", 40, yOffset)
     excludeKwLabel:SetText(L["WARBOUND_EXCLUDE_KEYWORD_LABEL"])

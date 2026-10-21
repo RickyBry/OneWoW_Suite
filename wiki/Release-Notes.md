@@ -45,11 +45,16 @@
 
 ---
 
-*No user-facing changes this release for AltTracker, Trackers, QoL, Direct Deposit, Shopping List, Mail, Bags, or DevTool.*
+### Direct Deposit
+- Opening the Warband Bank can deposit every crafting reagent in your bags. Items on your keep list, keep keywords, or the per-item deposit list stay in your bags.
 
 ---
 
-- **Last Updated**: Oct 16, 2026
+*No user-facing changes this release for AltTracker, Trackers, QoL, Shopping List, Mail, Bags, or DevTool.*
+
+---
+
+- **Last Updated**: Oct 21, 2026
 
 ## R6.2609.1519
 

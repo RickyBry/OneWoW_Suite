@@ -61,12 +61,17 @@ OneWoW.Locale:Register(ADDON_NAME, "enUS", {
     ["WARBOUND_SECTION"] = "Warband Auto-Deposit",
     ["WARBOUND_ENABLE"] = "Auto-Deposit All Warbound Items",
     ["WARBOUND_ENABLE_DESC"] = "When opening any bank, automatically deposit all warbound (account-bound) items from your bags into the Warband Bank. Items already in your deposit list above are excluded.",
+    ["WARBOUND_SWEEP_CHAT"] = "|cFF00FF00Auto-deposited|r |cFFFFFFFF%d warbound item(s)|r to |cFF4A90E2Warband Bank|r",
+
+    ["REAGENT_ENABLE"] = "Auto-Deposit All Reagents",
+    ["REAGENT_ENABLE_DESC"] = "When opening the Warband Bank, automatically deposit crafting reagents from your bags into the Warband Bank. Items on your keep list, matching your keep keywords, or already on your deposit list stay in your bags.",
+    ["REAGENT_SWEEP_CHAT"] = "|cFF00FF00Auto-deposited|r |cFFFFFFFF%d reagent(s)|r to |cFF4A90E2Warband Bank|r",
 
     ["WARBOUND_EXCLUDE_KEYWORD_LABEL"] = "Keep by Keyword",
     ["WARBOUND_EXCLUDE_KEYWORD_DESC"] = "Items matching this keyword expression are kept in your bags and never auto-deposited. Use keywords like #potion, #flask, #elixir, #consumable, separated by | for \"or\". Example: #potion | #flask",
     ["WARBOUND_EXCLUDE_KEYWORD_PLACEHOLDER"] = "e.g. #potion | #flask",
     ["WARBOUND_EXCLUDE_ITEMS_LABEL"] = "Keep Specific Items",
-    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "These items are always kept in your bags, even when warbound. Drag an item here or enter its Item ID.",
+    ["WARBOUND_EXCLUDE_ITEMS_DESC"] = "These items are always kept in your bags, including warbound items and reagents. Drag an item here or enter its Item ID.",
 
     ["TOOLTIP_SECTION"] = "Tooltip Overlay",
     ["TOOLTIP_ENABLE"] = "Show Deposit Status in Tooltips",
