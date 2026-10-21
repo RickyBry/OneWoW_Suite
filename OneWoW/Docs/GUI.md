@@ -666,12 +666,14 @@ local result = OneWoW_GUI:CreateConfirmDialog({
     },
 })
 ```
-Convenience wrapper around `CreateDialog` with `movable = false` and auto-calculated height.
+Convenience wrapper around `CreateDialog` with `movable = false`. Height follows the message and the current font size, then caps to the screen. When the message does not fit, it scrolls and the checkbox and buttons stay on screen. A font-size change reflows the dialog.
 Returns the same table as `CreateDialog` plus:
-- `result.titleLabel` - FontString for the title text
+- `result.titleLabel` - FontString for the heading
 - `result.messageLabel` - FontString for the message text
+- `result.scrollFrame` - message scroll frame
+- `result.checkbox` - when `config.checkbox` is set
 
-Not movable, centered on screen, ESC closes. Title displayed as large accent text (no title bar).
+Not movable, centered on screen. Escape closes when `name` is set.
 
 ### Filter bar (horizontal control container)
 ```lua

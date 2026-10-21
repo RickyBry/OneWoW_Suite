@@ -7,6 +7,7 @@
 - Browsing the Auction House, vendors, or Catalog for a long session no longer keeps growing memory for item tooltips and searches.
 
 ## Fixes
+- What's New and other confirmation windows stay on screen at the largest font size. The message scrolls, the checkbox stays where you can check it, and Escape still closes the window.
 - The AFK screen's session time shows how long you have been logged in, instead of how long your computer has been on.
 - Quest dialogs no longer report an error when Catalog is turned off.
 - Deleted preset overlays stay deleted after a reload.

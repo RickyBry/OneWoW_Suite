@@ -186,7 +186,9 @@ function OneWoW_GUI:CreateConfirmDialog(config)
     local cbPadBottom = 8
     local headingBaseSize = 16
     local bodyBaseSize = 12
-    local msgWidth = dialogWidth - 40
+    local screenMargin = 24
+    local labelGap = OneWoW_GUI:GetSpacing("XS")
+    local boxSize = Constants.GUI.CHECKBOX_SIZE
 
     local function measureTextHeight(text, baseSize, width, wordWrap)
         local fs = UIParent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -200,88 +202,236 @@ function OneWoW_GUI:CreateConfirmDialog(config)
         OneWoW_GUI:SetFontBaseSize(fs, baseSize)
         OneWoW_GUI:SafeSetFont(fs, OneWoW_GUI:GetFont(), baseSize)
         fs:SetText(text or "")
-        local h = fs:GetStringHeight()
+        local h = fs:GetStringHeight() or 0
         fs:Hide()
         fs:SetParent(nil)
         return h
     end
 
-    local msgHeight = measureTextHeight(messageText, bodyBaseSize, msgWidth, true)
-    local headingHeight = measureTextHeight(headingText, headingBaseSize, nil, false)
-
-    local checkboxRow = 0
-    if checkboxConfig then
-        local labelGap = OneWoW_GUI:GetSpacing("XS")
-        local labelMaxWidth = checkboxConfig.labelMaxWidth
-        local labelWidth = labelMaxWidth
-        if not labelWidth or labelWidth <= 0 then
-            labelWidth = msgWidth - Constants.GUI.CHECKBOX_SIZE - labelGap
-        end
-        local cbLabelHeight = measureTextHeight(
-            checkboxConfig.label or "",
-            bodyBaseSize,
-            labelWidth,
-            checkboxConfig.wrap
-        )
-        local cbRowContent = math.max(Constants.GUI.CHECKBOX_SIZE, cbLabelHeight)
-        checkboxRow = 1 + cbPadTop + cbRowContent + cbPadBottom
-    end
-
-    local contentHeight = headingPad + headingHeight + msgPad + msgHeight + contentPadBottom + checkboxRow
-    local totalHeight = titleBarHeight + contentHeight + btnRowHeight + 2
-    totalHeight = math.max(totalHeight, 140)
-
+    -- SafeSetFont adds the player's font-size offset, so the largest setting
+    -- can make this dialog taller than the screen. Cap it and scroll the
+    -- message; the checkbox and buttons stay on screen. A frame name still
+    -- registers Escape via UISpecialFrames.
+    local layout
     local result = self:CreateDialog({
         name = config.name,
         title = addonTitle,
         width = dialogWidth,
-        height = totalHeight,
+        height = 140,
         movable = false,
         escClose = true,
         showBrand = showBrand,
         factionTheme = config.factionTheme,
         onClose = config.onClose,
         buttons = config.buttons,
+        relayout = function()
+            layout()
+        end,
     })
 
     local headingLabel = result.contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    OneWoW_GUI:SetFontBaseSize(headingLabel, 16)
-    OneWoW_GUI:SafeSetFont(headingLabel, OneWoW_GUI:GetFont(), 16)
+    OneWoW_GUI:SetFontBaseSize(headingLabel, headingBaseSize)
+    OneWoW_GUI:SafeSetFont(headingLabel, OneWoW_GUI:GetFont(), headingBaseSize)
     headingLabel:SetPoint("TOP", result.contentFrame, "TOP", 0, -headingPad)
+    headingLabel:SetJustifyH("CENTER")
+    headingLabel:SetWordWrap(true)
+    headingLabel:SetNonSpaceWrap(false)
     headingLabel:SetText(headingText)
     OneWoW_GUI:BindThemeColor(headingLabel, "text", "ACCENT_PRIMARY")
     result.titleLabel = headingLabel
 
-    local msgLabel = result.contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    OneWoW_GUI:SetFontBaseSize(msgLabel, 12)
-    OneWoW_GUI:SafeSetFont(msgLabel, OneWoW_GUI:GetFont(), 12)
-    msgLabel:SetPoint("TOP", headingLabel, "BOTTOM", 0, -msgPad)
-    msgLabel:SetWidth(msgWidth)
+    local messageHost = CreateFrame("Frame", nil, result.contentFrame)
+    local scrollFrame, scrollContent = self:CreateScrollFrame(messageHost, {})
+    scrollFrame:ClearAllPoints()
+    scrollFrame:SetPoint("TOPLEFT", messageHost, "TOPLEFT", 0, 0)
+    scrollFrame:SetPoint("BOTTOMRIGHT", messageHost, "BOTTOMRIGHT", 0, 0)
+    scrollFrame:EnableMouseWheel(true)
+    result.scrollFrame = scrollFrame
+
+    local msgLabel = scrollContent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    OneWoW_GUI:SetFontBaseSize(msgLabel, bodyBaseSize)
+    OneWoW_GUI:SafeSetFont(msgLabel, OneWoW_GUI:GetFont(), bodyBaseSize)
+    msgLabel:SetPoint("TOP", scrollContent, "TOP", 0, 0)
+    msgLabel:SetJustifyH("CENTER")
     msgLabel:SetWordWrap(true)
     msgLabel:SetNonSpaceWrap(false)
     msgLabel:SetText(messageText)
     OneWoW_GUI:BindThemeColor(msgLabel, "text", "TEXT_SECONDARY")
     result.messageLabel = msgLabel
 
+    -- Reused confirms replace the heading and message in place.
+    -- Measure the text currently on the strings.
+    local layingOut = false
+    local function relayoutIfTextChanged()
+        if layout and not layingOut then
+            layout()
+        end
+    end
+    hooksecurefunc(headingLabel, "SetText", relayoutIfTextChanged)
+    hooksecurefunc(msgLabel, "SetText", relayoutIfTextChanged)
+
+    local previousOnBar = scrollFrame._oneWoWOnScrollBarShown
+    scrollFrame._oneWoWOnScrollBarShown = function(shown)
+        if previousOnBar then
+            previousOnBar(shown)
+        end
+        local w = scrollContent:GetWidth()
+        if w and w > 1 and math.abs((msgLabel:GetWidth() or 0) - w) >= 1 then
+            msgLabel:SetWidth(w)
+            local h = msgLabel:GetStringHeight() or 0
+            if h > 1 then
+                scrollContent:SetHeight(h)
+            end
+        end
+    end
+
+    local cbDivider, cb
     if checkboxConfig then
-        local cbDivider = result.contentFrame:CreateTexture(nil, "ARTWORK")
+        cbDivider = result.contentFrame:CreateTexture(nil, "ARTWORK")
         cbDivider:SetHeight(1)
-        cbDivider:SetPoint("TOPLEFT", result.contentFrame, "TOPLEFT", 10, -(headingPad + headingHeight + msgPad + msgHeight + contentPadBottom))
-        cbDivider:SetPoint("TOPRIGHT", result.contentFrame, "TOPRIGHT", -10, -(headingPad + headingHeight + msgPad + msgHeight + contentPadBottom))
         OneWoW_GUI:BindThemeColor(cbDivider, "texture", "BORDER_SUBTLE")
 
-        local cb = self:CreateCheckbox(result.contentFrame, {
+        cb = self:CreateCheckbox(result.contentFrame, {
             label = checkboxConfig.label or "",
             labelMaxWidth = checkboxConfig.labelMaxWidth,
             wrap = checkboxConfig.wrap,
         })
-        cb:SetPoint("TOPLEFT", cbDivider, "BOTTOMLEFT", 0, -cbPadTop)
         if cb.label then
             OneWoW_GUI:BindThemeColor(cb.label, "text", "TEXT_MUTED")
         end
         result.checkbox = cb
     end
 
+    layout = function()
+        if layingOut then
+            return
+        end
+        layingOut = true
+        local screenW = GetScreenWidth()
+        local screenH = GetScreenHeight()
+        local maxFrameW = dialogWidth
+        local maxFrameH = 100000
+        if screenW > 0 then
+            maxFrameW = screenW - screenMargin * 2
+            if maxFrameW < 160 then
+                maxFrameW = screenW
+            end
+        end
+        if screenH > 0 then
+            maxFrameH = screenH - screenMargin * 2
+            if maxFrameH < 120 then
+                maxFrameH = screenH
+            end
+        end
+        local frameW = math.min(dialogWidth, maxFrameW)
+        local textW = math.max(40, frameW - 40)
+        local headingNow = headingLabel:GetText() or ""
+        local messageNow = msgLabel:GetText() or ""
+
+        local function preferLive(measured, fontString)
+            local live = fontString and (fontString:GetStringHeight() or 0) or 0
+            if live > measured then
+                return live
+            end
+            return measured
+        end
+
+        headingLabel:SetWidth(textW)
+        local headingH = preferLive(measureTextHeight(headingNow, headingBaseSize, textW, true), headingLabel)
+        if headingH < 1 then
+            headingH = headingBaseSize
+        end
+
+        local checkboxRow = 0
+        local cbRowContent = 0
+        local labelWidth = 0
+        if checkboxConfig then
+            labelWidth = checkboxConfig.labelMaxWidth
+            if not labelWidth or labelWidth <= 0 then
+                labelWidth = textW - boxSize - labelGap
+            end
+            labelWidth = math.max(20, labelWidth)
+            if cb.label and checkboxConfig.wrap then
+                cb.label:SetWidth(labelWidth)
+                cb.label:SetWordWrap(true)
+                cb.label:SetNonSpaceWrap(false)
+            end
+            local cbLabelHeight = preferLive(measureTextHeight(
+                checkboxConfig.label or "",
+                bodyBaseSize,
+                checkboxConfig.wrap and labelWidth or nil,
+                checkboxConfig.wrap
+            ), cb.label)
+            cbRowContent = math.max(boxSize, cbLabelHeight)
+            checkboxRow = 1 + cbPadTop + cbRowContent + cbPadBottom
+        end
+
+        msgLabel:SetWidth(textW)
+        local msgH = preferLive(measureTextHeight(messageNow, bodyBaseSize, textW, true), msgLabel)
+        local fitContent = headingPad + headingH + msgPad + msgH + contentPadBottom + checkboxRow
+        local fitH = math.max(titleBarHeight + fitContent + btnRowHeight + 2, 140)
+        local frameH = math.min(fitH, maxFrameH)
+        local overflowing = frameH + 0.5 < fitH
+        local innerW = textW
+        if overflowing then
+            innerW = math.max(40, textW - Constants.GUI.SCROLLBAR_CONTENT_GUTTER)
+            msgLabel:SetWidth(innerW)
+            msgH = preferLive(measureTextHeight(messageNow, bodyBaseSize, innerW, true), msgLabel)
+        end
+
+        result.frame:SetSize(frameW, frameH)
+
+        local lift = checkboxConfig and math.max(0, (cbRowContent - boxSize) / 2) or 0
+        messageHost:ClearAllPoints()
+        messageHost:SetPoint("TOPLEFT", result.contentFrame, "TOPLEFT", 20, -(headingPad + headingH + msgPad))
+        if cbDivider then
+            cbDivider:ClearAllPoints()
+        end
+        if cb then
+            cb:ClearAllPoints()
+        end
+
+        -- One anchor plus an explicit size. Mixing a set height with both a
+        -- top and a bottom anchor errors when a font change crosses the cap.
+        local contentH = frameH - titleBarHeight - btnRowHeight - 2
+        local aboveMessage = headingPad + headingH + msgPad
+        if overflowing and cbDivider then
+            local hostH = contentH - aboveMessage - contentPadBottom - checkboxRow
+            messageHost:SetSize(textW, math.max(1, hostH))
+            cbDivider:SetPoint("BOTTOMLEFT", result.contentFrame, "BOTTOMLEFT", 10, cbPadBottom + cbRowContent + cbPadTop)
+            cbDivider:SetPoint("BOTTOMRIGHT", result.contentFrame, "BOTTOMRIGHT", -10, cbPadBottom + cbRowContent + cbPadTop)
+            cb:SetPoint("TOPLEFT", cbDivider, "BOTTOMLEFT", 0, -(cbPadTop + lift))
+        elseif cbDivider then
+            messageHost:SetSize(textW, math.max(msgH, 1))
+            cbDivider:SetPoint("TOPLEFT", messageHost, "BOTTOMLEFT", -10, -contentPadBottom)
+            cbDivider:SetPoint("TOPRIGHT", messageHost, "BOTTOMRIGHT", 10, -contentPadBottom)
+            cb:SetPoint("TOPLEFT", cbDivider, "BOTTOMLEFT", 0, -(cbPadTop + lift))
+        else
+            local hostH = math.max(msgH, 1)
+            if overflowing then
+                hostH = math.max(1, contentH - aboveMessage - contentPadBottom)
+            end
+            messageHost:SetSize(textW, hostH)
+        end
+
+        msgLabel:SetWidth(innerW)
+        scrollContent:SetWidth(innerW)
+        scrollContent:SetHeight(math.max(msgH, 1))
+        scrollFrame:SetVerticalScroll(0)
+        scrollFrame:UpdateScrollChildRect()
+
+        if cb then
+            local hitW = labelWidth
+            local measured = cb.label and (cb.label:GetStringWidth() or 0) or 0
+            if measured > 1 then
+                hitW = measured
+            end
+            cb:SetHitRectInsets(0, -(labelGap + hitW), -lift, -lift)
+        end
+        layingOut = false
+    end
+
+    layout()
     return result
 end
 
