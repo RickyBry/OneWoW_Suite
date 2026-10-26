@@ -1,75 +1,11 @@
 # OneWoW Suite Changelog
 
-- Dropdown menus, the minimap button menu, profile dialogs, and item lists reuse what they built the first time, so opening them over a long session no longer adds memory or slows the game.
-- Changing the theme, font, font size, or language updates the OneWoW window in place instead of closing and rebuilding it, and switching back and forth no longer adds memory.
-- Open dialogs and panels docked to game windows switch to a new theme right away.
-- Bag overlays and searches update faster when you loot, sort, or move items, because item details are no longer looked up again on every bag change.
-- Browsing the Auction House, vendors, or Catalog for a long session no longer keeps growing memory for item tooltips and searches.
-
-## Fixes
-- What's New and other confirmation windows stay on screen at the largest font size. The message scrolls, the checkbox stays where you can check it, and Escape still closes the window.
-- The AFK screen's session time shows how long you have been logged in, instead of how long your computer has been on.
-- Deleted preset overlays stay deleted after a reload.
-- The Overlays settings Preview stays in its own column instead of sliding under the settings after you click through a few overlays.
-- Overlays on the default guild bank match the items in the tab you are viewing.
-- Mail and Auction House overlays appear on items the game had not loaded yet, instead of staying blank.
-- Bag items without durability no longer count as broken in overlays and searches.
-- Talking to vendors and NPCs inside instances no longer risks errors from hidden names.
-- The new-version check sends fewer messages: once per session, when you join a guild, or when your group grows, instead of after every loading screen.
-- A new-version message blocked in a dungeon or raid is sent once afterward, instead of repeating to every channel.
-- The update popup and Home notice only appear after two different players report a newer version, and impossible version numbers are ignored.
-- One feature failing on a game event no longer stops other OneWoW features from reacting to it.
-
----
-
-# Catalog
-- Catalog loads only the expansion you are standing in, so tabs open faster and use less memory.
-  - Other expansions load when you pick them in a filter, choose All, or search Item Search with two or more letters.
-  - Zones "In This Zone" still lists every dungeon, raid, and Delve on your map, whatever its expansion.
-  - Opening a vendor or instance from a link or waypoint finds it in any expansion.
-- Clearing filters or leaving "In This Zone" on Zones, Vendors, and Quests switches to your current expansion.
-- Item Search no longer hitches when building drop results or checking which alts know a recipe.
-- Vendor lists sort and filter faster while typing.
-
-## Fixes
-- Quest givers no longer list the same quest twice after quest data refreshes.
-- The Adventure Guide keeps its difficulty and loot filter after Catalog reads its loot.
-
----
-
-# Notes
-- Finding a vendor from a waypoint searches every expansion.
-
----
-
-# Direct Deposit
-- Opening the Warband Bank can deposit every crafting reagent in your bags. Items on your keep list, keep keywords, or the per-item deposit list stay in your bags.
-
----
-
-# Mail
-- Delete tells you why a checked letter stayed: collect the item, collect the gold, or it is C.O.D. The reason shows in chat and on the Activity tab.
-
----
-
-# AltTracker
-- Summary shows each character's guild and rank, so you can see who shares a guild without opening the row.
-
-## Fixes
-- Taking mail is instant again while Storage is enabled, instead of about a second per letter.
-
----
-
 # QoL
-- Reputation Tracker is off until you turn it on. Faction gain chat then shows this session's total and how much is left to the next standing, friendship rank, or renown.
-  - Inactive factions can be included. Guild gains can be skipped.
-  - Optional: switch the reputation bar to the faction you just gained.
-  - Reputation tooltips list standing for your other characters when AltTracker has saved them.
 - Quest Tools has a new Dialog keybinds setting, off until you turn it on. With a gossip or quest window open, 1-9 pick the matching option or quest and Space accepts, continues, or completes. Each line shows its number, and the keys can be changed in Key Bindings under OneWoW QoL.
 
 ---
 
-*No user-facing changes this release for Trackers, Shopping List, Bags, or DevTool.*
+*No user-facing changes this release for the suite core, Catalog, Notes, Direct Deposit, Mail, AltTracker, Trackers, Shopping List, Bags, or DevTool.*
 
 ---
 
