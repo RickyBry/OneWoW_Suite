@@ -9,7 +9,9 @@ ns.ModuleRegistry:Define(ADDON_NAME, {
     author      = "Ricky",
     contact     = "ricky@onewow.net",
     link        = "https://www.onewow.net",
-    toggles     = {},
+    toggles     = {
+        { id = "hide_loot_window", label = "FASTLOOT_TOGGLE_HIDE", description = "FASTLOOT_TOGGLE_HIDE_DESC", default = false },
+    },
     preview     = true,
     _frame      = nil,
     _epoch      = 0,

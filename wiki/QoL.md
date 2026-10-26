@@ -36,7 +36,7 @@ QoL has a **Waypoints** tab (not a module). **Waypoint arrow** chooses where a c
 
 ### Automation
 
-Hands-off helpers: **Auto Repair**, **Fast Loot**, **Auto Mount**, **Auto Open** (containers; skips bank/mail/vendor and locked items; blacklist sortable by name or item ID), **Fast Forward** (skip cinematics; hold a modifier to watch), **Quest Tools** (accept/turn-in/gossip; hold a modifier to skip, or require that modifier first; optional Dialog keybinds: 1-9 pick a gossip or quest line and Space accepts, continues, or completes, rebindable in Key Bindings), **Untrack Completed Achievements**, **Screenshot On Achievement**.
+Hands-off helpers: **Auto Repair**, **Fast Loot** (optional Hide loot window keeps the loot window from flashing and shows it if something can't be looted), **Auto Mount**, **Auto Open** (containers; skips bank/mail/vendor and locked items; blacklist sortable by name or item ID), **Fast Forward** (skip cinematics; hold a modifier to watch), **Quest Tools** (accept/turn-in/gossip; hold a modifier to skip, or require that modifier first; optional Dialog keybinds: 1-9 pick a gossip or quest line and Space accepts, continues, or completes, rebindable in Key Bindings), **Untrack Completed Achievements**, **Screenshot On Achievement**.
 
 ### Interface
 
