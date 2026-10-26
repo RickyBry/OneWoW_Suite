@@ -14,6 +14,8 @@ OneWoW.Locale:Register(M._scope, "deDE", {
     ["QUESTTOOLS_TOGGLE_REWARDS_DESC"] = "Zeigt ein Goldmünzensymbol auf dem Questbelohnungsgegenstand mit dem höchsten Händlerverkaufswert.",
     ["QUESTTOOLS_TOGGLE_GOSSIP"] = "Auto-Gespräch (quest-markierte Zeilen)",
     ["QUESTTOOLS_TOGGLE_GOSSIP_DESC"] = "Wählt automatisch Gesprächsoptionen aus, die als quest-markiert (QuestLabelPrepend) gekennzeichnet sind, also dieselben Zeilen, die die UI mit dem questartigen Label anzeigt. Wenn mehr als eine infrage kommt, wird anhand des sichtbaren Zeilentexts entschieden. Quest-Automatisierung legt die Modifikatortaste fest und ob sie das Auto-Gespräch überspringt oder vorher gehalten werden muss. Erfordert Unterstützung für C_GossipInfo und QuestLabelPrepend (FlagsUtil / Enum.GossipOptionRecFlags) auf deinem Client.",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS"] = "Dialog-Tastenbelegung",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS_DESC"] = "Solange ein Gesprächs- oder Questfenster offen ist, wählen die Tasten 1-9 die passende Option oder Quest, und die Leertaste nimmt die Quest an, setzt sie fort oder schließt sie ab. Jede Zeile zeigt eine Nummer. Die Tasten lassen sich in der Tastenbelegung unter OneWoW QoL ändern.",
     ["QUESTTOOLS_AUTOMATION_HEADER"] = "Quest-Automatisierung",
     ["QUESTTOOLS_REQUIRE_MODIFIER"] = "Modifikator zum Automatisieren verlangen",
     ["QUESTTOOLS_REQUIRE_MODIFIER_DESC"] = "Wenn aktiv, laufen Auto-Annahme, Abgabe und Quest-Gespräch nur, solange der Modifikator gehalten wird. Wenn inaktiv, laufen sie, sofern du den Modifikator nicht hältst.",

@@ -420,14 +420,237 @@ function QuestToolsModule:EvaluateRewards()
     end
 end
 
+-- Dialog keybinds: number keys pick the Nth line of a gossip or quest greeting
+-- list, and the accept key presses Accept / Continue / Complete Quest. Override
+-- bindings exist only while one of those panels is open and are dropped when
+-- combat starts, so action bar keys are never held during a fight.
+local DIALOG_KEY_COUNT = 9
+local DIALOG_OWNER = "OneWoW_QoL.questtools.dialogkeys"
+local DIALOG_KEY_BUTTON = "OneWoW_QoL_QuestDialogKey"
+local DIALOG_ACCEPT_BUTTON = "OneWoW_QoL_QuestDialogKeyAccept"
+
+local dialogFrame = nil
+local dialogHooked = false
+local dialogSyncQueued = false
+local dialogInCombat = false
+local dialogLabels = setmetatable({}, { __mode = "k" })
+
+local function DialogKeysActive()
+    return ns.ModuleRegistry:IsEnabled("questtools") and GetToggle("dialog_keybinds")
+end
+
+local function DialogActionKey(action, defaultKey)
+    local key1, key2 = GetBindingKey(action)
+    if not key1 and not key2 then
+        return defaultKey, nil
+    end
+    return key1, key2
+end
+
+local function GossipElementAt(index)
+    local provider = GossipFrame.GreetingPanel.ScrollBox:GetDataProvider()
+    if not provider then return nil end
+    return provider:FindElementDataByPredicate(function(elementData)
+        return elementData.index == index
+    end)
+end
+
+local function SelectGossipLine(index)
+    local elementData = GossipElementAt(index)
+    if not elementData then return end
+    local info = elementData.info
+    if elementData.buttonType == GOSSIP_BUTTON_TYPE_AVAILABLE_QUEST then
+        C_GossipInfo.SelectAvailableQuest(info.questID)
+    elseif elementData.buttonType == GOSSIP_BUTTON_TYPE_ACTIVE_QUEST then
+        C_GossipInfo.SelectActiveQuest(info.questID)
+    elseif elementData.buttonType == GOSSIP_BUTTON_TYPE_OPTION then
+        C_GossipInfo.SelectOptionByIndex(info.orderIndex)
+    end
+end
+
+local function SelectGreetingLine(index)
+    local numActive = GetNumActiveQuests()
+    if index <= numActive then
+        SelectActiveQuest(index)
+    elseif index <= numActive + GetNumAvailableQuests() then
+        SelectAvailableQuest(index - numActive)
+    end
+end
+
+local function OnDialogNumberKey(index)
+    if not DialogKeysActive() then return end
+    if GossipFrame:IsShown() then
+        SelectGossipLine(index)
+    elseif QuestFrame:IsShown() and QuestFrameGreetingPanel:IsShown() then
+        SelectGreetingLine(index)
+    end
+end
+
+local function OnDialogAcceptKey()
+    if not DialogKeysActive() or not QuestFrame:IsShown() then return end
+    if QuestFrameDetailPanel:IsShown() then
+        QuestFrameAcceptButton:Click()
+    elseif QuestFrameProgressPanel:IsShown() then
+        if QuestFrameCompleteButton:IsEnabled() then QuestFrameCompleteButton:Click() end
+    elseif QuestFrameRewardPanel:IsShown() then
+        QuestFrameCompleteQuestButton:Click()
+    end
+end
+
+--- Shows or hides the key label on one dialog line button.
+---@param button Button
+---@param index number|nil 1-based line index, nil to hide
+local function SetDialogLabel(button, index)
+    local label = dialogLabels[button]
+    if not index or index > DIALOG_KEY_COUNT or not DialogKeysActive() then
+        if label then label:Hide() end
+        return
+    end
+    if not label then
+        label = OneWoW_GUI:CreateFS(button, 10)
+        label:SetPoint("BOTTOMRIGHT", button.Icon, "BOTTOMRIGHT", 3, -2)
+        label:SetTextColor(OneWoW_GUI:GetThemeColor("TEXT_PRIMARY"))
+        dialogLabels[button] = label
+    end
+    local key = DialogActionKey("QUESTDIALOG_" .. index, tostring(index))
+    label:SetText(GetBindingText(key, true))
+    label:Show()
+end
+
+local function HideDialogLabels()
+    for _, label in pairs(dialogLabels) do
+        label:Hide()
+    end
+end
+
+local function RefreshGreetingLabels()
+    local numActive = GetNumActiveQuests()
+    for button in QuestFrameGreetingPanel.titleButtonPool:EnumerateActive() do
+        local index = button.isActive == 1 and button:GetID() or numActive + button:GetID()
+        SetDialogLabel(button, index)
+    end
+end
+
+local function RefreshGossipLabels()
+    GossipFrame.GreetingPanel.ScrollBox:ForEachFrame(function(frame, elementData)
+        if frame.Icon then
+            SetDialogLabel(frame, elementData.index)
+        end
+    end)
+end
+
+function QuestToolsModule:SyncDialogKeys()
+    if not dialogFrame then return end
+    if OneWoW.Restriction.IsProtectedActionBlocked() then
+        OneWoW.Restriction.RunWhenUnrestricted("protected", DIALOG_OWNER, function()
+            QuestToolsModule:SyncDialogKeys()
+        end)
+        return
+    end
+    ClearOverrideBindings(dialogFrame)
+    if dialogInCombat then return end
+    if not DialogKeysActive() then
+        HideDialogLabels()
+        return
+    end
+    local gossipOpen = GossipFrame:IsShown()
+    local questOpen = QuestFrame:IsShown()
+    if gossipOpen or (questOpen and QuestFrameGreetingPanel:IsShown()) then
+        for i = 1, DIALOG_KEY_COUNT do
+            local key1, key2 = DialogActionKey("QUESTDIALOG_" .. i, tostring(i))
+            SetOverrideBindingClick(dialogFrame, true, key1, DIALOG_KEY_BUTTON .. i)
+            if key2 then SetOverrideBindingClick(dialogFrame, true, key2, DIALOG_KEY_BUTTON .. i) end
+        end
+    end
+    if questOpen and (QuestFrameDetailPanel:IsShown() or QuestFrameProgressPanel:IsShown() or QuestFrameRewardPanel:IsShown()) then
+        local key1, key2 = DialogActionKey("QUESTDIALOG_ACCEPT", "SPACE")
+        SetOverrideBindingClick(dialogFrame, true, key1, DIALOG_ACCEPT_BUTTON)
+        if key2 then SetOverrideBindingClick(dialogFrame, true, key2, DIALOG_ACCEPT_BUTTON) end
+    end
+    if gossipOpen then RefreshGossipLabels() end
+    if questOpen and QuestFrameGreetingPanel:IsShown() then RefreshGreetingLabels() end
+end
+
+-- Panels swap show/hide within one frame (gossip -> quest detail), so sync once afterwards.
+local function QueueDialogSync()
+    if dialogSyncQueued then return end
+    dialogSyncQueued = true
+    C_Timer.After(0, function()
+        dialogSyncQueued = false
+        QuestToolsModule:SyncDialogKeys()
+    end)
+end
+
+function QuestToolsModule:HookDialogFrames()
+    if dialogHooked then return end
+    dialogHooked = true
+    local panels = { GossipFrame, QuestFrame, QuestFrameGreetingPanel, QuestFrameDetailPanel, QuestFrameProgressPanel, QuestFrameRewardPanel }
+    for _, panel in ipairs(panels) do
+        panel:HookScript("OnShow", QueueDialogSync)
+        panel:HookScript("OnHide", QueueDialogSync)
+    end
+    local scrollBox = GossipFrame.GreetingPanel.ScrollBox
+    ScrollUtil.AddAcquiredFrameCallback(scrollBox, function(_, frame, elementData)
+        if frame.Icon then SetDialogLabel(frame, elementData.index) end
+    end, dialogFrame)
+    ScrollUtil.AddReleasedFrameCallback(scrollBox, function(_, frame)
+        SetDialogLabel(frame, nil)
+    end, dialogFrame)
+end
+
+function QuestToolsModule:InitDialogKeys()
+    if dialogFrame then return end
+    dialogFrame = CreateFrame("Frame", "OneWoW_QoL_QuestDialogKeys")
+    for i = 1, DIALOG_KEY_COUNT do
+        local button = CreateFrame("Button", DIALOG_KEY_BUTTON .. i, dialogFrame)
+        button:SetScript("OnClick", function()
+            OnDialogNumberKey(i)
+        end)
+    end
+    local acceptButton = CreateFrame("Button", DIALOG_ACCEPT_BUTTON, dialogFrame)
+    acceptButton:SetScript("OnClick", OnDialogAcceptKey)
+    dialogFrame:SetScript("OnEvent", function(_, event)
+        if event == "PLAYER_REGEN_DISABLED" then
+            -- Lockdown starts after this handler; drop the keys while still allowed.
+            dialogInCombat = true
+            QuestToolsModule:SyncDialogKeys()
+        elseif event == "PLAYER_REGEN_ENABLED" then
+            dialogInCombat = false
+            QueueDialogSync()
+        elseif event == "UPDATE_BINDINGS" then
+            QueueDialogSync()
+        end
+    end)
+end
+
+function QuestToolsModule:RegisterDialogKeyEvents()
+    self:HookDialogFrames()
+    dialogInCombat = UnitAffectingCombat("player")
+    dialogFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+    dialogFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    dialogFrame:RegisterEvent("UPDATE_BINDINGS")
+    QueueDialogSync()
+end
+
+function QuestToolsModule:UnregisterDialogKeyEvents()
+    if not dialogFrame then return end
+    dialogFrame:UnregisterAllEvents()
+    OneWoW.Restriction.CancelWhenUnrestricted(DIALOG_OWNER)
+    QueueDialogSync()
+end
+
 function QuestToolsModule:OnEnable()
     self:InitAccept()
     self:InitTurnin()
     self:InitGossip()
     self:InitRewardPicker()
+    self:InitDialogKeys()
 
     C_Timer.After(0, function()
         QuestToolsModule:HookGossipFrameShow()
+        if GetToggle("dialog_keybinds") then
+            QuestToolsModule:RegisterDialogKeyEvents()
+        end
     end)
 
     self._acceptFrame:RegisterEvent("QUEST_DETAIL")
@@ -443,6 +666,7 @@ function QuestToolsModule:OnDisable()
     if self._acceptFrame then self._acceptFrame:UnregisterAllEvents() end
     if self._turninFrame then self._turninFrame:UnregisterAllEvents() end
     self:UnregisterGossipEvents()
+    self:UnregisterDialogKeyEvents()
     if self._goldIcon then self._goldIcon:Hide() end
 end
 
@@ -474,6 +698,12 @@ function QuestToolsModule:OnToggle(toggleId, value)
             self:RegisterGossipEvents()
         else
             self:UnregisterGossipEvents()
+        end
+    elseif toggleId == "dialog_keybinds" then
+        if value then
+            self:RegisterDialogKeyEvents()
+        else
+            self:UnregisterDialogKeyEvents()
         end
     end
 end

@@ -14,6 +14,8 @@ OneWoW.Locale:Register(M._scope, "zhTW", {
     ["QUESTTOOLS_TOGGLE_REWARDS_DESC"] = "在商人售價最高的任務獎勵物品上顯示一個金幣圖示。",
     ["QUESTTOOLS_TOGGLE_GOSSIP"] = "自動對話（任務標記行）",
     ["QUESTTOOLS_TOGGLE_GOSSIP_DESC"] = "自動選擇被標記為任務標籤（QuestLabelPrepend）的對話選項，即介面以任務樣式標籤顯示的相同行。如果有多項符合，則根據可見的行文字來決定。任務自動化設定修飾鍵，以及按住該鍵是跳過自動對話，還是必須先按住。需要你的客戶端支援 C_GossipInfo 和 QuestLabelPrepend（FlagsUtil / Enum.GossipOptionRecFlags）。",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS"] = "對話快捷鍵",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS_DESC"] = "對話或任務視窗開啟時, 按 1-9 選擇對應的選項或任務, 按空白鍵接受, 繼續或完成任務. 每一行都會顯示編號. 可在按鍵設定的 OneWoW QoL 分類中修改按鍵.",
     ["QUESTTOOLS_AUTOMATION_HEADER"] = "任務自動化",
     ["QUESTTOOLS_REQUIRE_MODIFIER"] = "需要修飾鍵才自動化",
     ["QUESTTOOLS_REQUIRE_MODIFIER_DESC"] = "開啟後，自動接受、繳交和任務對話僅在按住修飾鍵時執行。關閉後，除非按住修飾鍵，否則會執行。",

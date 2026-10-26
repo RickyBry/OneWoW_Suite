@@ -14,6 +14,8 @@ OneWoW.Locale:Register(M._scope, "frFR", {
     ["QUESTTOOLS_TOGGLE_REWARDS_DESC"] = "Affiche une icône de pièce d'or sur l'objet de récompense de quête ayant la plus haute valeur de vente chez le marchand.",
     ["QUESTTOOLS_TOGGLE_GOSSIP"] = "Auto-dialogue (lignes libellées quête)",
     ["QUESTTOOLS_TOGGLE_GOSSIP_DESC"] = "Sélectionne automatiquement les options de dialogue marquées comme libellées quête (QuestLabelPrepend), c.-à-d. les mêmes lignes que l'interface affiche avec le label de style quête. Si plusieurs conviennent, utilise le texte visible de la ligne pour décider. Automatisation des quêtes choisit le modificateur et s'il ignore l'auto-dialogue ou doit être maintenu d'abord. Nécessite la prise en charge de C_GossipInfo et QuestLabelPrepend (FlagsUtil / Enum.GossipOptionRecFlags) sur votre client.",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS"] = "Raccourcis de dialogue",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS_DESC"] = "Tant qu'une fenêtre de dialogue ou de quête est ouverte, les touches 1-9 choisissent l'option ou la quête correspondante et la barre d'espace accepte, continue ou termine la quête. Chaque ligne affiche son numéro. Les touches se modifient dans Raccourcis, sous OneWoW QoL.",
     ["QUESTTOOLS_AUTOMATION_HEADER"] = "Automatisation des quêtes",
     ["QUESTTOOLS_REQUIRE_MODIFIER"] = "Exiger le modificateur pour automatiser",
     ["QUESTTOOLS_REQUIRE_MODIFIER_DESC"] = "Si activé, l'auto-acceptation, le rendu et le dialogue de quête ne s'exécutent que tant que le modificateur est maintenu. Sinon, ils s'exécutent sauf si vous maintenez le modificateur.",

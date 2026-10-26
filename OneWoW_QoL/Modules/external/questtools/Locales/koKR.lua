@@ -14,6 +14,8 @@ OneWoW.Locale:Register(M._scope, "koKR", {
     ["QUESTTOOLS_TOGGLE_REWARDS_DESC"] = "상인 판매 가치가 가장 높은 퀘스트 보상 아이템에 금화 아이콘을 표시합니다.",
     ["QUESTTOOLS_TOGGLE_GOSSIP"] = "자동 대화 (퀘스트 표시 줄)",
     ["QUESTTOOLS_TOGGLE_GOSSIP_DESC"] = "퀘스트 표시(QuestLabelPrepend)로 지정된 대화 옵션, 즉 UI가 퀘스트 스타일 라벨로 표시하는 것과 같은 줄을 자동으로 선택합니다. 여러 개가 해당되면 보이는 줄 텍스트로 결정합니다. 퀘스트 자동화가 보조 키를 정하고, 그 키를 누르고 있으면 자동 대화를 건너뛸지 아니면 먼저 눌러야 하는지 정합니다. 클라이언트에 C_GossipInfo와 QuestLabelPrepend(FlagsUtil / Enum.GossipOptionRecFlags) 지원이 필요합니다.",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS"] = "대화 단축키",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS_DESC"] = "대화 창이나 퀘스트 창이 열려 있는 동안 1-9 키로 해당 선택지나 퀘스트를 고르고, 스페이스 키로 퀘스트를 수락, 계속 또는 완료합니다. 각 줄에 번호가 표시됩니다. 키는 단축키 설정의 OneWoW QoL 항목에서 바꿀 수 있습니다.",
     ["QUESTTOOLS_AUTOMATION_HEADER"] = "퀘스트 자동화",
     ["QUESTTOOLS_REQUIRE_MODIFIER"] = "자동화에 보조 키 필요",
     ["QUESTTOOLS_REQUIRE_MODIFIER_DESC"] = "켜면 자동 수락, 완료 보고, 퀘스트 대화는 보조 키를 누르고 있는 동안에만 실행됩니다. 끄면 보조 키를 누르고 있지 않을 때 실행됩니다.",

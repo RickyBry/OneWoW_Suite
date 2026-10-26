@@ -69,6 +69,7 @@
   - Inactive factions can be included. Guild gains can be skipped.
   - Optional: switch the reputation bar to the faction you just gained.
   - Reputation tooltips list standing for your other characters when AltTracker has saved them.
+- Quest Tools has a new Dialog keybinds setting, off until you turn it on. With a gossip or quest window open, 1-9 pick the matching option or quest and Space accepts, continues, or completes. Each line shows its number, and the keys can be changed in Key Bindings under OneWoW QoL.
 
 ---
 
@@ -76,7 +77,7 @@
 
 ---
 
-- **Last Updated**: Oct 21, 2026
+- **Last Updated**: Oct 26, 2026
 
 ## R6.2609.1519
 

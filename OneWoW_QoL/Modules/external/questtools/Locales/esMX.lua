@@ -14,6 +14,8 @@ OneWoW.Locale:Register(M._scope, "esMX", {
     ["QUESTTOOLS_TOGGLE_REWARDS_DESC"] = "Muestra un icono de moneda de oro en el objeto de recompensa de misión con el mayor valor de venta al vendedor.",
     ["QUESTTOOLS_TOGGLE_GOSSIP"] = "Auto-diálogo (líneas etiquetadas como misión)",
     ["QUESTTOOLS_TOGGLE_GOSSIP_DESC"] = "Selecciona automáticamente las opciones de diálogo marcadas como etiquetadas de misión (QuestLabelPrepend), es decir, las mismas líneas que la interfaz muestra con la etiqueta de estilo misión. Si hay más de una válida, usa el texto visible de la línea para decidir. Automatización de misiones elige el modificador y si mantenerlo omite el auto-diálogo o es necesario primero. Requiere compatibilidad con C_GossipInfo y QuestLabelPrepend (FlagsUtil / Enum.GossipOptionRecFlags) en tu cliente.",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS"] = "Atajos de diálogo",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS_DESC"] = "Mientras haya una ventana de diálogo o de misión abierta, las teclas 1-9 eligen la opción o misión correspondiente y la barra espaciadora acepta, continúa o completa la misión. Cada línea muestra su número. Las teclas se pueden cambiar en Asignación de teclas, en OneWoW QoL.",
     ["QUESTTOOLS_AUTOMATION_HEADER"] = "Automatización de misiones",
     ["QUESTTOOLS_REQUIRE_MODIFIER"] = "Exigir modificador para automatizar",
     ["QUESTTOOLS_REQUIRE_MODIFIER_DESC"] = "Si está activo, la auto-aceptación, la entrega y el diálogo de misión solo se ejecutan mientras mantienes el modificador. Si está inactivo, se ejecutan salvo que mantengas el modificador.",

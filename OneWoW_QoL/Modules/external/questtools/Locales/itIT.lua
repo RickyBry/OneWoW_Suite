@@ -14,6 +14,8 @@ OneWoW.Locale:Register(M._scope, "itIT", {
     ["QUESTTOOLS_TOGGLE_REWARDS_DESC"] = "Mostra un'icona a forma di moneta d'oro sull'oggetto ricompensa della missione con il valore di vendita più alto dal venditore.",
     ["QUESTTOOLS_TOGGLE_GOSSIP"] = "Auto-dialogo (righe etichettate come missione)",
     ["QUESTTOOLS_TOGGLE_GOSSIP_DESC"] = "Seleziona automaticamente le opzioni di dialogo contrassegnate come etichettate di missione (QuestLabelPrepend), cioè le stesse righe che l'interfaccia mostra con l'etichetta in stile missione. Se più di una è idonea, usa il testo visibile della riga per decidere. Automazione missioni sceglie il modificatore e se tenerlo premuto salta l'auto-dialogo o è richiesto prima. Richiede il supporto di C_GossipInfo e QuestLabelPrepend (FlagsUtil / Enum.GossipOptionRecFlags) sul tuo client.",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS"] = "Tasti rapidi dialogo",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS_DESC"] = "Quando una finestra di dialogo o di missione è aperta, i tasti 1-9 scelgono l'opzione o la missione corrispondente e la barra spaziatrice accetta, continua o completa la missione. Ogni riga mostra il suo numero. I tasti si possono cambiare in Assegnazione tasti, sotto OneWoW QoL.",
     ["QUESTTOOLS_AUTOMATION_HEADER"] = "Automazione missioni",
     ["QUESTTOOLS_REQUIRE_MODIFIER"] = "Richiedi il modificatore per automatizzare",
     ["QUESTTOOLS_REQUIRE_MODIFIER_DESC"] = "Se attivo, auto-accettazione, consegna e dialogo missione vengono eseguiti solo mentre tieni premuto il modificatore. Se disattivo, vengono eseguiti a meno che tu non tenga premuto il modificatore.",

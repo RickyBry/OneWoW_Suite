@@ -13,6 +13,8 @@ OneWoW.Locale:Register(M._scope, "enUS", {
     ["QUESTTOOLS_TOGGLE_REWARDS_DESC"] = "Shows a gold coin icon on the quest reward item with the highest vendor sell value.",
     ["QUESTTOOLS_TOGGLE_GOSSIP"] = "Auto Gossip (quest-labeled lines)",
     ["QUESTTOOLS_TOGGLE_GOSSIP_DESC"] = "Automatically selects gossip options flagged as quest-labeled (QuestLabelPrepend), i.e. the same lines the UI shows with the quest-style label. If more than one qualifies, uses visible line text to decide. Quest Automation sets the modifier and whether holding it skips auto-gossip or is required first. Requires C_GossipInfo and QuestLabelPrepend support (FlagsUtil / Enum.GossipOptionRecFlags) on your client.",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS"] = "Dialog keybinds",
+    ["QUESTTOOLS_TOGGLE_DIALOGKEYS_DESC"] = "While a gossip or quest window is open, keys 1-9 pick the matching option or quest and Space accepts, continues or completes the quest. Number labels show on each line. Keys can be changed in Key Bindings under OneWoW QoL.",
     ["QUESTTOOLS_AUTOMATION_HEADER"] = "Quest Automation",
     ["QUESTTOOLS_REQUIRE_MODIFIER"] = "Require modifier to automate",
     ["QUESTTOOLS_REQUIRE_MODIFIER_DESC"] = "When on, auto-accept, turn-in, and quest gossip run only while the modifier is held. When off, they run unless you hold the modifier.",

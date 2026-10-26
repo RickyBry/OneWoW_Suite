@@ -10,4 +10,14 @@
     <Binding name="BAGITEM_2" category="BINDING_HEADER_ONEWOW_QOL" />
     <Binding name="BAGITEM_3" category="BINDING_HEADER_ONEWOW_QOL" />
     <Binding name="BAGITEM_4" category="BINDING_HEADER_ONEWOW_QOL" />
+    <Binding name="QUESTDIALOG_1" category="BINDING_HEADER_ONEWOW_QOL" />
+    <Binding name="QUESTDIALOG_2" category="BINDING_HEADER_ONEWOW_QOL" />
+    <Binding name="QUESTDIALOG_3" category="BINDING_HEADER_ONEWOW_QOL" />
+    <Binding name="QUESTDIALOG_4" category="BINDING_HEADER_ONEWOW_QOL" />
+    <Binding name="QUESTDIALOG_5" category="BINDING_HEADER_ONEWOW_QOL" />
+    <Binding name="QUESTDIALOG_6" category="BINDING_HEADER_ONEWOW_QOL" />
+    <Binding name="QUESTDIALOG_7" category="BINDING_HEADER_ONEWOW_QOL" />
+    <Binding name="QUESTDIALOG_8" category="BINDING_HEADER_ONEWOW_QOL" />
+    <Binding name="QUESTDIALOG_9" category="BINDING_HEADER_ONEWOW_QOL" />
+    <Binding name="QUESTDIALOG_ACCEPT" category="BINDING_HEADER_ONEWOW_QOL" />
 </Bindings>

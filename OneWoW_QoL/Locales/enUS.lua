@@ -750,6 +750,16 @@ OneWoW.Locale:Register(ADDON_NAME, "enUS", {
     ["BINDING_NAME_BAGITEM_2"] = "Bag Item 2",
     ["BINDING_NAME_BAGITEM_3"] = "Bag Item 3",
     ["BINDING_NAME_BAGITEM_4"] = "Bag Item 4",
+    ["BINDING_NAME_QUESTDIALOG_1"] = "Quest Dialog Option 1",
+    ["BINDING_NAME_QUESTDIALOG_2"] = "Quest Dialog Option 2",
+    ["BINDING_NAME_QUESTDIALOG_3"] = "Quest Dialog Option 3",
+    ["BINDING_NAME_QUESTDIALOG_4"] = "Quest Dialog Option 4",
+    ["BINDING_NAME_QUESTDIALOG_5"] = "Quest Dialog Option 5",
+    ["BINDING_NAME_QUESTDIALOG_6"] = "Quest Dialog Option 6",
+    ["BINDING_NAME_QUESTDIALOG_7"] = "Quest Dialog Option 7",
+    ["BINDING_NAME_QUESTDIALOG_8"] = "Quest Dialog Option 8",
+    ["BINDING_NAME_QUESTDIALOG_9"] = "Quest Dialog Option 9",
+    ["BINDING_NAME_QUESTDIALOG_ACCEPT"] = "Quest Dialog Accept / Continue / Complete",
     ["BINDING_NAME_COPY_TEXT"] = "Copy Text",
 })
 
