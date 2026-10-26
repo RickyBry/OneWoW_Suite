@@ -9,7 +9,6 @@
 ## Fixes
 - What's New and other confirmation windows stay on screen at the largest font size. The message scrolls, the checkbox stays where you can check it, and Escape still closes the window.
 - The AFK screen's session time shows how long you have been logged in, instead of how long your computer has been on.
-- Quest dialogs no longer report an error when Catalog is turned off.
 - Deleted preset overlays stay deleted after a reload.
 - The Overlays settings Preview stays in its own column instead of sliding under the settings after you click through a few overlays.
 - Overlays on the default guild bank match the items in the tab you are viewing.
@@ -24,7 +23,6 @@
 ---
 
 # Catalog
-- Quest list includes quests added in the latest retail update.
 - Catalog loads only the expansion you are standing in, so tabs open faster and use less memory.
   - Other expansions load when you pick them in a filter, choose All, or search Item Search with two or more letters.
   - Zones "In This Zone" still lists every dungeon, raid, and Delve on your map, whatever its expansion.
