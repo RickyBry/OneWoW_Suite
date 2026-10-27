@@ -18,6 +18,10 @@ local OneWoW_GUI = OneWoW_GUI
 -- Collapsed headers hide child factions from GetNumFactions. While the
 -- reputation panel is closed, the scan expands headers and restores the
 -- previous open set so those gains are still seen.
+-- Some gains never move the numbers (max-renown factions not on paragon), so
+-- the amount in Blizzard's own chat line counts as a fallback when no number
+-- moved around that line. Each side remembers the other briefly so a gain
+-- seen both ways is counted once.
 -- ============================================================================
 
 local pairs, wipe, sort = pairs, wipe, sort
@@ -33,8 +37,52 @@ local ChatFrame_AddMessageEventFilter = ChatFrame_AddMessageEventFilter
 local ChatFrame_RemoveMessageEventFilter = ChatFrame_RemoveMessageEventFilter
 local BreakUpLargeNumbers = BreakUpLargeNumbers
 local UnitSex = UnitSex
+local GetTime = GetTime
+local tonumber = tonumber
 
 local MODULE_ID = Reputation.id
+local CREDIT_WINDOW = 2
+
+-- Blizzard's localized gain lines. Grammar codes (|3-n(...), |4a:b;) and the
+-- bonus part turn into wildcards; only the gained amount is captured.
+local GAIN_FORMATS = {
+    FACTION_STANDING_INCREASED,
+    FACTION_STANDING_INCREASED_ACCOUNT_WIDE,
+    FACTION_STANDING_INCREASED_ACH_BONUS,
+    FACTION_STANDING_INCREASED_ACH_BONUS_ACCOUNT_WIDE,
+    FACTION_STANDING_INCREASED_BONUS,
+    FACTION_STANDING_INCREASED_DOUBLE_BONUS,
+}
+local gainPatterns
+
+local function GainPattern(fmt)
+    local pattern = fmt
+        :gsub("|3%-%d+%(%%s%)", "\001")
+        :gsub("|4[^;]*;", "\002")
+        :gsub("%%[%d%$]*s", "\001")
+        :gsub("%%[%d%$]*d", "\003")
+        :gsub("%%[%d%$]*%.?%d*f", "\002")
+        :gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")
+        :gsub("\001", ".-")
+        :gsub("\002", ".-")
+        :gsub("\003", "(%%d+)")
+    return pattern
+end
+
+local function GainAmount(msg)
+    if not gainPatterns then
+        gainPatterns = {}
+        for i = 1, #GAIN_FORMATS do
+            gainPatterns[i] = GainPattern(GAIN_FORMATS[i])
+        end
+    end
+    for i = 1, #gainPatterns do
+        local amount = msg:match(gainPatterns[i])
+        if amount then
+            return tonumber(amount)
+        end
+    end
+end
 
 local function Toggle(toggleId)
     return ns.ModuleRegistry:GetToggleValue(MODULE_ID, toggleId)
@@ -92,7 +140,7 @@ local function CopyProgress(data)
             value = current
             kind = "paragon"
         end
-    elseif C_Reputation.IsMajorFaction(factionID) then
+    elseif C_Reputation.IsMajorFaction(factionID) and not C_MajorFactions.HasMaximumRenown(factionID) then
         local major = C_MajorFactions.GetMajorFactionData(factionID)
         if major and major.renownLevelThreshold and major.renownLevelThreshold > 0 then
             value = major.renownLevel * major.renownLevelThreshold + major.renownReputationEarned
@@ -257,6 +305,8 @@ function Reputation:Seed()
     self._session = self._session or {}
     self._pending = self._pending or {}
     self._announced = self._announced or {}
+    self._lastGain = self._lastGain or {}
+    self._chatCredit = self._chatCredit or {}
     self._inDiff = true
     self:ReadFactions(function(data, index)
         local info = CopyProgress(data)
@@ -273,15 +323,29 @@ function Reputation:Diff()
     self._snapshot = self._snapshot or {}
     self._session = self._session or {}
     self._pending = self._pending or {}
+    self._lastGain = self._lastGain or {}
+    self._chatCredit = self._chatCredit or {}
     self:ReadFactions(function(data, index)
         local factionID = data.factionID
         local info = CopyProgress(data)
         info.active = C_Reputation.IsFactionActive(index)
         local prev = self._snapshot[factionID]
         self._snapshot[factionID] = info
-        if prev and prev.value ~= info.value then
+        if prev and prev.kind == info.kind and prev.value ~= info.value then
             local delta = info.value - prev.value
-            self._session[factionID] = (self._session[factionID] or 0) + delta
+            local counted = delta
+            if delta > 0 then
+                local now = GetTime()
+                self._lastGain[factionID] = now
+                local credit = self._chatCredit[factionID]
+                if credit then
+                    self._chatCredit[factionID] = nil
+                    if now - credit.at <= CREDIT_WINDOW then
+                        counted = delta - credit.amount
+                    end
+                end
+            end
+            self._session[factionID] = (self._session[factionID] or 0) + counted
             self._pending[factionID] = {
                 factionID = factionID,
                 delta = delta,
@@ -341,6 +405,24 @@ function Reputation:MatchName(msg)
     return bestID
 end
 
+-- Chat filters run once per chat frame, so the same line can arrive several
+-- times in one frame; only the first one is counted.
+function Reputation:CreditChatGain(factionID, msg)
+    local amount = GainAmount(msg)
+    if not amount or amount <= 0 then return end
+    local now = GetTime()
+    local credit = self._chatCredit[factionID]
+    if credit and credit.at == now and credit.msg == msg then return end
+    local last = self._lastGain[factionID]
+    if last and now - last <= CREDIT_WINDOW then return end
+    self._session[factionID] = (self._session[factionID] or 0) + amount
+    self._chatCredit[factionID] = { amount = amount, at = now, msg = msg }
+    local info = self._snapshot[factionID]
+    if info then
+        self:MaybeSwitch(factionID, info)
+    end
+end
+
 function Reputation:OnChat(msg, ...)
     if not Enabled() or not Toggle("detailedChat") then return end
     if type(msg) ~= "string" then return end
@@ -348,6 +430,7 @@ function Reputation:OnChat(msg, ...)
     local factionID = self:MatchName(msg)
     if not factionID then return end
     self._announced[factionID] = true
+    self:CreditChatGain(factionID, msg)
     if self:IsGuild(factionID) and Toggle("skipGuildChat") then
         return true
     end
@@ -531,6 +614,8 @@ function Reputation:OnEnable()
     self._session = self._session or {}
     self._pending = self._pending or {}
     self._announced = self._announced or {}
+    self._lastGain = self._lastGain or {}
+    self._chatCredit = self._chatCredit or {}
     if not self._frame then
         self._frame = CreateFrame("Frame")
         self._frame:SetScript("OnEvent", function(_, event)
