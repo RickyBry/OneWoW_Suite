@@ -32,7 +32,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload nightly .releases/OneWoW-Suite-Nightly.zip --clobber
-      - name: Refresh nightly notes
+      - name: Move nightly tag to the built commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api -X PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/nightly" -f sha="${GITHUB_SHA}" -F force=true
+      - name: Refresh nightly notes and publish date
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -48,4 +52,6 @@ jobs:
             echo
             echo "Source: current \`main\` tip (not a CurseForge release)."
           } > "${RUNNER_TEMP}/nightly-notes.md"
-          gh release edit nightly --notes-file "${RUNNER_TEMP}/nightly-notes.md"
+          # Draft and republish so the release date shows this build; the asset URL is unchanged.
+          gh release edit nightly --draft=true
+          gh release edit nightly --draft=false --prerelease --target "${GITHUB_SHA}" --notes-file "${RUNNER_TEMP}/nightly-notes.md"
