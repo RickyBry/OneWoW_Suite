@@ -23,6 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      # Never push or move tags here: a tag push makes GitHub's Discord webhook
+      # announce every commit since the old tag (the 420-commit post on 2026-10-27).
+      - name: Guard against tag pushes in workflows
+        run: python .github/scripts/check_no_tag_push.py
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -32,10 +36,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload nightly .releases/OneWoW-Suite-Nightly.zip --clobber
-      - name: Move nightly tag to the built commit
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh api -X PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/nightly" -f sha="${GITHUB_SHA}" -F force=true
       - name: Refresh nightly notes and publish date
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,6 +52,7 @@ jobs:
             echo
             echo "Source: current \`main\` tip (not a CurseForge release)."
           } > "${RUNNER_TEMP}/nightly-notes.md"
-          # Draft and republish so the release date shows this build; the asset URL is unchanged.
+          # Draft and republish so the release date shows this build. The tag stays put
+          # (--target only sets the release field; it never moves an existing tag).
           gh release edit nightly --draft=true
           gh release edit nightly --draft=false --prerelease --target "${GITHUB_SHA}" --notes-file "${RUNNER_TEMP}/nightly-notes.md"
