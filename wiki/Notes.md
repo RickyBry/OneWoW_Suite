@@ -129,5 +129,5 @@ QoL **Inspect Gear** can save inspect notes into Notes when that module is enabl
 
 ### Sources
 
-* [OneWoW_Notes/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_Notes/README.md)
-* [suitecommands.md](https://github.com/kellewic/OneWoW_Suite/blob/main/suitecommands.md)
+* [OneWoW_Notes/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_Notes/README.md)
+* [suitecommands.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/suitecommands.md)

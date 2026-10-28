@@ -67,5 +67,5 @@ With **OneWoW_CatDB_TradeSkillDB** installed, Craft can pick recipes and show wh
 
 ### Sources
 
-* [OneWoW_ShoppingList/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_ShoppingList/README.md)
-* [suitecommands.md](https://github.com/kellewic/OneWoW_Suite/blob/main/suitecommands.md)
+* [OneWoW_ShoppingList/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_ShoppingList/README.md)
+* [suitecommands.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/suitecommands.md)

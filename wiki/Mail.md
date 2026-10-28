@@ -44,6 +44,6 @@ Reusable plans:
 
 ### Sources
 
-* [OneWoW_Mail/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_Mail/README.md) — player overview
-* [OneWoW_Mail/Docs/ARCHITECTURE.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_Mail/Docs/ARCHITECTURE.md) — engineering reference
-* [suitecommands.md](https://github.com/kellewic/OneWoW_Suite/blob/main/suitecommands.md)
+* [OneWoW_Mail/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_Mail/README.md) — player overview
+* [OneWoW_Mail/Docs/ARCHITECTURE.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_Mail/Docs/ARCHITECTURE.md) — engineering reference
+* [suitecommands.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/suitecommands.md)

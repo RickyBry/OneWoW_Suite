@@ -48,11 +48,11 @@ That upload is not a site Catalog. It only stores the facts for a future addon r
 
 ### Is the source public?
 
-Yes. The suite lives at [https://github.com/kellewic/OneWoW_Suite](https://github.com/kellewic/OneWoW_Suite). Anyone can read it, open an issue, or send a pull request (including original QoL modules). That is **not** permission to republish OneWoW as your own addon. See [About](About) and [LICENSE.md](https://github.com/kellewic/OneWoW_Suite/blob/main/LICENSE.md).
+Yes. The suite lives at [https://github.com/RickyBry/OneWoW_Suite](https://github.com/RickyBry/OneWoW_Suite). Anyone can read it, open an issue, or send a pull request (including original QoL modules). That is **not** permission to republish OneWoW as your own addon. See [About](About) and [LICENSE.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/LICENSE.md).
 
 ### Who wrote a QoL module?
 
-Open the module in QoL and use **Details**. That name is the credit line. The OneWoW team may edit shipped modules; credit stays with the original author until a complete rewrite, then they keep concept credit. Community list: [MODULE_CREDITS.md](https://github.com/kellewic/OneWoW_Suite/blob/main/MODULE_CREDITS.md). Empty credit means the OneWoW Development Team.
+Open the module in QoL and use **Details**. That name is the credit line. The OneWoW team may edit shipped modules; credit stays with the original author until a complete rewrite, then they keep concept credit. Community list: [MODULE_CREDITS.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/MODULE_CREDITS.md). Empty credit means the OneWoW Development Team.
 
 ### Is OneWoW written by AI?
 
@@ -86,8 +86,8 @@ Enable only one primary bag UI you intend to use, or expect overlapping keybinds
 
 ### Sources
 
-* [LICENSE.md](https://github.com/kellewic/OneWoW_Suite/blob/main/LICENSE.md)
-* [MODULE_CREDITS.md](https://github.com/kellewic/OneWoW_Suite/blob/main/MODULE_CREDITS.md)
-* [README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/README.md)
-* [OneWoW/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW/README.md)
+* [LICENSE.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/LICENSE.md)
+* [MODULE_CREDITS.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/MODULE_CREDITS.md)
+* [README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/README.md)
+* [OneWoW/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW/README.md)
 * Feature READMEs linked from each wiki feature page

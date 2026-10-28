@@ -65,5 +65,5 @@ Released Aug 4, 2026. Home hub cards and What’s New, slash cleanup path, Mail 
 
 ### Sources
 
-* [CHANGELOG.md](https://github.com/kellewic/OneWoW_Suite/blob/main/CHANGELOG.md)
+* [CHANGELOG.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/CHANGELOG.md)
 * In-game: Home → What’s New (highlights only)

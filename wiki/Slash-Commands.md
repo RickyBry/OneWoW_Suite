@@ -63,5 +63,5 @@ These require **QoL** loaded. Some only exist while that module is enabled.
 
 ### Sources
 
-* [suitecommands.md](https://github.com/kellewic/OneWoW_Suite/blob/main/suitecommands.md) — full slash command inventory (including debug)
-* [OneWoW/UI/t-home.lua](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW/UI/t-home.lua) — Home addon cards + Command Options
+* [suitecommands.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/suitecommands.md) — full slash command inventory (including debug)
+* [OneWoW/UI/t-home.lua](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW/UI/t-home.lua) — Home addon cards + Command Options

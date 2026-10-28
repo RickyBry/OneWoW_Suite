@@ -60,6 +60,6 @@ Turning an expansion off empties that expansion from Catalog tabs and related de
 
 ### Sources
 
-* [OneWoW_Catalog/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_Catalog/README.md)
-* [OneWoW_Catalog/Docs/CATDB.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_Catalog/Docs/CATDB.md)
-* [suitecommands.md](https://github.com/kellewic/OneWoW_Suite/blob/main/suitecommands.md)
+* [OneWoW_Catalog/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_Catalog/README.md)
+* [OneWoW_Catalog/Docs/CATDB.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_Catalog/Docs/CATDB.md)
+* [suitecommands.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/suitecommands.md)

@@ -51,7 +51,7 @@ Download: [https://onewow.net/download/](https://onewow.net/download/).
 
 ### Sources
 
-* [README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/README.md)
-* [OneWoW_AltTracker/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_AltTracker/README.md)
-* [OneWoW_Catalog/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_Catalog/README.md)
-* [OneWoW_Bags/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_Bags/README.md)
+* [README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/README.md)
+* [OneWoW_AltTracker/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_AltTracker/README.md)
+* [OneWoW_Catalog/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_Catalog/README.md)
+* [OneWoW_Bags/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_Bags/README.md)

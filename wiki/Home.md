@@ -6,7 +6,7 @@
 
 **Website:** [https://onewow.net/](https://onewow.net/)
 
-This wiki is the **player** reference — install, hub setup, slash commands, and how each feature works in-game. Engineering docs stay in the [repository](https://github.com/kellewic/OneWoW_Suite) (`OneWoW/Docs/` and per-addon `Docs/`). See [Developers](Developers) for links.
+This wiki is the **player** reference — install, hub setup, slash commands, and how each feature works in-game. Engineering docs stay in the [repository](https://github.com/RickyBry/OneWoW_Suite) (`OneWoW/Docs/` and per-addon `Docs/`). See [Developers](Developers) for links.
 
 ---
 
@@ -52,5 +52,5 @@ You do **not** need every folder. Catalog uses companion **CatDB** folders (one 
 
 ### Sources
 
-* [README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/README.md) — suite overview and addon catalog
-* [OneWoW/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW/README.md) — core hub features
+* [README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/README.md) — suite overview and addon catalog
+* [OneWoW/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW/README.md) — core hub features

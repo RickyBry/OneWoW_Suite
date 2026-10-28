@@ -122,5 +122,5 @@
 
 ### Sources
 
-* [CHANGELOG.md](https://github.com/kellewic/OneWoW_Suite/blob/main/CHANGELOG.md)
+* [CHANGELOG.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/CHANGELOG.md)
 * In-game: Home → What’s New (highlights only)

@@ -361,4 +361,4 @@ SAVED(Collected Toys) & #epic
 
 ### Sources
 
-* [OneWoW_Bags/Docs/SEARCH_SYNTAX.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_Bags/Docs/SEARCH_SYNTAX.md) — full expression reference (this page is the player-facing subset)
+* [OneWoW_Bags/Docs/SEARCH_SYNTAX.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_Bags/Docs/SEARCH_SYNTAX.md) — full expression reference (this page is the player-facing subset)

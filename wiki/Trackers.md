@@ -57,5 +57,5 @@ Many step types complete themselves from game events — quests, renown, vault s
 
 ### Sources
 
-* [OneWoW_Trackers/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_Trackers/README.md)
-* [suitecommands.md](https://github.com/kellewic/OneWoW_Suite/blob/main/suitecommands.md)
+* [OneWoW_Trackers/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_Trackers/README.md)
+* [suitecommands.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/suitecommands.md)

@@ -57,6 +57,6 @@ Log into each character periodically so their data stays fresh. Open banks/AH wh
 
 ### Sources
 
-* [OneWoW_AltTracker/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_AltTracker/README.md)
-* [README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/README.md) — AltTracker data-store catalog
-* [suitecommands.md](https://github.com/kellewic/OneWoW_Suite/blob/main/suitecommands.md)
+* [OneWoW_AltTracker/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_AltTracker/README.md)
+* [README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/README.md) — AltTracker data-store catalog
+* [suitecommands.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/suitecommands.md)

@@ -71,5 +71,5 @@ Theme, language (all 11 suite locales), and minimap button.
 
 ### Sources
 
-* [OneWoW_Utility_DevTool/README.md](https://github.com/kellewic/OneWoW_Suite/blob/main/OneWoW_Utility_DevTool/README.md)
-* [suitecommands.md](https://github.com/kellewic/OneWoW_Suite/blob/main/suitecommands.md)
+* [OneWoW_Utility_DevTool/README.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/OneWoW_Utility_DevTool/README.md)
+* [suitecommands.md](https://github.com/RickyBry/OneWoW_Suite/blob/main/suitecommands.md)
