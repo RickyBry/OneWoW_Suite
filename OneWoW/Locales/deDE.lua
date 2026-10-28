@@ -159,7 +159,7 @@ ns.Locale:Register(ADDON_NAME, "deDE", {
     ["WHATS_NEW_TITLE"] = "Neuigkeiten — %s",
     ["WHATS_NEW_DONT_SHOW"] = "Für diese Version nicht mehr anzeigen",
     ["WHATS_NEW_FOOTER"] = "Vollständige Versionshinweise öffnest du über die Schaltfläche unten.",
-    ["WHATS_NEW_URL"] = "https://github.com/kellewic/OneWoW_Suite/wiki/Release-Notes",
+    ["WHATS_NEW_URL"] = "https://github.com/RickyBry/OneWoW_Suite/wiki/Release-Notes",
     ["WHATS_NEW_RELEASE_NOTES_BTN"] = "Versionshinweise",
     ["WHATS_NEW_H_HOME_BODY"] = "„Benötigt Aufmerksamkeit“ auf Start listet nur echte Probleme (Versionskonflikt, Ladefehler, fehlende Datenpakete) — nicht Funktionen, die ihr absichtlich ausgeschaltet habt. Nicht kritische Einträge könnt ihr verwerfen.",
     ["WHATS_NEW_H_SLASH_TITLE"] = "Slash-Befehle",

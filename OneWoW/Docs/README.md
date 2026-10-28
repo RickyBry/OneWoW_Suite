@@ -1,7 +1,7 @@
 # OneWoW Suite — Documentation Index
 
 Player-facing suite overview and addon catalog: [README.md](../../README.md) (repo root).
-Player docs (install, features, search syntax): [GitHub Wiki](https://github.com/kellewic/OneWoW_Suite/wiki).
+Player docs (install, features, search syntax): [GitHub Wiki](https://github.com/RickyBry/OneWoW_Suite/wiki).
 
 Contributor and integrator documentation for the suite.
 
@@ -53,7 +53,7 @@ Quest query APIs (`OneWoW_CatDB_QuestDBCurrent_API` and the archive alias) live 
 
 | Location | Audience | Content |
 |----------|----------|---------|
-| [GitHub Wiki](https://github.com/kellewic/OneWoW_Suite/wiki) | Players | Install, getting started, feature guides, search syntax |
+| [GitHub Wiki](https://github.com/RickyBry/OneWoW_Suite/wiki) | Players | Install, getting started, feature guides, search syntax |
 | Repo `README.md` | Players | Suite overview, addon catalog, quick start |
 | `ADDON/README.md` | Players | What the addon does, install, slash commands |
 | `ADDON/Docs/` | Contributors | Architecture, APIs, data models |

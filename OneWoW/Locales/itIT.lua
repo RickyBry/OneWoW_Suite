@@ -159,7 +159,7 @@ ns.Locale:Register(ADDON_NAME, "itIT", {
     ["WHATS_NEW_TITLE"] = "Novità — %s",
     ["WHATS_NEW_DONT_SHOW"] = "Non mostrare di nuovo in questa versione",
     ["WHATS_NEW_FOOTER"] = "Per le note di rilascio complete, usa il pulsante qui sotto.",
-    ["WHATS_NEW_URL"] = "https://github.com/kellewic/OneWoW_Suite/wiki/Release-Notes",
+    ["WHATS_NEW_URL"] = "https://github.com/RickyBry/OneWoW_Suite/wiki/Release-Notes",
     ["WHATS_NEW_RELEASE_NOTES_BTN"] = "Note di rilascio",
     ["WHATS_NEW_H_HOME_BODY"] = "«Richiede attenzione» su Principale elenca solo problemi reali (versione diversa, errori di caricamento, pacchetti dati mancanti), non le funzioni disattivate di proposito. Potete ignorare quelle non critiche.",
     ["WHATS_NEW_H_SLASH_TITLE"] = "Comandi slash",

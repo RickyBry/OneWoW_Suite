@@ -159,7 +159,7 @@ ns.Locale:Register(ADDON_NAME, "esES", {
     ["WHATS_NEW_TITLE"] = "Novedades — %s",
     ["WHATS_NEW_DONT_SHOW"] = "No volver a mostrar en esta versión",
     ["WHATS_NEW_FOOTER"] = "Para las notas de la versión completas, usa el botón de abajo.",
-    ["WHATS_NEW_URL"] = "https://github.com/kellewic/OneWoW_Suite/wiki/Release-Notes",
+    ["WHATS_NEW_URL"] = "https://github.com/RickyBry/OneWoW_Suite/wiki/Release-Notes",
     ["WHATS_NEW_RELEASE_NOTES_BTN"] = "Notas de la versión",
     ["WHATS_NEW_H_HOME_BODY"] = "«Necesita atención» en Principal solo lista problemas reales (desajuste de versión, fallos de carga, paquetes de datos faltantes), no funciones que desactivasteis a propósito. Podéis descartar las no críticas.",
     ["WHATS_NEW_H_SLASH_TITLE"] = "Comandos de barra",

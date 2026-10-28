@@ -52,8 +52,8 @@ Supports all 11 suite locales — see [LOCALES.md](../OneWoW/Docs/LOCALES.md).
 
 ## Documentation
 
-- Player wiki: [Mail](https://github.com/kellewic/OneWoW_Suite/wiki/Mail)
-- Search expressions: [OneWoW_Bags/Docs/SEARCH_SYNTAX.md](../OneWoW_Bags/Docs/SEARCH_SYNTAX.md) (player wiki: [Bags Search Syntax](https://github.com/kellewic/OneWoW_Suite/wiki/Bags-Search-Syntax))
+- Player wiki: [Mail](https://github.com/RickyBry/OneWoW_Suite/wiki/Mail)
+- Search expressions: [OneWoW_Bags/Docs/SEARCH_SYNTAX.md](../OneWoW_Bags/Docs/SEARCH_SYNTAX.md) (player wiki: [Bags Search Syntax](https://github.com/RickyBry/OneWoW_Suite/wiki/Bags-Search-Syntax))
 - Contributor architecture: [Docs/ARCHITECTURE.md](Docs/ARCHITECTURE.md)
 
 ## Contributing

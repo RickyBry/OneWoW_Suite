@@ -159,7 +159,7 @@ ns.Locale:Register(ADDON_NAME, "enUS", {
     ["WHATS_NEW_TITLE"] = "What's New — %s",
     ["WHATS_NEW_DONT_SHOW"] = "Don't show again this release",
     ["WHATS_NEW_FOOTER"] = "For full release notes, use the Release notes button below.",
-    ["WHATS_NEW_URL"] = "https://github.com/kellewic/OneWoW_Suite/wiki/Release-Notes",
+    ["WHATS_NEW_URL"] = "https://github.com/RickyBry/OneWoW_Suite/wiki/Release-Notes",
     ["WHATS_NEW_RELEASE_NOTES_BTN"] = "Release notes",
     ["WHATS_NEW_H_HOME_BODY"] = "Needs attention on Home only lists real problems (version mismatch, load failures, missing data packs)—not features you turned off. You can dismiss non-critical items.",
     ["WHATS_NEW_H_SLASH_TITLE"] = "Slash commands",

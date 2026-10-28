@@ -159,7 +159,7 @@ ns.Locale:Register(ADDON_NAME, "zhCN", {
     ["WHATS_NEW_TITLE"] = "更新内容 — %s",
     ["WHATS_NEW_DONT_SHOW"] = "本版本不再显示",
     ["WHATS_NEW_FOOTER"] = "完整发行说明请使用下方按钮。",
-    ["WHATS_NEW_URL"] = "https://github.com/kellewic/OneWoW_Suite/wiki/Release-Notes",
+    ["WHATS_NEW_URL"] = "https://github.com/RickyBry/OneWoW_Suite/wiki/Release-Notes",
     ["WHATS_NEW_RELEASE_NOTES_BTN"] = "发行说明",
     ["WHATS_NEW_H_HOME_BODY"] = "首页的“需要注意”只列出真正的问题（版本不匹配、加载失败、缺少数据包），不会把你主动关闭的功能算进去。非关键项可以忽略。",
     ["WHATS_NEW_H_SLASH_TITLE"] = "斜杠命令",

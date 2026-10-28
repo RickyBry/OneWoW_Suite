@@ -159,7 +159,7 @@ ns.Locale:Register(ADDON_NAME, "ruRU", {
     ["WHATS_NEW_TITLE"] = "Что нового — %s",
     ["WHATS_NEW_DONT_SHOW"] = "Не показывать снова в этой версии",
     ["WHATS_NEW_FOOTER"] = "Полные заметки о выпуске — кнопкой ниже.",
-    ["WHATS_NEW_URL"] = "https://github.com/kellewic/OneWoW_Suite/wiki/Release-Notes",
+    ["WHATS_NEW_URL"] = "https://github.com/RickyBry/OneWoW_Suite/wiki/Release-Notes",
     ["WHATS_NEW_RELEASE_NOTES_BTN"] = "Заметки о выпуске",
     ["WHATS_NEW_H_HOME_BODY"] = "«Требует внимания» на главной показывает только реальные проблемы (несовпадение версии, сбои загрузки, отсутствующие пакеты данных) — не функции, которые вы отключили. Некритичные можно отклонить.",
     ["WHATS_NEW_H_SLASH_TITLE"] = "Слэш-команды",

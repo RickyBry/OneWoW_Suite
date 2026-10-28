@@ -159,7 +159,7 @@ ns.Locale:Register(ADDON_NAME, "koKR", {
     ["WHATS_NEW_TITLE"] = "새로운 기능 — %s",
     ["WHATS_NEW_DONT_SHOW"] = "이 버전에서는 다시 표시하지 않음",
     ["WHATS_NEW_FOOTER"] = "전체 릴리스 노트는 아래 버튼을 사용하세요.",
-    ["WHATS_NEW_URL"] = "https://github.com/kellewic/OneWoW_Suite/wiki/Release-Notes",
+    ["WHATS_NEW_URL"] = "https://github.com/RickyBry/OneWoW_Suite/wiki/Release-Notes",
     ["WHATS_NEW_RELEASE_NOTES_BTN"] = "릴리스 노트",
     ["WHATS_NEW_H_HOME_BODY"] = "홈의 ‘주의 필요’는 실제 문제(버전 불일치, 로드 실패, 데이터 팩 누락)만 표시하며, 의도적으로 끈 기능은 세지 않습니다. 중요하지 않은 항목은 닫을 수 있습니다.",
     ["WHATS_NEW_H_SLASH_TITLE"] = "슬래시 명령어",

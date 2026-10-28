@@ -159,7 +159,7 @@ ns.Locale:Register(ADDON_NAME, "ptBR", {
     ["WHATS_NEW_TITLE"] = "Novidades — %s",
     ["WHATS_NEW_DONT_SHOW"] = "Não mostrar de novo nesta versão",
     ["WHATS_NEW_FOOTER"] = "Para as notas de lançamento completas, use o botão abaixo.",
-    ["WHATS_NEW_URL"] = "https://github.com/kellewic/OneWoW_Suite/wiki/Release-Notes",
+    ["WHATS_NEW_URL"] = "https://github.com/RickyBry/OneWoW_Suite/wiki/Release-Notes",
     ["WHATS_NEW_RELEASE_NOTES_BTN"] = "Notas de lançamento",
     ["WHATS_NEW_H_HOME_BODY"] = "“Precisa de atenção” no Início lista só problemas reais (versão diferente, falhas de carga, pacotes de dados ausentes) — não recursos que você desativou de propósito. Você pode dispensar os não críticos.",
     ["WHATS_NEW_H_SLASH_TITLE"] = "Comandos de barra",
