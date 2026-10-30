@@ -10520,7 +10520,6 @@ return {
 	[208885]={itemID=208885,name="Kaldorei Protector's Wristwraps",quality=3,bindType=1,isTransmog=true,expansion=1},
 	[208886]={itemID=208886,name="Fiery Essence",quality=1,bindType=4,expansion=10},
 	[208887]={itemID=208887,name="Erden's Notes",quality=1,bindType=1,expansion=10},
-	[208888]={itemID=208888,name="Kirin Tor Contact's Note",quality=1,bindType=1,expansion=10},
 	[208890]={itemID=208890,name="Dreambound Plate Helm",quality=3,bindType=1,expansion=10},
 	[208891]={itemID=208891,name="Dreambound Cloth Helm",quality=3,bindType=1,expansion=10},
 	[208892]={itemID=208892,name="Dreambound Mail Helm",quality=3,bindType=1,expansion=10},
@@ -13725,5 +13724,6 @@ return {
 	[284255]={itemID=284255,name="Pattern: Beloved Ottuk Plushie",quality=2,bindType=1,expansion=10},
 	[284256]={itemID=284256,name="Pattern: Beloved Ottuuuuuuk Plushie",quality=2,bindType=1,expansion=10},
 	[284402]={itemID=284402,name="Valdrakken Resupply Coin",quality=7,bindType=1,expansion=10},
+	[284579]={itemID=284579,name="Obsidian Lava Pool",quality=3,bindType=1},
 }
 end)

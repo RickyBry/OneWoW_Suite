@@ -477,7 +477,7 @@ places={
 		instanceType="raid",
 		difficultyIDs={14,15,17,220,233},
 		encounterIDs={2896},
-		npcIDs={207896,207912,230571,253504,259664},
+		npcIDs={207896,207912,230571,253504,259664,267861},
 		achievementIDs={63692,63693,63694,64165},
 	},
 	["instance:1322"]={
@@ -1961,7 +1961,7 @@ encounters={
 		uiMapID=2669,
 		pin={x=0.4845,y=0.266},
 		difficultyIDs={14,15,17,220,233},
-		npcIDs={207896,207912,230571,253504,259664},
+		npcIDs={207896,207912,230571,253504,259664,267861},
 		displayIDs={90723,92755,145178},
 		loot={
 			{itemID=281235,diffs={},faction=-1},
@@ -1977,6 +1977,8 @@ encounters={
 			{itemID=281615,diffs={},faction=-1},
 			{itemID=281213,diffs={},faction=-1},
 			{itemID=284159,diffs={233},faction=-1},
+			{itemID=284160,diffs={16},faction=-1},
+			{itemID=286019,diffs={112},faction=-1},
 		},
 	},
 	[10236076]={

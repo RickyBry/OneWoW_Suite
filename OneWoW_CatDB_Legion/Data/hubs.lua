@@ -556,6 +556,7 @@ encounters={
 			{itemID=153301,diffs={49096},faction=-1,questIDs={49096}},
 			{itemID=153307,diffs={49097},faction=-1,questIDs={49097}},
 			{itemID=153320,diffs={49099},faction=-1,questIDs={49099}},
+			{itemID=282162,diffs={},faction=-1},
 		},
 	},
 }

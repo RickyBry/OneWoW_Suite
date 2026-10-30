@@ -344,7 +344,7 @@ return {
 [112629] = {npcID=112629,expansion=6,roles={"vendor"},items={[97625]={},[97630]={},[97628]={},[97626]={},[97627]={}}},
 [112631] = {npcID=112631,expansion=6,roles={"vendor"},items={[97676]={},[97677]={}}},
 [112634] = {npcID=112634,expansion=6,category="decor",roles={"vendor"},locations={[641]={x=56.4,y=80.6}},items={[97625]={},[97630]={},[97628]={},[97626]={},[97627]={},[252762]={},[252763]={},[245260]={currencies={{currencyID=1220,amount=400}}},[238863]={currencies={{currencyID=1220,amount=300}}}}},
-[112716] = {npcID=112716,expansion=6,category="decor",roles={"vendor"},locations={[627]={x=43.1,y=49.1}},items={[246851]={cost=150000000},[252446]={},[274648]={}}},
+[112716] = {npcID=112716,expansion=6,category="decor",roles={"vendor"},locations={[627]={x=43.1,y=49.1}},items={[246851]={cost=150000000},[252446]={},[274648]={},[284264]={cost=10000000,currencies={{currencyID=1220,amount=500}}}}},
 [112868] = {npcID=112868,expansion=6,roles={"vendor"},items={[97662]={},[97667]={},[97665]={},[97663]={},[97664]={}}},
 [112952] = {npcID=112952,name="Light's Heart",expansion=6,displayID=72975,creatureType=10,category="quest_giver",roles={"quest_giver"},questIDs={44479,44481,44496,44497}},
 [112953] = {npcID=112953,name="Light's Heart",expansion=6,displayID=72466,creatureType=10,category="quest_giver",roles={"quest_giver"},questIDs={44479,44481,44496,44497}},

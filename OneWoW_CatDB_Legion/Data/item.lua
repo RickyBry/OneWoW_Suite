@@ -19838,8 +19838,6 @@ return {
 	[254752]={itemID=254752,name="Ensemble: Triumvirate High Guard's Battlegear",quality=4,bindType=1,expansion=7},
 	[254753]={itemID=254753,name="Ensemble: Forgotten Conservatory Clothes",quality=4,bindType=1,expansion=7},
 	[254754]={itemID=254754,name="Ensemble: Eredath Lightseeker's Regalia",quality=4,bindType=1,expansion=7},
-	[254836]={itemID=254836,name="Intricate Stormgem Shard",quality=3,bindType=1,expansion=7},
-	[254837]={itemID=254837,name="Flawed Stormgem Shard",quality=2,bindType=1,expansion=7},
 	[254847]={itemID=254847,name="Minor Bronze Cache",quality=2,bindType=1,expansion=7},
 	[254848]={itemID=254848,name="Minor Bronze Cache",quality=2,bindType=1,expansion=7},
 	[254849]={itemID=254849,name="Minor Bronze Cache",quality=2,bindType=1,expansion=7},
@@ -19955,5 +19953,6 @@ return {
 	[282154]={itemID=282154,name="Amethyst Argunite Crystal",quality=2,bindType=1},
 	[282156]={itemID=282156,name="Reinforced Empyrium Tile",quality=2,bindType=1},
 	[282162]={itemID=282162,name="Ceremonial Lightforged Standard",quality=3,bindType=1},
+	[284264]={itemID=284264,name="\"Gnoma Lisa\" Painting",quality=2,bindType=1},
 }
 end)

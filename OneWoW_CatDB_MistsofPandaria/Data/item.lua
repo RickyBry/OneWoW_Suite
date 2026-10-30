@@ -15412,7 +15412,6 @@ return {
 	[104856]={itemID=104856,name="Montak's Grips of Scorching Breath",quality=4,bindType=1,isTransmog=true,expansion=5},
 	[104857]={itemID=104857,name="Akolik's Acid-Soaked Robes",quality=4,bindType=1,isTransmog=true,expansion=5},
 	[104858]={itemID=104858,name="Festering Primordial Globule",quality=4,bindType=1,isTransmog=true,expansion=5},
-	[104859]={itemID=104859,name="Signet of the Dinomancers",quality=4,bindType=1,expansion=5},
 	[104861]={itemID=104861,name="Icy Blood Chestplate",quality=4,bindType=1,isTransmog=true,expansion=5},
 	[104863]={itemID=104863,name="Britomart's Jagged Pike",quality=4,bindType=1,isTransmog=true,expansion=5},
 	[104866]={itemID=104866,name="Fusespark Gloves",quality=4,bindType=1,isTransmog=true,expansion=5},
