@@ -36,7 +36,10 @@ local function FormatExpacDropdownText(filter)
         onlyID = id
     end
     if count == 1 then
-        return OneWoW:GetExpansionName(onlyID) or L["EXPAC_FILTER_BTN"]
+        if OneWoW:GetExpansionName(onlyID) then
+            return WH:GetExpansionDisplayName(onlyID)
+        end
+        return L["EXPAC_FILTER_BTN"]
     end
     return format(L["EXPAC_FILTER_N"], count)
 end
@@ -588,11 +591,10 @@ function ns.InfoBarFactory:Create(config)
                         },
                     }
                     for _, id in ipairs(WH:GetKnownExpansionIDs()) do
-                        local expansionName = OneWoW:GetExpansionName(id)
-                        if expansionName then
+                        if OneWoW:GetExpansionName(id) then
                             tinsert(items, {
                                 type = "checkbox",
-                                text = expansionName,
+                                text = WH:GetExpansionDisplayName(id),
                                 checked = selected and selected[id] == true,
                                 onBind = function(cb)
                                     widgets.exp[id] = cb
@@ -629,11 +631,8 @@ function ns.InfoBarFactory:Create(config)
                 end
                 local names = {}
                 for _, id in ipairs(WH:GetKnownExpansionIDs()) do
-                    if filter[id] then
-                        local expansionName = OneWoW:GetExpansionName(id)
-                        if expansionName then
-                            tinsert(names, expansionName)
-                        end
+                    if filter[id] and OneWoW:GetExpansionName(id) then
+                        tinsert(names, WH:GetExpansionDisplayName(id))
                     end
                 end
                 if #names < 2 then

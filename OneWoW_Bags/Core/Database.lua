@@ -49,6 +49,7 @@ local defaults = {
         compactCategories = false,
         enableInventorySlots = false,
         itemSort = "none",
+        useShortExpansionNames = false,
         hideScrollBar = false,
         enableBagsUI = true,
         enableBankUI = true,

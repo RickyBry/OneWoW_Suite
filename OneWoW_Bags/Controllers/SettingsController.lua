@@ -48,6 +48,13 @@ SettingsController.appliers = {
         db.global.itemSort = value
         self.addon:RequestLayoutRefresh("all")
     end,
+    useShortExpansionNames = function(self, db, value)
+        db.global.useShortExpansionNames = value
+        self.addon.InfoBar:UpdateViewButtons()
+        self.addon.BankInfoBar:UpdateViewButtons()
+        self.addon.GuildBankInfoBar:UpdateViewButtons()
+        self.addon:RequestLayoutRefresh("all")
+    end,
     enableJunkCategory = function(self, db, value)
         db.global.enableJunkCategory = value
         self.addon:InvalidateCategorization()

@@ -330,7 +330,20 @@ local function BuildGeneralTab(sc, db)
             end,
         })
         Settings.itemSortDDText = sortDDText
-        y = sortY
+        y = sortY - 8
+
+        y = OneWoW_GUI:CreateToggleRow(content, {
+            yOffset = y,
+            contentWidth = w,
+            label = L["SETTING_SHORT_EXPAC_NAMES"],
+            description = L["DESC_SHORT_EXPAC_NAMES"],
+            isEnabled = true,
+            value = db.global.useShortExpansionNames,
+            onLabel = L["TOGGLE_ON"], offLabel = L["TOGGLE_OFF"],
+            onValueChange = function(newVal)
+                ApplySetting("useShortExpansionNames", newVal)
+            end,
+        })
 
         return math.max(1, abs(y))
     end)

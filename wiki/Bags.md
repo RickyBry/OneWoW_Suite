@@ -49,6 +49,7 @@ Full reference: [Search syntax](Bags-Search-Syntax).
 ### Layout tweaks
 
 * Icon size, columns, and a scale slider per window (bags, personal bank, warband bank, guild bank)
+* **Short Expansion Names** (General > Display): short labels like BC, Wrath or Mid in expansion filters and expansion category headers
 * Sort and grouping options (global and per-category where available)
 * Rarity color intensity and recent-item highlight duration
 

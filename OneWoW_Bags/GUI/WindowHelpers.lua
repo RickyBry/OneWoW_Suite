@@ -502,13 +502,34 @@ function WH:ResolveExpansionID(itemInfo, bagID, slotID)
     return nil
 end
 
---- Display name for expansion grouping; never nil.
+-- Classic and Legion keep Blizzard's names, which are already short.
+local EXPANSION_SHORT_KEYS = {
+    [Enum.ExpansionLevel.BurningCrusade] = "EXPAC_SHORT_BC",
+    [Enum.ExpansionLevel.Northrend] = "EXPAC_SHORT_WRATH",
+    [Enum.ExpansionLevel.Cataclysm] = "EXPAC_SHORT_CATA",
+    [Enum.ExpansionLevel.MistsOfPandaria] = "EXPAC_SHORT_MOP",
+    [Enum.ExpansionLevel.Draenor] = "EXPAC_SHORT_WOD",
+    [Enum.ExpansionLevel.BattleForAzeroth] = "EXPAC_SHORT_BFA",
+    [Enum.ExpansionLevel.Shadowlands] = "EXPAC_SHORT_SL",
+    [Enum.ExpansionLevel.Dragonflight] = "EXPAC_SHORT_DF",
+    [Enum.ExpansionLevel.WarWithin] = "EXPAC_SHORT_TWW",
+    [Enum.ExpansionLevel.Midnight] = "EXPAC_SHORT_MID",
+    [Enum.ExpansionLevel.LastTitan] = "EXPAC_SHORT_TITAN",
+}
+
+--- Display name for expansion grouping, filters and tooltips; never nil.
+--- Uses the short label when the General > Display toggle is on.
 ---@param expansionID number|nil
 ---@return string
 function WH:GetExpansionDisplayName(expansionID)
     local L = ns.L
     if expansionID == nil or expansionID < 0 then
         return L["EXPAC_UNKNOWN"]
+    end
+
+    local shortKey = EXPANSION_SHORT_KEYS[expansionID]
+    if shortKey and ns:GetDB().global.useShortExpansionNames then
+        return L[shortKey]
     end
 
     local name = OneWoW:GetExpansionName(expansionID)

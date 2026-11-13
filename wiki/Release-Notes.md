@@ -4,11 +4,17 @@
 
 ---
 
-*No user-facing changes this release for the suite core, Catalog, Notes, Direct Deposit, Mail, AltTracker, QoL, Trackers, Shopping List, Bags, or DevTool.*
+### Bags
+
+- New **Short Expansion Names** toggle in General > Display. When on, expansion filters, their tooltips and expansion category headers in every bag window use short names like BC, Wrath or Mid. Off by default.
 
 ---
 
-- **Last Updated**: Oct 27, 2026
+*No user-facing changes this release for the suite core, Catalog, Notes, Direct Deposit, Mail, AltTracker, QoL, Trackers, Shopping List, or DevTool.*
+
+---
+
+- **Last Updated**: Nov 13, 2026
 ## R6.2609.1519
 
 Released Sep 16, 2026. Per-expansion Catalog packs with Collectibles, Housing, and NPCs, ESC and AFK Character and Zone cards, Shopping List Farming, and OneWay Pins.
